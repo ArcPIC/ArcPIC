@@ -29,8 +29,8 @@ if(NOT CMAKE_BUILD_TYPE)
 		FORCE)
 endif()
 
+#Supporting libraries
+add_subdirectory(support)
 
 #The main ArcPIC code
 add_subdirectory(pic2d)
-#Supporting libraries
-add_subdirectory(support)

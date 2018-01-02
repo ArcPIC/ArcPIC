@@ -8,7 +8,6 @@ target_include_directories(ArcPIC PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/h)
 
 #Use the SuperLU library
 target_link_libraries(ArcPIC superlu)
-message(${SuperLU_SOURCE_DIR})
 target_include_directories(ArcPIC PUBLIC ${SuperLU_SOURCE_DIR}/SRC)
 
 #Use OpenMP for paralellization
@@ -26,6 +25,6 @@ include(FindGSL)
 if(GSL_FOUND)
   target_include_directories(ArcPIC PUBLIC ${GSL_INCLUDE_DIRS})
   target_link_libraries(ArcPIC ${GSL_LIBRARIES})
-else(OPENMP_FOUND)
+else(GSL_FOUND)
   message("ERROR: OpenMP could not be found.")
-endif(OPENMP_FOUND)
+endif(GSL_FOUND)
