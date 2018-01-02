@@ -49,7 +49,7 @@ def ignoFunc(src,dirlist):
 shutil.copytree("h", os.path.join(newpath,"h"), ignore=ignoFunc)
 shutil.copytree("src", os.path.join(newpath,"src"), ignore=ignoFunc)
 shutil.copytree("tests", os.path.join(newpath,"tests"), ignore=ignoFunc)
-shutil.copytree("inputdata", os.path.join(newpath,"inputdata"), ignore=ignoFunc)
+#shutil.copytree("inputdata", os.path.join(newpath,"inputdata"), ignore=ignoFunc)
 shutil.copytree("GLEanalysis", os.path.join(newpath,"GLEanalysis"), ignore=ignoFunc)
 os.mkdir(os.path.join(newpath, "GLEanalysis", "pngs"))
 
