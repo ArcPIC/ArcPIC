@@ -52,6 +52,8 @@ void potential_factorise_2D( int nr, int nz, int NR, int NZ, double dr, double d
   SuperLUStat_t stat;
   int info;
 
+  GlobalLU_t Glu; /* Not needed on return. */
+  
   ni = (nr+1)*(nz+1);
   //nnz = Number of NonZeros in the matrix
   if ( BC == 0 ) {
@@ -255,7 +257,7 @@ void potential_factorise_2D( int nr, int nz, int NR, int NZ, double dr, double d
   sp_preorder(&options, &S, *perm_c, etree, &SC);
   int panel_size = sp_ienv(1);
   int relax = sp_ienv(2);
-  dgstrf(&options, &SC, relax, panel_size, etree, NULL, 0, *perm_c, *perm_r, L, U, &stat, &info);
+  dgstrf(&options, &SC, relax, panel_size, etree, NULL, 0, *perm_c, *perm_r, L, U, &Glu, &stat, &info);
   //printf("Done dgstrf \n"); // To test
   //dPrint_SuperNode_Matrix("L",L);
   //dPrint_CompCol_Matrix("U",U);
@@ -281,6 +283,8 @@ void potential_factorise_BC23( int nr, int nz, int NR, int NZ, double dr, double
   superlu_options_t options;
   SuperLUStat_t stat;
   int info;
+  
+  GlobalLU_t Glu; /* Not needed on return. */
 
   ni = (nr+1)*(nz+1);
   nnz = 0; //Avoid uninitialized warning
@@ -545,7 +549,7 @@ void potential_factorise_BC23( int nr, int nz, int NR, int NZ, double dr, double
   sp_preorder(&options, &S, *perm_c, etree, &SC);
   int panel_size = sp_ienv(1);
   int relax = sp_ienv(2);
-  dgstrf(&options, &SC, relax, panel_size, etree, NULL, 0, *perm_c, *perm_r, L, U, &stat, &info);
+  dgstrf(&options, &SC, relax, panel_size, etree, NULL, 0, *perm_c, *perm_r, L, U, &Glu, &stat, &info);
   //printf("Done dgstrf \n"); // To test
   //dPrint_SuperNode_Matrix("L",L);
   //dPrint_CompCol_Matrix("U",U);
