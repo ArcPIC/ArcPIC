@@ -107,7 +107,8 @@ void print_parameters_2D( void )
   printf( " - Output vdf:          %d \n", OUT_VDF );
   printf( " - Magnetic push:       %d \n", MAGNETIC );
   printf( " - Continuing old run:  %d \n", CONTINUATION );
-
+  printf( " - Binary output files: %d \n", BINARY_OUTPUT );
+  
   printf( "\n" );
   printf( " - Field boundary condition BC = %i \n", BC );
   if (BC == 0)

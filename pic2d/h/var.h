@@ -71,6 +71,8 @@ XTRN int CONTINUATION,
   OUT_VDF,
   BC;
 
+XTRN int BINARY_OUTPUT; // Write binary output files (HDF5)
+
 XTRN int e2inj_step, i2inj_step, n2inj_step;
 
 XTRN double En_e, En_f, En_p, En_tot; //En_i, En_n, 

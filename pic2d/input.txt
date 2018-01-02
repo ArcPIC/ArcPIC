@@ -210,6 +210,8 @@ Magnetic field on:			1
 (0 = new run, otherwise use nr of previous run + 1)
 Continue from which run:		0
 
+Use binary (HDF5) output files:         1
+
 
 * MISCELLANEOUS *
 
