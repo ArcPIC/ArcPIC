@@ -28,3 +28,8 @@ if(GSL_FOUND)
 else(GSL_FOUND)
   message("ERROR: OpenMP could not be found.")
 endif(GSL_FOUND)
+
+#Use HDF5 for the heavy IO
+find_package (HDF5 COMPONENTS CXX) # Find non-cmake built HDF5
+target_include_directories (ArcPIC PUBLIC ${HDF5_INCLUDE_DIRS})
+target_link_libraries(ArcPIC ${HDF5_CXX_LIBRARIES})
