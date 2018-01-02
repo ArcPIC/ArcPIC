@@ -1,0 +1,3 @@
+[submodule "support/superlu"]
+	path = support/superlu
+	url = https://github.com/ArcPIC/superlu.git
