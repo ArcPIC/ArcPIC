@@ -21,7 +21,7 @@
 #define  NGR      481       // nr+1
 #define  NGZ      121       // nz+1
 
-#define  NPART    200000000
+#define  NPART    20000000
 #define  Lastion  2         // last ion with q != 0
 #define  NSpecies 3         // non-electron species  
 
