@@ -246,12 +246,15 @@ int main () {
       if ( OUT_COORD == 0 ) {
 	// Output coordinates: position and velocity
 	if (BINARY_OUTPUT == 0) {
-	  H5::H5File* h5OutFile = createH5File_timestep( 0 );
-	  H5::Group group_coords = h5OutFile->createGroup("/COORDS");
+	  H5::H5File* h5OutFile_initDist = createH5File_timestep( 0, "initDist" );
+	  H5::Group group_coords = h5OutFile_initDist->createGroup("/COORDS");
 	  
 	  out_coords_2D_h5( elec, nr_e, 1, Omega_pe, dz, "ELECTRONS", group_coords );
 	  out_coords_2D_h5( ions + NPART, nr_i[1], dt_ion, Omega_pe, dz, "IONS", group_coords );
 	  out_coords_2D_h5( ions + Lastion*NPART, nr_i[Lastion], dt_ion, Omega_pe, dz, "NEUTRALS", group_coords );
+	  h5OutFile_initDist->close();
+	  delete h5OutFile_initDist;
+	  h5OutFile_initDist = NULL;
 	}
 	else {
 	  file_names_2D( 0 );
@@ -275,13 +278,27 @@ int main () {
     printf( "Pot. en..:               En_pot = %-9.5f \n",  En_p );
     printf( "...... Total: En_tot = %-9.6f ........ \n", En_tot);
     printf( "\n");
+
+    H5::H5File* h5OutFile_0 = NULL;
+    if ( BINARY_OUTPUT == 0 ) {
+      h5OutFile_0 = createH5File_timestep( 0 );
+    }
+    else {
+      file_names_2D( 0 );
+    }
     
     // TO TEST
     density_2D( n_e,      nr, nz, NR, NZ, Vcell, elec,         qe, nr_e,    0, 1 );
-    density_2D( n_i + NG, nr, nz, NR, NZ, Vcell, ions + NPART, qi, nr_i[1], 1, 2 ); 
-    file_names_2D( 0 ); 
-    out_dens_2D( n_e,      1, -1., nr, nz, NZ, Omega_pe, dr, dz, fn_e ); // NEW 25.8.2010
-    out_dens_2D( n_i + NG, 1,  1., nr, nz, NZ, Omega_pe, dr, dz, fn_i ); // NEW 25.8.2010
+    density_2D( n_i + NG, nr, nz, NR, NZ, Vcell, ions + NPART, qi, nr_i[1], 1, 2 );
+    if ( BINARY_OUTPUT == 0 ) {
+      H5::Group group_dens = h5OutFile_0->createGroup("/DENSITY");
+      out_dens_2D_h5( n_e,      1, -1., nr, nz, NZ, Omega_pe, dr, dz, "ELECTRONS", group_dens );
+      out_dens_2D_h5( n_i + NG, 1,  1., nr, nz, NZ, Omega_pe, dr, dz, "IONS",      group_dens );
+    }
+    else {
+      out_dens_2D( n_e,      1, -1., nr, nz, NZ, Omega_pe, dr, dz, fn_e ); // NEW 25.8.2010
+      out_dens_2D( n_i + NG, 1,  1., nr, nz, NZ, Omega_pe, dr, dz, fn_i ); // NEW 25.8.2010
+    }
     for (int i=0; i<NSpecies*NGR*NGZ; i++) n_i[i]=0.;
     for (int i=0; i<NGR*NGZ; i++)          n_e[i]=0.;
     
@@ -302,6 +319,13 @@ int main () {
     electric_field_2D( phi, E_grid_r, E_grid_z, E_ion_r, E_ion_z, nr, nz, NR, NZ );
       
     printf("\n");
+
+    if ( BINARY_OUTPUT == 0 ) {
+      h5OutFile_0->close();
+      delete h5OutFile_0;
+      h5OutFile_0 = NULL;
+    }
+
   }
   else {
     //Temporary
@@ -538,6 +562,12 @@ int main () {
 	if (BINARY_OUTPUT == 0) {
 	  H5::H5File* h5OutFile = createH5File_timestep( nsteps );
 
+	  //Density
+	  H5::Group group_dens = h5OutFile->createGroup("/DENSITY");
+	  out_dens_2D_h5( n_e_av,              n_aver,    -1., nr, nz, NZ, Omega_pe, dr, dz, "ELECTRONS", group_dens );
+	  out_dens_2D_h5( n_i_av + NG,         n_aver_ion, 1., nr, nz, NZ, Omega_pe, dr, dz, "IONS",      group_dens );
+	  out_dens_2D_h5( n_i_av + Lastion*NG, n_aver_ion, 1., nr, nz, NZ, Omega_pe, dr, dz, "NEUTRALS",  group_dens );
+	  
 	  //Position & velocity
 	  if ( OUT_COORD == 0 ) {
 	    H5::Group group_coords = h5OutFile->createGroup("/COORDS");

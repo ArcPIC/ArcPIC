@@ -138,7 +138,35 @@ void out_n_2D( Moments mom_el[], Moments mom_ion[], int n_aver_e, int n_aver_ion
 }
 
 
+void out_dens_2D_h5( double dens_av[], int n_aver, double sign, int nr, int nz, int NZ, double Omega_pe,
+		     double dr, double dz, const char* const tablename, H5::Group& group_dens ) {
+  
+  if (n_aver < 1)  n_aver = 1;
 
+  double fp = sign*SQU(1./Omega_pe)/n_aver;
+
+  // HDF5 is internally row-major (i.e. C convention)
+  hsize_t dims_file[] = {nr+1,nz+1,3};
+  H5::DataSpace dataspace_file(3, dims_file);
+  H5::DataSet dataset = group_dens.createDataSet(tablename, H5::PredType::NATIVE_DOUBLE, dataspace_file);
+  
+  //Create a window into the file dataspace (1 row)
+  hsize_t dims_mem[] = {1,1,3};
+  H5::DataSpace dataspace_mem(3,dims_mem,dims_file);
+  
+  const hsize_t offset_memInFile[] = {0,0,0};
+  dataspace_file.selectHyperslab(H5S_SELECT_SET, dims_mem, offset_memInFile);
+  
+  for (ssize_t j=0; j<=nr; j++) {
+    for (ssize_t k=0; k<=nz; k++) {
+      double databuffer[] = { dr*j, dz*k, fp*dens_av[j*NZ+k] };
+      
+      const hssize_t offset_memInFile_shift[] = {j,k,0};
+      dataspace_file.offsetSimple(offset_memInFile_shift);
+      dataset.write(databuffer,H5::PredType::NATIVE_DOUBLE, dataspace_mem, dataspace_file);
+    }
+  }
+}
 
 void out_dens_2D( double dens_av[], int n_aver, double sign, int nr, int nz, int NZ, double Omega_pe,  
 		  double dr, double dz, const char *dat_p ) {
@@ -300,7 +328,7 @@ void out_temps_2D( Moments  mom[], double u0, double fnorm, int nr, int nz, int 
 
 
 
-void out_coords_2D( Particle pa[], size_t np, int fnorm, 
+void out_coords_2D( Particle pa[], size_t np, int fnorm,
 		    double omega_pe, double dz, const char *dat ) {
   FILE *file;
   double vnorm = dz/omega_pe/fnorm;
@@ -318,7 +346,7 @@ void out_coords_2D( Particle pa[], size_t np, int fnorm,
 
 void out_coords_2D_h5( Particle pa[], size_t np, int fnorm,
 		       double omega_pe, double dz,
-		       const char *tablename, H5::Group& group_coords ) {
+		       const char* const tablename, H5::Group& group_coords ) {
   
   double vnorm = dz/omega_pe/fnorm;
 
@@ -343,21 +371,20 @@ void out_coords_2D_h5( Particle pa[], size_t np, int fnorm,
 
   for (ssize_t i=0; i<np; i++)  {
     double databuffer[] = { pa[i].p.z*dz, pa[i].p.r*dz, pa[i].p.vz*vnorm, pa[i].p.vr*vnorm, pa[i].p.vt*vnorm};
-
-      const hssize_t offset_memInFile_shift[] = {i,0};
+    
+    const hssize_t offset_memInFile_shift[] = {i,0};
     dataspace_file.offsetSimple(offset_memInFile_shift);
     dataset.write(databuffer,H5::PredType::NATIVE_DOUBLE, dataspace_mem, dataspace_file);
   }
-  
 }
 
 // Create the HDF5 file for the current ouput timestep
-H5::H5File* createH5File_timestep(const int nsteps){
+H5::H5File* createH5File_timestep(const int nsteps, std::string basename = "output"){
   
   std::ostringstream timestep_string;
   timestep_string << std::setw(8) << std::setfill('0') << nsteps;
   
-  std::string fname = "out/output_" + timestep_string.str() + ".h5";
+  std::string fname = "out/" + basename + "_" + timestep_string.str() + ".h5";
   //H5std_string fname_h5(fname);
   
   //std::cout << "Making HDF5file, timestep="<<nsteps<<" filename="<<fname<<std::endl;

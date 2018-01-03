@@ -29,8 +29,14 @@ void out_n_2D( Moments mom_el[], Moments mom_ion[], int n_aver_e, int n_aver_ion
 	       int nr, int nz, int NZ, double Vcell[], double Omega_pe, double qp, 
 	       double dr, double dz, const char *dat_e, const char *dat_i );
 
-void out_dens_2D( double dens_av[], int n_aver, double sign, int nr, int nz, int NZ, double Omega_pe,  
-		  double dr, double dz, const char *dat_p );
+void out_dens_2D   ( double dens_av[], int n_aver, double sign,
+		     int nr, int nz, int NZ, double Omega_pe,
+		     double dr, double dz,
+		     const char *dat_p );
+void out_dens_2D_h5( double dens_av[], int n_aver, double sign,
+		     int nr, int nz, int NZ, double Omega_pe,
+		     double dr, double dz,
+		     const char* const tablename, H5::Group& group_dens );
 
 void out_phi_2D( double phi[], int n_aver, int nr, int nz, int NZ, 
 		 double Omega_pe, double dr, double dz, const char *dat1 );
@@ -44,14 +50,14 @@ void out_vels_2D( Moments  mom[], int nr, int nz, int NZ, double u0,
 void out_temps_2D( Moments  mom[], double u0, double fnorm, int nr, int nz, int NZ, 
 		   double dr, double dz, const char *dat1, const char *dat2, const char *dat3 );
 
-void out_coords_2D( Particle pa[], size_t np, int fnorm, 
-		    double omega_pe, double dz, const char *dat );
-
+void out_coords_2D( Particle pa[], size_t np, int fnorm,
+		    double omega_pe, double dz,
+		    const char *dat );
 void out_coords_2D_h5( Particle pa[], size_t np, int fnorm,
 		       double omega_pe, double dz,
-		       const char *tablename, H5::Group& group_coords  );
+		       const char* const tablename, H5::Group& group_coords );
 
-H5::H5File* createH5File_timestep( const int nsteps );
+H5::H5File* createH5File_timestep( const int nsteps, std::string basename = "output" );
 
 void diagn_stability_2D( const double dens[], Particle pa[], double diag_Te[], double diag_ve[], double diag_ne[], 
 			 double sign, int np, double u0, int nr, int nz, int NR, int NZ, double Omega_pe,  
