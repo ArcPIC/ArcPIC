@@ -18,7 +18,15 @@
 
 ***********************************************************************/
 
-#include <stdio.h>
+#include <cstdio>
+
+#include <iostream>
+
+#include <string>
+#include <sstream>
+#include <iomanip>
+
+#include "H5Cpp.h"
 
 #include "dim.h"
 #include "pic.h"
@@ -306,6 +314,56 @@ void out_coords_2D( Particle pa[], size_t np, int fnorm,
   
   fclose(file);
   
+}
+
+void out_coords_2D_h5( Particle pa[], size_t np, int fnorm,
+		       double omega_pe, double dz,
+		       const char *tablename, H5::H5File* h5file_timestep ) {
+  
+  double vnorm = dz/omega_pe/fnorm;
+
+  std::cout << "out_coords_2D_h5 tablename="<<tablename<<std::endl;
+  
+  // HDF5 is internally row-major (i.e. C convention)
+  hsize_t dims_file[2] = {np,5};
+  H5::DataSpace dataspace_file(2, dims_file);
+  H5::DataSet dataset = h5file_timestep->createDataSet(tablename, H5::PredType::NATIVE_DOUBLE, dataspace_file);
+
+  if (np==0) {
+    //Don't try to write to an empty dataset
+    return;
+  }
+  
+  //Create a window into the file dataspace (1 row)
+  hsize_t dims_mem[] = {1,5};
+  H5::DataSpace dataspace_mem(2,dims_mem,dims_file);
+
+  const hsize_t offset_memInFile[] = {0,0};
+  dataspace_file.selectHyperslab(H5S_SELECT_SET, dims_mem, offset_memInFile);
+
+  for (size_t i=0; i<np; i++)  {
+    double databuffer[] = { pa[i].p.z*dz, pa[i].p.r*dz, pa[i].p.vz*vnorm, pa[i].p.vr*vnorm, pa[i].p.vt*vnorm};
+
+      const hssize_t offset_memInFile_shift[] = {i,0};
+    dataspace_file.offsetSimple(offset_memInFile_shift);
+    dataset.write(databuffer,H5::PredType::NATIVE_DOUBLE, dataspace_mem, dataspace_file);
+  }
+  
+}
+
+H5::H5File* createH5File_timestep(const int nsteps){
+  // Create the HDF5 file for the current ouput timestep
+  
+  std::ostringstream timestep_string;
+  timestep_string << std::setw(8) << std::setfill('0') << nsteps;
+  
+  std::string fname = "out/output_" + timestep_string.str() + ".h5";
+  H5std_string fname_h5(fname);
+  
+  std::cout << "Making HDF5file, timestep="<<nsteps<<" filename="<<fname<<std::endl;
+  
+  H5::H5File* returnFile = new H5::H5File(fname_h5, H5F_ACC_TRUNC);
+  return returnFile;
 }
 
 /***************************

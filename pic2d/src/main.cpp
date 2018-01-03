@@ -30,6 +30,8 @@
 
 #include <omp.h>
 
+#include "H5Cpp.h"
+
 #define   XTRN
 #include  "pic.h"
 #include  "var.h"
@@ -243,10 +245,18 @@ int main () {
       }
       if ( OUT_COORD == 0 ) {
 	// Output coordinates: position and velocity
-	file_names_2D( 0 ); 
-	out_coords_2D( elec, nr_e, 1, Omega_pe, dz, fr_e );
-	out_coords_2D( ions + NPART, nr_i[1], dt_ion, Omega_pe, dz, fr_i );
-	out_coords_2D( ions + Lastion*NPART, nr_i[Lastion], dt_ion, Omega_pe, dz, fr_n );
+	if (BINARY_OUTPUT == 0) {
+	  H5::H5File* h5OutFile = createH5File_timestep( 0 );
+	  out_coords_2D_h5( elec, nr_e, 1, Omega_pe, dz, "COORD_ELECTRONS", h5OutFile );
+	  out_coords_2D_h5( ions + NPART, nr_i[1], dt_ion, Omega_pe, dz, "COORD_IONS", h5OutFile );
+	  out_coords_2D_h5( ions + Lastion*NPART, nr_i[Lastion], dt_ion, Omega_pe, dz, "COORD_NEUTRALS", h5OutFile );
+	}
+	else {
+	  file_names_2D( 0 );
+	  out_coords_2D( elec, nr_e, 1, Omega_pe, dz, fr_e );
+	  out_coords_2D( ions + NPART, nr_i[1], dt_ion, Omega_pe, dz, fr_i );
+	  out_coords_2D( ions + Lastion*NPART, nr_i[Lastion], dt_ion, Omega_pe, dz, fr_n );
+	}
       }
       
     }
@@ -523,34 +533,49 @@ int main () {
 	fprintf(timeIndex, "%08i %010e\n", nsteps, nsteps*Omega_pe*1e9/(56414.6*sqrt(n_ref)) );
 	fflush(timeIndex);
 	
-	file_names_2D( nsteps ); 
-	out_dens_2D( n_e_av,              n_aver,    -1., nr, nz, NZ, Omega_pe, dr, dz, fn_e );
-	out_dens_2D( n_i_av + NG,         n_aver_ion, 1., nr, nz, NZ, Omega_pe, dr, dz, fn_i );
-	out_dens_2D( n_i_av + Lastion*NG, n_aver_ion, 1., nr, nz, NZ, Omega_pe, dr, dz, fn_n );
-	
-	out_phi_2D( phi_av, n_aver, nr, nz, NZ, Omega_pe, dr, dz, fphi );
-	
-	out_vels_2D( mom_el, nr, nz, NZ, cs*sqrt(M_ions[0]/M_ions[1]), dr, dz, fv_ez, fv_er, fv_et ); 
-	out_temps_2D( mom_el, cs*sqrt(M_ions[0]/M_ions[1]), me_over_mi*M_ions[0]/M_ions[1], nr, nz, NZ, dr, dz, fT_ez, fT_er, fT_et);   
-	
-	out_vels_2D( mom_ion + NG, nr, nz, NZ, cs*dt_ion*sqrt(M_ions[0]/M_ions[1]), dr, dz, fv_iz, fv_ir, fv_it); 
-	out_temps_2D( mom_ion + NG, cs*dt_ion*sqrt(M_ions[0]/M_ions[1]), 1., nr, nz, NZ, dr, dz, fT_iz, fT_ir, fT_it); 
-	
-	if ( OUT_VDF == 0 ) {
-	  out_fv_along_2D( vdf_ez, vdf_er, vdf_eabs, nr, nz, fvdf_ez, fvdf_er, fvdf_eabs );
-	  out_fv_along_2D( vdf_iz, vdf_ir, vdf_iabs, nr, nz, fvdf_iz, fvdf_ir, fvdf_iabs );  
-	  out_fv_along_2D( vdf_nz, vdf_nr, vdf_nabs, nr, nz, fvdf_nz, fvdf_nr, fvdf_nabs );
+	if (BINARY_OUTPUT == 0) {
+	  H5::H5File* h5OutFile = createH5File_timestep( nsteps );
+
+	  //Position & velocity
+	  if ( OUT_COORD == 0 ) {
+	    out_coords_2D_h5( elec, nr_e, 1, Omega_pe, dz, "COORD_ELECTRONS", h5OutFile );
+	    out_coords_2D_h5( ions + NPART, nr_i[1], dt_ion, Omega_pe, dz, "COORD_IONS", h5OutFile );
+	    out_coords_2D_h5( ions + Lastion*NPART, nr_i[Lastion], dt_ion, Omega_pe, dz, "COORD_NEUTRALS", h5OutFile );
+	  }
+	  
+	  h5OutFile->close();
+	  h5OutFile=NULL;
 	}
-	
-	if ( OUT_EFIELD == 0 ) {
-	  out_efield_2D( E_av_z, E_av_r, n_aver, nr, nz, NZ, Omega_pe, dr, dz, fEz, fEr );
-	}
-	
-	if ( OUT_COORD == 0 ) {
-	  // Output coordinates: position and velocity
-	  out_coords_2D( elec, nr_e, 1, Omega_pe, dz, fr_e );
-	  out_coords_2D( ions + NPART, nr_i[1], dt_ion, Omega_pe, dz, fr_i );
-	  out_coords_2D( ions + Lastion*NPART, nr_i[Lastion], dt_ion, Omega_pe, dz, fr_n );
+	else{
+	  file_names_2D( nsteps );
+	  out_dens_2D( n_e_av,              n_aver,    -1., nr, nz, NZ, Omega_pe, dr, dz, fn_e );
+	  out_dens_2D( n_i_av + NG,         n_aver_ion, 1., nr, nz, NZ, Omega_pe, dr, dz, fn_i );
+	  out_dens_2D( n_i_av + Lastion*NG, n_aver_ion, 1., nr, nz, NZ, Omega_pe, dr, dz, fn_n );
+	  
+	  out_phi_2D( phi_av, n_aver, nr, nz, NZ, Omega_pe, dr, dz, fphi );
+	  
+	  out_vels_2D( mom_el, nr, nz, NZ, cs*sqrt(M_ions[0]/M_ions[1]), dr, dz, fv_ez, fv_er, fv_et );
+	  out_temps_2D( mom_el, cs*sqrt(M_ions[0]/M_ions[1]), me_over_mi*M_ions[0]/M_ions[1], nr, nz, NZ, dr, dz, fT_ez, fT_er, fT_et);
+	  
+	  out_vels_2D( mom_ion + NG, nr, nz, NZ, cs*dt_ion*sqrt(M_ions[0]/M_ions[1]), dr, dz, fv_iz, fv_ir, fv_it);
+	  out_temps_2D( mom_ion + NG, cs*dt_ion*sqrt(M_ions[0]/M_ions[1]), 1., nr, nz, NZ, dr, dz, fT_iz, fT_ir, fT_it);
+	  
+	  if ( OUT_VDF == 0 ) {
+	    out_fv_along_2D( vdf_ez, vdf_er, vdf_eabs, nr, nz, fvdf_ez, fvdf_er, fvdf_eabs );
+	    out_fv_along_2D( vdf_iz, vdf_ir, vdf_iabs, nr, nz, fvdf_iz, fvdf_ir, fvdf_iabs );
+	    out_fv_along_2D( vdf_nz, vdf_nr, vdf_nabs, nr, nz, fvdf_nz, fvdf_nr, fvdf_nabs );
+	  }
+	  
+	  if ( OUT_EFIELD == 0 ) {
+	    out_efield_2D( E_av_z, E_av_r, n_aver, nr, nz, NZ, Omega_pe, dr, dz, fEz, fEr );
+	  }
+	  
+	  if ( OUT_COORD == 0 ) {
+	    // Output coordinates: position and velocity
+	    out_coords_2D( elec, nr_e, 1, Omega_pe, dz, fr_e );
+	    out_coords_2D( ions + NPART, nr_i[1], dt_ion, Omega_pe, dz, fr_i );
+	    out_coords_2D( ions + Lastion*NPART, nr_i[Lastion], dt_ion, Omega_pe, dz, fr_n );
+	  }
 	}
 	
 	kin_pot_en( elec, nr_e, ions + NPART, nr_i[1], ions + Lastion*NPART, nr_i[Lastion], 

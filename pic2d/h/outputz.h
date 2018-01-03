@@ -47,6 +47,12 @@ void out_temps_2D( Moments  mom[], double u0, double fnorm, int nr, int nz, int 
 void out_coords_2D( Particle pa[], size_t np, int fnorm, 
 		    double omega_pe, double dz, const char *dat );
 
+void out_coords_2D_h5( Particle pa[], size_t np, int fnorm,
+		       double omega_pe, double dz,
+		       const char *tablename, H5::H5File* h5file_timestep  );
+
+H5::H5File* createH5File_timestep( const int nsteps );
+
 void diagn_stability_2D( const double dens[], Particle pa[], double diag_Te[], double diag_ve[], double diag_ne[], 
 			 double sign, int np, double u0, int nr, int nz, int NR, int NZ, double Omega_pe,  
 			 double dr, double dz, int steps, int& check, const char *dat_err );
