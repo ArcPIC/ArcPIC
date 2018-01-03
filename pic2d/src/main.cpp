@@ -579,7 +579,11 @@ int main () {
 	  out_dens_2D_h5( n_e_av,              n_aver,    -1., nr, nz, NZ, Omega_pe, dr, dz, "ELECTRONS", group_dens );
 	  out_dens_2D_h5( n_i_av + NG,         n_aver_ion, 1., nr, nz, NZ, Omega_pe, dr, dz, "IONS",      group_dens );
 	  out_dens_2D_h5( n_i_av + Lastion*NG, n_aver_ion, 1., nr, nz, NZ, Omega_pe, dr, dz, "NEUTRALS",  group_dens );
-	  
+
+	  //Electrostatic potential
+	  H5::Group group_emfield = h5OutFile->createGroup("/EMFIELD");
+	  out_phi_2D_h5( phi_av, n_aver, nr, nz, NZ, Omega_pe, dr, dz, "POTENTIAL", group_emfield );
+
 	  //Position & velocity
 	  if ( OUT_COORD == 0 ) {
 	    H5::Group group_coords = h5OutFile->createGroup("/COORDS");
