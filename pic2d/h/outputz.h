@@ -18,8 +18,10 @@
 
 ***********************************************************************/
 
-void out_fv_along_2D( double fvz[], double fvr[], double fvabs[], int nr, int nz, 
+void out_fv_along_2D( double fvz[], double fvr[], double fvabs[], int nr, int nz,
 		      const char *dat1, const char *dat2, const char *dat3 );
+void out_fv_along_2D_h5( double fvz[], double fvr[], double fvabs[], int nr, int nz,
+			 const char* const tablename_z, const char* const tablename_r, const char* const tablename_abs, H5::Group& group_veldist );
 
 void out_tempn_2D( double n_el[], double n_ion[], int n_aver_e, int n_aver_ion, 
 	       int nr, int nz, int NZ, double Vcell[], double Omega_pe, double qp, 

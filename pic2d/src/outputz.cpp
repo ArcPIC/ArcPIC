@@ -71,6 +71,54 @@ void out_fv_along_2D( double fvz[], double fvr[], double fvabs[], int nr, int nz
   
 }
 
+void out_fv_along_2D_h5( double fvz[], double fvr[], double fvabs[], int nr, int nz,
+			 const char* const tablename_z, const char* const tablename_r, const char* const tablename_abs, H5::Group& group_veldist ) {
+  int halfnr = nr/2;
+  int halfnz = nz/2;
+  
+  //Create the dataspaces for the file
+  hsize_t dims_file[] = {halfnr,halfnz,Nvdst};
+  H5::DataSpace dataspace_z  (3, dims_file);
+  H5::DataSpace dataspace_r  (3, dims_file);
+  H5::DataSpace dataspace_abs(3, dims_file);
+  
+  H5::DataSet dataset_z   = group_veldist.createDataSet(tablename_z, H5::PredType::NATIVE_DOUBLE, dataspace_z);
+  H5::DataSet dataset_r   = group_veldist.createDataSet(tablename_r, H5::PredType::NATIVE_DOUBLE, dataspace_r);
+  H5::DataSet dataset_abs = group_veldist.createDataSet(tablename_abs, H5::PredType::NATIVE_DOUBLE, dataspace_abs);
+
+  //Create a window into the file dataspace (1 row)
+  hsize_t dims_mem[] = {1,1,Nvdst};
+  H5::DataSpace dataspace_mem(3,dims_mem,dims_file);
+
+  const hsize_t offset_memInFile[] = {0,0,0};
+  dataspace_z.selectHyperslab  (H5S_SELECT_SET, dims_mem, offset_memInFile);
+  dataspace_r.selectHyperslab  (H5S_SELECT_SET, dims_mem, offset_memInFile);
+  dataspace_abs.selectHyperslab(H5S_SELECT_SET, dims_mem, offset_memInFile);
+  
+  for (ssize_t j=0; j<halfnr; j++) {
+    for (ssize_t k=0; k<halfnz; k++) {
+      double databuffer_z   [Nvdst];
+      double databuffer_r   [Nvdst];
+      double databuffer_abs [Nvdst];
+      for (ssize_t n=0; n < Nvdst; n++) {
+	databuffer_z[n]   = fvz[n + Nvdst*(j*(nz/2)+k)];
+	databuffer_r[n]   = fvr[n + Nvdst*(j*(nz/2)+k)];
+	databuffer_abs[n] = fvabs[n + Nvdst*(j*(nz/2)+k)];
+      }
+      const hssize_t offset_memInFile_shift[] = {j,k,0};
+      double databuffer[] = {1,2,3};
+      dataspace_z.offsetSimple(offset_memInFile_shift);
+      dataset_z.write(databuffer_z,H5::PredType::NATIVE_DOUBLE, dataspace_mem, dataspace_z);
+      dataset_z.write(databuffer,H5::PredType::NATIVE_DOUBLE, dataspace_mem, dataspace_z);
+      
+      dataspace_r.offsetSimple(offset_memInFile_shift);
+      dataset_r.write(databuffer_r,H5::PredType::NATIVE_DOUBLE, dataspace_mem, dataspace_r);
+      dataspace_abs.offsetSimple(offset_memInFile_shift);
+      dataset_abs.write(databuffer_abs,H5::PredType::NATIVE_DOUBLE, dataspace_mem, dataspace_abs);
+    }
+  }
+}
+
 
 
 
@@ -567,8 +615,6 @@ H5::H5File* createH5File_timestep(const int nsteps, const double simTime,
   //std::cout << "Making HDF5file, timestep="<<nsteps<<" filename="<<fname<<std::endl;
   
   H5::H5File* returnFile = new H5::H5File(fname, H5F_ACC_TRUNC);
-
-  std::cout << nsteps << "; " << simTime << std::endl;
   
   // Attribute: Step number in the simulation
   H5::DataSpace dataspace_nsteps(H5S_SCALAR);

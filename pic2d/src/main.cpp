@@ -605,6 +605,13 @@ int main () {
 	  H5::Group group_temp = h5OutFile->createGroup("/VELOCITY_TEMP");
 	  out_temps_2D_h5( mom_el, cs*sqrt(M_ions[0]/M_ions[1]), me_over_mi*M_ions[0]/M_ions[1], nr, nz, NZ, dr, dz, "Tez", "Ter", "Tet", group_temp);
 	  out_temps_2D_h5( mom_ion + NG, cs*dt_ion*sqrt(M_ions[0]/M_ions[1]), 1., nr, nz, NZ, dr, dz, "Tiz", "Tir", "Tit", group_temp);
+
+	  if ( OUT_VDF == 0 ) {
+	    H5::Group group_vdf = h5OutFile->createGroup("/VELOCITY_DIST");
+	    out_fv_along_2D_h5( vdf_ez, vdf_er, vdf_eabs, nr, nz, "vdfez", "vdfer", "vdfeabs", group_vdf );
+	    out_fv_along_2D_h5( vdf_iz, vdf_ir, vdf_iabs, nr, nz, "vdfCupz", "vdfCupr", "vdfCupabs", group_vdf );
+	    out_fv_along_2D_h5( vdf_nz, vdf_nr, vdf_nabs, nr, nz, "vdfCuz", "vdfCur", "vdfCuabs", group_vdf );
+	  }
 	  
 	  h5OutFile->close();
 	  delete h5OutFile;
