@@ -59,6 +59,10 @@ void out_vels_2D_h5( Moments  mom[], int nr, int nz, int NZ, double u0,
 
 void out_temps_2D( Moments  mom[], double u0, double fnorm, int nr, int nz, int NZ, 
 		   double dr, double dz, const char *dat1, const char *dat2, const char *dat3 );
+void out_temps_2D_h5( Moments  mom[], double u0, double fnorm, int nr, int nz, int NZ,
+		      double dr, double dz,
+		      const char* const tablename1, const char* const tablename2, const char* const tablename3, H5::Group& group_temp );
+
 
 void out_coords_2D( Particle pa[], size_t np, int fnorm,
 		    double omega_pe, double dz,

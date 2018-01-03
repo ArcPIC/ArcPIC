@@ -593,9 +593,14 @@ int main () {
 	  }
 
 	  //Velocity moments
+	  // Average velocity
 	  H5::Group group_velavg = h5OutFile->createGroup("/VELOCITY_AVERAGE");
 	  out_vels_2D_h5( mom_el, nr, nz, NZ, cs*sqrt(M_ions[0]/M_ions[1]), dr, dz, "uez", "uer", "uet", group_velavg);
 	  out_vels_2D_h5( mom_ion + NG, nr, nz, NZ, cs*dt_ion*sqrt(M_ions[0]/M_ions[1]), dr, dz, "uiz", "uir", "uit", group_velavg);
+	  // Temperature
+	  H5::Group group_temp = h5OutFile->createGroup("/VELOCITY_TEMP");
+	  out_temps_2D_h5( mom_el, cs*sqrt(M_ions[0]/M_ions[1]), me_over_mi*M_ions[0]/M_ions[1], nr, nz, NZ, dr, dz, "Tez", "Ter", "Tet", group_temp);
+	  out_temps_2D_h5( mom_ion + NG, cs*dt_ion*sqrt(M_ions[0]/M_ions[1]), 1., nr, nz, NZ, dr, dz, "Tiz", "Tir", "Tit", group_temp);
 	  
 	  h5OutFile->close();
 	  delete h5OutFile;

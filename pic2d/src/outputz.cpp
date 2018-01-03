@@ -366,8 +366,9 @@ void out_vels_2D_h5( Moments  mom[], int nr, int nz, int NZ, double u0,
 }
 
 
-void out_temps_2D( Moments  mom[], double u0, double fnorm, int nr, int nz, int NZ, 
-		   double dr, double dz, const char *dat1, const char *dat2, const char *dat3 ) {
+void out_temps_2D( Moments  mom[], double u0, double fnorm, int nr, int nz, int NZ,
+		   double dr, double dz,
+		   const char *dat1, const char *dat2, const char *dat3 ) {
 
   FILE *file1, *file2, *file3;
   int j, k;
@@ -406,8 +407,63 @@ void out_temps_2D( Moments  mom[], double u0, double fnorm, int nr, int nz, int 
 
 }
 
+void out_temps_2D_h5( Moments  mom[], double u0, double fnorm, int nr, int nz, int NZ,
+		      double dr, double dz,
+		      const char* const tablename1, const char* const tablename2, const char* const tablename3, H5::Group& group_temp ) {
+  
+  for (size_t j=0; j<nr; j++) {
+    for (size_t k=0; k<nz; k++) {
+      
+      if( mom[j*NZ+k].n > 1 ) {
+	mom[j*NZ+k].tz = ( mom[j*NZ+k].tz/(u0*u0*mom[j*NZ+k].n) - SQU(mom[j*NZ+k].uz) )*fnorm;
+	mom[j*NZ+k].tr = ( mom[j*NZ+k].tr/(u0*u0*mom[j*NZ+k].n) - SQU(mom[j*NZ+k].ur) )*fnorm;
+	mom[j*NZ+k].tt = ( mom[j*NZ+k].tt/(u0*u0*mom[j*NZ+k].n) - SQU(mom[j*NZ+k].ut) )*fnorm;
+      }
+      else {
+	mom[j*NZ+k].tz = mom[j*NZ+k].tr = mom[j*NZ+k].tt = 0.;
+      }
+      
+    }
+  }
+  
+  //Create the dataspaces for the file
+  hsize_t dims_file[] = {nr,nz,3};
+  H5::DataSpace dataspace_file1(3, dims_file);
+  H5::DataSpace dataspace_file2(3, dims_file);
+  H5::DataSpace dataspace_file3(3, dims_file);
+  
+  H5::DataSet dataset1 = group_temp.createDataSet(tablename1, H5::PredType::NATIVE_DOUBLE, dataspace_file1);
+  H5::DataSet dataset2 = group_temp.createDataSet(tablename2, H5::PredType::NATIVE_DOUBLE, dataspace_file2);
+  H5::DataSet dataset3 = group_temp.createDataSet(tablename3, H5::PredType::NATIVE_DOUBLE, dataspace_file3);
+  
+  //Create a window into the file dataspace (1 row)
+  hsize_t dims_mem[] = {1,1,3};
+  H5::DataSpace dataspace_mem(3,dims_mem,dims_file);
 
+  const hsize_t offset_memInFile[] = {0,0,0};
+  dataspace_file1.selectHyperslab(H5S_SELECT_SET, dims_mem, offset_memInFile);
+  dataspace_file2.selectHyperslab(H5S_SELECT_SET, dims_mem, offset_memInFile);
+  dataspace_file3.selectHyperslab(H5S_SELECT_SET, dims_mem, offset_memInFile);
 
+  for (ssize_t j=0; j<nr; j++) {
+    for (ssize_t k=0; k<nz; k++) {
+
+      double databuffer1[] = { dr*j, dz*k, mom[j*NZ+k].tz };
+      double databuffer2[] = { dr*j, dz*k, mom[j*NZ+k].tr };
+      double databuffer3[] = { dr*j, dz*k, mom[j*NZ+k].tt };
+
+      const hssize_t offset_memInFile_shift[] = {j,k,0};
+
+      dataspace_file1.offsetSimple(offset_memInFile_shift);
+      dataset1.write(databuffer1,H5::PredType::NATIVE_DOUBLE, dataspace_mem, dataspace_file1);
+      dataspace_file2.offsetSimple(offset_memInFile_shift);
+      dataset2.write(databuffer2,H5::PredType::NATIVE_DOUBLE, dataspace_mem, dataspace_file2);
+
+      dataspace_file3.offsetSimple(offset_memInFile_shift);
+      dataset3.write(databuffer3,H5::PredType::NATIVE_DOUBLE, dataspace_mem, dataspace_file3);
+    }
+  }
+}
 
 void out_coords_2D( Particle pa[], size_t np, int fnorm,
 		    double omega_pe, double dz, const char *dat ) {
