@@ -303,8 +303,15 @@ int main () {
     for (int i=0; i<NGR*NGZ; i++)          n_e[i]=0.;
     
     // I. GET POTENTIAL
-    file_names_2D( 0 );
-    out_phi_2D(phi, 1, nr, nz, NZ, Omega_pe, dr, dz, fphi);
+    H5::Group group_emfield_0 = h5OutFile_0->createGroup("/EMFIELD");
+    if ( BINARY_OUTPUT == 0 ) {
+      out_phi_2D_h5(phi, 1, nr, nz, NZ, Omega_pe, dr, dz, "POTENTIAL0", group_emfield_0);
+    }
+    else{
+      file_names_2D( 0 );
+      out_phi_2D(phi, 1, nr, nz, NZ, Omega_pe, dr, dz, fphi);
+    }
+    
     if ( BC == 2 || BC == 3 ) potential_backsolve_BC23( nr, nz, NR, NZ, dz, circuit->getU0(), circuit->getUNz(), 
 							phi, L_slu, U_slu, perm_c_slu, perm_r_slu, n_e, n_i + NG, &rhs_slu );
     else                        potential_backsolve_2D( nr, nz, NR, NZ, dz, circuit->getU0(), circuit->getUNz(), 
@@ -313,7 +320,12 @@ int main () {
     printf("\n");
     
     file_names_2D( 1 );
-    out_phi_2D(phi, 1, nr, nz, NZ, Omega_pe, dr, dz, fphi);
+    if ( BINARY_OUTPUT == 0 ) {
+      out_phi_2D_h5(phi, 1, nr, nz, NZ, Omega_pe, dr, dz, "POTENTIAL", group_emfield_0);
+    }
+    else{
+      out_phi_2D(phi, 1, nr, nz, NZ, Omega_pe, dr, dz, fphi);
+    }
     
     // II. CALCULATE FIELD
     electric_field_2D( phi, E_grid_r, E_grid_z, E_ion_r, E_ion_z, nr, nz, NR, NZ );

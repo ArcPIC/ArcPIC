@@ -38,8 +38,13 @@ void out_dens_2D_h5( double dens_av[], int n_aver, double sign,
 		     double dr, double dz,
 		     const char* const tablename, H5::Group& group_dens );
 
-void out_phi_2D( double phi[], int n_aver, int nr, int nz, int NZ, 
-		 double Omega_pe, double dr, double dz, const char *dat1 );
+void out_phi_2D( double phi[], int n_aver, int nr, int nz, int NZ,
+		 double Omega_pe, double dr, double dz,
+		 const char *dat1 );
+void out_phi_2D_h5( double phi[], int n_aver, int nr, int nz, int NZ,
+		    double Omega_pe, double dr, double dz,
+		    const char* const tablename, H5::Group& group_emfield );
+
 
 void out_efield_2D( double efield_z[], double efield_r[], int n_aver, int nr, int nz, int NZ, 
 		    double Omega_pe, double dr, double dz, const char *dat1, const char *dat2 );
