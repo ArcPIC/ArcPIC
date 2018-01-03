@@ -2,7 +2,7 @@
 
   2D3V PIC-MCC CODE '2D Arc-PIC'
 
-  Copyright 2010-2015 CERN and Helsinki Institute of Physics.
+  Copyright 2010-2018 CERN, Helsinki Institute of Physics, and University of Oslo.
   This software is distributed under the terms of the
   GNU General Public License version 3 (GPL Version 3),
   copied verbatim in the file LICENCE.md. In applying this
@@ -32,13 +32,11 @@
 #include "pic.h"
 #include "mydef.h"
 
-
-
 /***************************
- Outputting routines 
+ Outputting routines
 ***************************/
 
-void out_fv_along_2D( double fvz[], double fvr[], double fvabs[], int nr, int nz, 
+void out_fv_along_2D( double fvz[], double fvr[], double fvabs[], int nr, int nz,
 		      const char *dat1, const char *dat2, const char *dat3 ) {
   FILE *file1, *file2, *file3;
   int j, k, n;
@@ -48,7 +46,6 @@ void out_fv_along_2D( double fvz[], double fvr[], double fvabs[], int nr, int nz
   file1 = fopen(dat1, "w");
   file2 = fopen(dat2, "w");
   file3 = fopen(dat3, "w");
-
 
   for (j=0; j<halfnr; j++) {
     for (k=0; k<halfnz; k++) {
@@ -120,6 +117,28 @@ void out_fv_along_2D_h5( double fvz[], double fvr[], double fvabs[], int nr, int
 }
 
 
+void out_dens_2D( double dens_av[], int n_aver, double sign, int nr, int nz, int NZ, double Omega_pe,
+		  double dr, double dz, const char *dat_p ) {
+  FILE *file_p;
+  double fp;
+  int j, k;
+  
+  if (n_aver < 1)  n_aver = 1;
+
+  fp = sign*SQU(1./Omega_pe)/n_aver;
+
+  file_p = fopen(dat_p, "w");
+
+  for (j=0; j<=nr; j++) {
+    for (k=0; k<=nz; k++) {
+      fprintf(file_p, "% .5e % .5e % .5e \n", dr*j, dz*k, fp*dens_av[j*NZ+k]);
+    }
+  }
+  
+  fclose(file_p);
+  
+}
+
 void out_dens_2D_h5( double dens_av[], int n_aver, double sign, int nr, int nz, int NZ, double Omega_pe,
 		     double dr, double dz, const char* const tablename, H5::Group& group_dens ) {
   
@@ -150,27 +169,6 @@ void out_dens_2D_h5( double dens_av[], int n_aver, double sign, int nr, int nz, 
   }
 }
 
-void out_dens_2D( double dens_av[], int n_aver, double sign, int nr, int nz, int NZ, double Omega_pe,  
-		  double dr, double dz, const char *dat_p ) {
-  FILE *file_p;
-  double fp;
-  int j, k;  
-  
-  if (n_aver < 1)  n_aver = 1;
-
-  fp = sign*SQU(1./Omega_pe)/n_aver;  
-
-  file_p = fopen(dat_p, "w");
-
-  for (j=0; j<=nr; j++) {
-    for (k=0; k<=nz; k++) {
-      fprintf(file_p, "% .5e % .5e % .5e \n", dr*j, dz*k, fp*dens_av[j*NZ+k]); 
-    }
-  }
-  
-  fclose(file_p);
-  
-}
 
 void out_phi_2D( double phi[], int n_aver, int nr, int nz, int NZ,
 		 double Omega_pe, double dr, double dz,
@@ -182,15 +180,15 @@ void out_phi_2D( double phi[], int n_aver, int nr, int nz, int NZ,
   
   if( n_aver < 1 )  n_aver = 1;
   
-  f1 = SQU(dz/Omega_pe)/n_aver;   
+  f1 = SQU(dz/Omega_pe)/n_aver;
 
   file1 = fopen(dat1, "w");
   for (j=0; j<=nr; j++) {
     for (k=0; k<=nz; k++) {
-      fprintf(file1, "% .5e % .5e % .5e \n", dr*j, dz*k, f1*phi[j*NZ+k]); 
+      fprintf(file1, "% .5e % .5e % .5e \n", dr*j, dz*k, f1*phi[j*NZ+k]);
     }
   }
-  fclose(file1); 
+  fclose(file1);
   
 }
 
@@ -224,7 +222,8 @@ void out_phi_2D_h5( double phi[], int n_aver, int nr, int nz, int NZ,
   }
 }
 
-void out_efield_2D( double efield_z[], double efield_r[], int n_aver, int nr, int nz, int NZ, 
+
+void out_efield_2D( double efield_z[], double efield_r[], int n_aver, int nr, int nz, int NZ,
 		    double Omega_pe, double dr, double dz, const char *dat1, const char *dat2 ) {
 
   FILE *file1, *file2;
@@ -233,21 +232,22 @@ void out_efield_2D( double efield_z[], double efield_r[], int n_aver, int nr, in
   
   if( n_aver < 1 )  n_aver = 1;
   
-  f1 = 2*dz/SQU(Omega_pe)/n_aver;   
+  f1 = 2*dz/SQU(Omega_pe)/n_aver;
 
   file1 = fopen(dat1, "w");
   file2 = fopen(dat2, "w");
 
   for (j=0; j<=nr; j++) {
     for (k=0; k<=nz; k++) {
-      fprintf(file1, "% .5e % .5e % .5e \n", dr*j, dz*k, f1*efield_z[j*NZ+k]); 
-      fprintf(file2, "% .5e % .5e % .5e \n", dr*j, dz*k, f1*efield_r[j*NZ+k]); 
+      fprintf(file1, "% .5e % .5e % .5e \n", dr*j, dz*k, f1*efield_z[j*NZ+k]);
+      fprintf(file2, "% .5e % .5e % .5e \n", dr*j, dz*k, f1*efield_r[j*NZ+k]);
     }
   }
-  fclose(file1); 
+  fclose(file1);
   fclose(file2);
   
 }
+
 void out_efield_2D_h5( double efield_z[], double efield_r[], int n_aver, int nr, int nz, int NZ,
 		       double Omega_pe, double dr, double dz,
 		       const char* const tablename_z, const char* const tablename_r, H5::Group& group_emfield ) {
@@ -287,8 +287,7 @@ void out_efield_2D_h5( double efield_z[], double efield_r[], int n_aver, int nr,
   }
 }
 
-
-void out_vels_2D( Moments  mom[], int nr, int nz, int NZ, double u0, 
+void out_vels_2D( Moments  mom[], int nr, int nz, int NZ, double u0,
 		  double dr, double dz, const char *dat1, const char *dat2, const char *dat3 ) {
 
   FILE *file1, *file2, *file3;
@@ -306,26 +305,26 @@ void out_vels_2D( Moments  mom[], int nr, int nz, int NZ, double u0,
       }
       else {
 	mom[j*NZ+k].uz = mom[j*NZ+k].ur = mom[j*NZ+k].ut = 0.;
-      }      
+      }
     }
   }
   
   file1 = fopen(dat1, "w");
   file2 = fopen(dat2, "w");
   file3 = fopen(dat3, "w");
-        
+  
   for (j=0; j<nr; j++) {
     for (k=0; k<nz; k++) {
-      fprintf(file1, "% .5e % .5e % .5e \n", dr*j, dz*k, mom[j*NZ+k].uz); 
-      fprintf(file2, "% .5e % .5e % .5e \n", dr*j, dz*k, mom[j*NZ+k].ur);  
-      fprintf(file3, "% .5e % .5e % .5e \n", dr*j, dz*k, mom[j*NZ+k].ut); 
+      fprintf(file1, "% .5e % .5e % .5e \n", dr*j, dz*k, mom[j*NZ+k].uz);
+      fprintf(file2, "% .5e % .5e % .5e \n", dr*j, dz*k, mom[j*NZ+k].ur);
+      fprintf(file3, "% .5e % .5e % .5e \n", dr*j, dz*k, mom[j*NZ+k].ut);
     }
   }
   
   fclose(file1);
   fclose(file2);
   fclose(file3);
-     	
+  
 }
 
 void out_vels_2D_h5( Moments  mom[], int nr, int nz, int NZ, double u0,
@@ -376,6 +375,7 @@ void out_vels_2D_h5( Moments  mom[], int nr, int nz, int NZ, double u0,
 
       dataspace_file1.offsetSimple(offset_memInFile_shift);
       dataset1.write(databuffer1,H5::PredType::NATIVE_DOUBLE, dataspace_mem, dataspace_file1);
+      
       dataspace_file2.offsetSimple(offset_memInFile_shift);
       dataset2.write(databuffer2,H5::PredType::NATIVE_DOUBLE, dataspace_mem, dataspace_file2);
       
@@ -415,17 +415,16 @@ void out_temps_2D( Moments  mom[], double u0, double fnorm, int nr, int nz, int 
 
 
   for (j=0; j<nr; j++) {
-    for (k=0; k<nz; k++) {  
-      fprintf(file1, "% .5e % .5e % .5e \n", dr*j, dz*k, mom[j*NZ+k].tz); 
-      fprintf(file2, "% .5e % .5e % .5e \n", dr*j, dz*k, mom[j*NZ+k].tr);  
-      fprintf(file3, "% .5e % .5e % .5e \n", dr*j, dz*k, mom[j*NZ+k].tt); 
+    for (k=0; k<nz; k++) {
+      fprintf(file1, "% .5e % .5e % .5e \n", dr*j, dz*k, mom[j*NZ+k].tz);
+      fprintf(file2, "% .5e % .5e % .5e \n", dr*j, dz*k, mom[j*NZ+k].tr);
+      fprintf(file3, "% .5e % .5e % .5e \n", dr*j, dz*k, mom[j*NZ+k].tt);
     }
   }
   
   fclose(file1);
   fclose(file2);
   fclose(file3);
-
 }
 
 void out_temps_2D_h5( Moments  mom[], double u0, double fnorm, int nr, int nz, int NZ,
@@ -494,8 +493,8 @@ void out_coords_2D( Particle pa[], size_t np, int fnorm,
   file = fopen(dat, "w");
   
   for (size_t i=0; i<np; i++)  {
-    fprintf(file, "% .5e % .5e % .5e % .5e % .5e \n", pa[i].p.z*dz, pa[i].p.r*dz, 
-	    pa[i].p.vz*vnorm, pa[i].p.vr*vnorm, pa[i].p.vt*vnorm); 
+    fprintf(file, "% .5e % .5e % .5e % .5e % .5e \n", pa[i].p.z*dz, pa[i].p.r*dz,
+	    pa[i].p.vz*vnorm, pa[i].p.vr*vnorm, pa[i].p.vt*vnorm);
   }
   
   fclose(file);
@@ -564,11 +563,11 @@ H5::H5File* createH5File_timestep(const int nsteps, const double simTime,
 }
 
 /***************************
- Diagnostics 
+ Diagnostics
 ***************************/
 
-void diagn_stability_2D( const double dens[], Particle pa[], double diag_Te[], double diag_ve[], double diag_ne[], 
-			 double sign, int np, double u0, int nr, int nz, int NR, int NZ, double Omega_pe,  
+void diagn_stability_2D( const double dens[], Particle pa[], double diag_Te[], double diag_ve[], double diag_ne[],
+			 double sign, int np, double u0, int nr, int nz, int NR, int NZ, double Omega_pe,
 			 double dr, double dz, int steps, int& check, const char *dat_err ) {
 
   double ne_max = 0., ne_max_old = 0.;
@@ -581,13 +580,13 @@ void diagn_stability_2D( const double dens[], Particle pa[], double diag_Te[], d
   int noT_max_j(-1), noT_max_k(-1), noT_av_j(-1);
 
   double fne;
-  fne = SQU(1./Omega_pe);  
+  fne = SQU(1./Omega_pe);
 
   double vz, vr, vt, vz2, vr2, vt2;
 
   FILE *file;
 
-  // Check ne, ne/Te 
+  // Check ne, ne/Te
   for (int j=0; j<NR; j++) {
     for (int k=0; k<NZ; k++) {
       ne_av_old += sign*dens[j*NZ+k];
@@ -663,33 +662,33 @@ void diagn_stability_2D( const double dens[], Particle pa[], double diag_Te[], d
   file = fopen(dat_err, "a");
   // If error => put check == 1 => stop.
   if ( ne_av > 5. ) {
-    fprintf(file, "***ERROR*** GLOBAL(%d steps): <ne>/n_ref= %.5e along j= %d \n", steps, ne_av, ne_av_j); 
+    fprintf(file, "***ERROR*** GLOBAL(%d steps): <ne>/n_ref= %.5e along j= %d \n", steps, ne_av, ne_av_j);
     check = 1;
   }
   if ( noT_av > 2. ) {
-    fprintf(file, "***ERROR*** GLOBAL(%d steps): <ne/Te>/(n_ref/T_ref)= %.5e along j= %d \n", steps, noT_av, noT_av_j);      
+    fprintf(file, "***ERROR*** GLOBAL(%d steps): <ne/Te>/(n_ref/T_ref)= %.5e along j= %d \n", steps, noT_av, noT_av_j);
     check = 1;
   }
   
   // WARNINGS
   if ( ne_av > 1. ) {
-    fprintf(file, "***WARNING*** GLOBAL(%d steps): <ne>/n_ref= %.5e along j= %d \n", steps, ne_av, ne_av_j); 
+    fprintf(file, "***WARNING*** GLOBAL(%d steps): <ne>/n_ref= %.5e along j= %d \n", steps, ne_av, ne_av_j);
   }
   if ( ne_max > 5. ) {
-    fprintf(file, "***WARNING*** LOCAL(%d steps): [ne]max/n_ref= %.5e at j= %d k= %d \n", steps, ne_max, ne_max_j, ne_max_k); 
+    fprintf(file, "***WARNING*** LOCAL(%d steps): [ne]max/n_ref= %.5e at j= %d k= %d \n", steps, ne_max, ne_max_j, ne_max_k);
   }
   if ( noT_av > 1. ) {
-    fprintf(file, "***WARNING*** GLOBAL(%d steps): <ne/Te>/(n_ref/T_ref)= %.5e along j= %d \n", steps, noT_av, noT_av_j); 
+    fprintf(file, "***WARNING*** GLOBAL(%d steps): <ne/Te>/(n_ref/T_ref)= %.5e along j= %d \n", steps, noT_av, noT_av_j);
   }
   if ( noT_max > 2. ) {
-    fprintf(file, "***WARNING*** LOCAL(%d steps): [ne/Te]max/(n_ref/T_ref)= %.5e at j= %d k= %d \n", steps, noT_max, noT_max_j, noT_max_k); 
+    fprintf(file, "***WARNING*** LOCAL(%d steps): [ne/Te]max/(n_ref/T_ref)= %.5e at j= %d k= %d \n", steps, noT_max, noT_max_j, noT_max_k);
   }
   
   fclose(file);
 }
 
 void diagn_av_stability( const double dens[], double diag_Te[], double diag_ne[], int n_av,
-			 double sign, double u0, int nr, int nz, int NR, int NZ, double Omega_pe,  
+			 double sign, double u0, int nr, int nz, int NR, int NZ, double Omega_pe,
 			 double dr, double dz, int steps, int *check, const char *dat_err ) {
 
   double ne_max = 0., ne_max_old = 0.;
@@ -702,12 +701,11 @@ void diagn_av_stability( const double dens[], double diag_Te[], double diag_ne[]
   int noT_max_j(-1), noT_max_k(-1), noT_av_j(-1);
 
   if (n_av < 0) n_av = 1;
-  double fne = SQU(1./Omega_pe)/n_av;  
-
+  double fne = SQU(1./Omega_pe)/n_av;
 
   FILE *file;
 
-  // Check ne, ne/Te 
+  // Check ne, ne/Te
   for (int j=0; j<NR; j++) {
     for (int k=0; k<NZ; k++) {
       ne_av_old += sign*dens[j*NZ+k];
@@ -758,26 +756,26 @@ void diagn_av_stability( const double dens[], double diag_Te[], double diag_ne[]
 
   // IF ERROR => put check == 1 => stop.
   if ( ne_av > 5. ) {
-    fprintf(file, "***ERROR*** GLOBAL(%d steps): <ne>/n_ref= %.5e along j= %d \n", steps, ne_av, ne_av_j); 
+    fprintf(file, "***ERROR*** GLOBAL(%d steps): <ne>/n_ref= %.5e along j= %d \n", steps, ne_av, ne_av_j);
     *check = 1;
   }
   if ( noT_av > 2. ) {
-    fprintf(file, "***ERROR*** GLOBAL(%d steps): <ne/Te>/(n_ref/T_ref)= %.5e along j= %d \n", steps, noT_av, noT_av_j);      
+    fprintf(file, "***ERROR*** GLOBAL(%d steps): <ne/Te>/(n_ref/T_ref)= %.5e along j= %d \n", steps, noT_av, noT_av_j);
     *check = 1;
   }
 
   // WARNINGS
   if ( ne_av > 1. ) {
-    fprintf(file, "***WARNING*** GLOBAL(%d steps): <ne>/n_ref= %.5e along j= %d \n", steps, ne_av, ne_av_j); 
+    fprintf(file, "***WARNING*** GLOBAL(%d steps): <ne>/n_ref= %.5e along j= %d \n", steps, ne_av, ne_av_j);
   }
   if ( ne_max > 5. ) {
-    fprintf(file, "***WARNING*** LOCAL(%d steps): [ne]max/n_ref= %.5e at j= %d k= %d \n", steps, ne_max, ne_max_j, ne_max_k); 
+    fprintf(file, "***WARNING*** LOCAL(%d steps): [ne]max/n_ref= %.5e at j= %d k= %d \n", steps, ne_max, ne_max_j, ne_max_k);
   }
   if ( noT_av > 1. ) {
-    fprintf(file, "***WARNING*** GLOBAL(%d steps): <ne/Te>/(n_ref/T_ref)= %.5e along j= %d \n", steps, noT_av, noT_av_j); 
+    fprintf(file, "***WARNING*** GLOBAL(%d steps): <ne/Te>/(n_ref/T_ref)= %.5e along j= %d \n", steps, noT_av, noT_av_j);
   }
   if ( noT_max > 2. ) {
-    fprintf(file, "***WARNING*** LOCAL(%d steps): [ne/Te]max/(n_ref/T_ref)= %.5e at j= %d k= %d \n", steps, noT_max, noT_max_j, noT_max_k); 
+    fprintf(file, "***WARNING*** LOCAL(%d steps): [ne/Te]max/(n_ref/T_ref)= %.5e at j= %d k= %d \n", steps, noT_max, noT_max_j, noT_max_k);
   }
   
   fclose(file);

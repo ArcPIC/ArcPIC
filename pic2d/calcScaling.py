@@ -40,7 +40,7 @@ class InputFile:
         ifile = open(fname, 'r');
         parseLines = None
 
-        for line in ifile:        
+        for line in ifile:
             #print "LINE='"+line+"'" #Debug
             #Read lines for sections
             if parseLines != None:

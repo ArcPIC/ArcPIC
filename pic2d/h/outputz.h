@@ -2,7 +2,7 @@
 
   2D3V PIC-MCC CODE '2D Arc-PIC'
 
-  Copyright 2010-2015 CERN and Helsinki Institute of Physics.
+  Copyright 2010-2018 CERN, Helsinki Institute of Physics, and University of Oslo.
   This software is distributed under the terms of the
   GNU General Public License version 3 (GPL Version 3),
   copied verbatim in the file LICENCE.md. In applying this
@@ -54,7 +54,7 @@ void out_vels_2D_h5( Moments  mom[], int nr, int nz, int NZ, double u0,
 		  const char* const tablename1, const char* const tablename2, const char* const tablename3, H5::Group& group_velocities );
 
 
-void out_temps_2D( Moments  mom[], double u0, double fnorm, int nr, int nz, int NZ, 
+void out_temps_2D( Moments  mom[], double u0, double fnorm, int nr, int nz, int NZ,
 		   double dr, double dz, const char *dat1, const char *dat2, const char *dat3 );
 void out_temps_2D_h5( Moments  mom[], double u0, double fnorm, int nr, int nz, int NZ,
 		      double dr, double dz,
@@ -71,12 +71,12 @@ void out_coords_2D_h5( Particle pa[], size_t np, int fnorm,
 H5::H5File* createH5File_timestep( const int nsteps, const double simTime,
 				   std::string basename = "output" );
 
-void diagn_stability_2D( const double dens[], Particle pa[], double diag_Te[], double diag_ve[], double diag_ne[], 
-			 double sign, int np, double u0, int nr, int nz, int NR, int NZ, double Omega_pe,  
+void diagn_stability_2D( const double dens[], Particle pa[], double diag_Te[], double diag_ve[], double diag_ne[],
+			 double sign, int np, double u0, int nr, int nz, int NR, int NZ, double Omega_pe,
 			 double dr, double dz, int steps, int& check, const char *dat_err );
 
 void diagn_av_stability( const double dens[], double diag_Te[], double diag_ne[], int n_av,
-			 double sign, double u0, int nr, int nz, int NR, int NZ, double Omega_pe,  
+			 double sign, double u0, int nr, int nz, int NR, int NZ, double Omega_pe,
 			 double dr, double dz, int steps, int *check, const char *dat_err );
 
 
