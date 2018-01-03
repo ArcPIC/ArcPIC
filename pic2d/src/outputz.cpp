@@ -266,6 +266,45 @@ void out_efield_2D( double efield_z[], double efield_r[], int n_aver, int nr, in
   fclose(file2);
   
 }
+void out_efield_2D_h5( double efield_z[], double efield_r[], int n_aver, int nr, int nz, int NZ,
+		       double Omega_pe, double dr, double dz,
+		       const char* const tablename_z, const char* const tablename_r, H5::Group& group_emfield ) {
+  
+  if( n_aver < 1 )  n_aver = 1;
+  
+  double f1 = 2*dz/SQU(Omega_pe)/n_aver;
+  
+  //Create the dataspaces for the file
+  hsize_t dims_file[] = {nr+1,nz+1,3};
+  H5::DataSpace dataspace_z(3, dims_file);
+  H5::DataSpace dataspace_r(3, dims_file);
+
+  H5::DataSet dataset_z = group_emfield.createDataSet(tablename_z, H5::PredType::NATIVE_DOUBLE, dataspace_z);
+  H5::DataSet dataset_r = group_emfield.createDataSet(tablename_r, H5::PredType::NATIVE_DOUBLE, dataspace_r);
+  
+  //Create a window into the file dataspace (1 row)
+  hsize_t dims_mem[] = {1,1,3};
+  H5::DataSpace dataspace_mem(3,dims_mem,dims_file);
+
+  const hsize_t offset_memInFile[] = {0,0,0};
+  dataspace_z.selectHyperslab(H5S_SELECT_SET, dims_mem, offset_memInFile);
+  dataspace_r.selectHyperslab(H5S_SELECT_SET, dims_mem, offset_memInFile);
+  
+  for (ssize_t j=0; j<=nr; j++) {
+    for (ssize_t k=0; k<=nz; k++) {
+      double databuffer_z[] = { dr*j, dz*k, f1*efield_z[j*NZ+k] };
+      double databuffer_r[] = { dr*j, dz*k, f1*efield_r[j*NZ+k] };
+
+      const hssize_t offset_memInFile_shift[] = {j,k,0};
+
+      dataspace_z.offsetSimple(offset_memInFile_shift);
+      dataset_z.write(databuffer_z,H5::PredType::NATIVE_DOUBLE, dataspace_mem, dataspace_z);
+      dataspace_r.offsetSimple(offset_memInFile_shift);
+      dataset_r.write(databuffer_r,H5::PredType::NATIVE_DOUBLE, dataspace_mem, dataspace_r);
+    }
+  }
+}
+
 
 void out_vels_2D( Moments  mom[], int nr, int nz, int NZ, double u0, 
 		  double dr, double dz, const char *dat1, const char *dat2, const char *dat3 ) {

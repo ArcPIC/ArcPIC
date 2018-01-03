@@ -46,8 +46,11 @@ void out_phi_2D_h5( double phi[], int n_aver, int nr, int nz, int NZ,
 		    const char* const tablename, H5::Group& group_emfield );
 
 
-void out_efield_2D( double efield_z[], double efield_r[], int n_aver, int nr, int nz, int NZ, 
+void out_efield_2D( double efield_z[], double efield_r[], int n_aver, int nr, int nz, int NZ,
 		    double Omega_pe, double dr, double dz, const char *dat1, const char *dat2 );
+void out_efield_2D_h5( double efield_z[], double efield_r[], int n_aver, int nr, int nz, int NZ,
+		       double Omega_pe, double dr, double dz,
+		       const char* const tablename_z, const char* const tablename_r, H5::Group& group_emfield );
 
 void out_vels_2D( Moments  mom[], int nr, int nz, int NZ, double u0,
 		  double dr, double dz,

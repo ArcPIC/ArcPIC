@@ -580,9 +580,13 @@ int main () {
 	  out_dens_2D_h5( n_i_av + NG,         n_aver_ion, 1., nr, nz, NZ, Omega_pe, dr, dz, "IONS",      group_dens );
 	  out_dens_2D_h5( n_i_av + Lastion*NG, n_aver_ion, 1., nr, nz, NZ, Omega_pe, dr, dz, "NEUTRALS",  group_dens );
 
-	  //Electrostatic potential
+	  //Electromagnetic fields
 	  H5::Group group_emfield = h5OutFile->createGroup("/EMFIELD");
+	  // Electrostatic potential
 	  out_phi_2D_h5( phi_av, n_aver, nr, nz, NZ, Omega_pe, dr, dz, "POTENTIAL", group_emfield );
+	  if ( OUT_EFIELD == 0 ) {
+	    out_efield_2D_h5( E_av_z, E_av_r, n_aver, nr, nz, NZ, Omega_pe, dr, dz, "Ez", "Er", group_emfield );
+	  }
 
 	  //Position & velocity
 	  if ( OUT_COORD == 0 ) {
