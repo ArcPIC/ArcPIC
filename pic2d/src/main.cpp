@@ -247,9 +247,11 @@ int main () {
 	// Output coordinates: position and velocity
 	if (BINARY_OUTPUT == 0) {
 	  H5::H5File* h5OutFile = createH5File_timestep( 0 );
-	  out_coords_2D_h5( elec, nr_e, 1, Omega_pe, dz, "COORD_ELECTRONS", h5OutFile );
-	  out_coords_2D_h5( ions + NPART, nr_i[1], dt_ion, Omega_pe, dz, "COORD_IONS", h5OutFile );
-	  out_coords_2D_h5( ions + Lastion*NPART, nr_i[Lastion], dt_ion, Omega_pe, dz, "COORD_NEUTRALS", h5OutFile );
+	  H5::Group group_coords = h5OutFile->createGroup("/COORDS");
+	  
+	  out_coords_2D_h5( elec, nr_e, 1, Omega_pe, dz, "ELECTRONS", group_coords );
+	  out_coords_2D_h5( ions + NPART, nr_i[1], dt_ion, Omega_pe, dz, "IONS", group_coords );
+	  out_coords_2D_h5( ions + Lastion*NPART, nr_i[Lastion], dt_ion, Omega_pe, dz, "NEUTRALS", group_coords );
 	}
 	else {
 	  file_names_2D( 0 );
@@ -538,12 +540,14 @@ int main () {
 
 	  //Position & velocity
 	  if ( OUT_COORD == 0 ) {
-	    out_coords_2D_h5( elec, nr_e, 1, Omega_pe, dz, "COORD_ELECTRONS", h5OutFile );
-	    out_coords_2D_h5( ions + NPART, nr_i[1], dt_ion, Omega_pe, dz, "COORD_IONS", h5OutFile );
-	    out_coords_2D_h5( ions + Lastion*NPART, nr_i[Lastion], dt_ion, Omega_pe, dz, "COORD_NEUTRALS", h5OutFile );
+	    H5::Group group_coords = h5OutFile->createGroup("/COORDS");
+	    out_coords_2D_h5( elec, nr_e, 1, Omega_pe, dz, "ELECTRONS", group_coords );
+	    out_coords_2D_h5( ions + NPART, nr_i[1], dt_ion, Omega_pe, dz, "IONS", group_coords );
+	    out_coords_2D_h5( ions + Lastion*NPART, nr_i[Lastion], dt_ion, Omega_pe, dz, "NEUTRALS", group_coords );
 	  }
 	  
 	  h5OutFile->close();
+	  delete h5OutFile;
 	  h5OutFile=NULL;
 	}
 	else{

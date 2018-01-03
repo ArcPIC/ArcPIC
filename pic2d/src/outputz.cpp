@@ -318,7 +318,7 @@ void out_coords_2D( Particle pa[], size_t np, int fnorm,
 
 void out_coords_2D_h5( Particle pa[], size_t np, int fnorm,
 		       double omega_pe, double dz,
-		       const char *tablename, H5::H5File* h5file_timestep ) {
+		       const char *tablename, H5::Group& group_coords ) {
   
   double vnorm = dz/omega_pe/fnorm;
 
@@ -327,7 +327,7 @@ void out_coords_2D_h5( Particle pa[], size_t np, int fnorm,
   // HDF5 is internally row-major (i.e. C convention)
   hsize_t dims_file[2] = {np,5};
   H5::DataSpace dataspace_file(2, dims_file);
-  H5::DataSet dataset = h5file_timestep->createDataSet(tablename, H5::PredType::NATIVE_DOUBLE, dataspace_file);
+  H5::DataSet dataset = group_coords.createDataSet(tablename, H5::PredType::NATIVE_DOUBLE, dataspace_file);
 
   if (np==0) {
     //Don't try to write to an empty dataset

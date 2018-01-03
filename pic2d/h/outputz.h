@@ -49,7 +49,7 @@ void out_coords_2D( Particle pa[], size_t np, int fnorm,
 
 void out_coords_2D_h5( Particle pa[], size_t np, int fnorm,
 		       double omega_pe, double dz,
-		       const char *tablename, H5::H5File* h5file_timestep  );
+		       const char *tablename, H5::Group& group_coords  );
 
 H5::H5File* createH5File_timestep( const int nsteps );
 
