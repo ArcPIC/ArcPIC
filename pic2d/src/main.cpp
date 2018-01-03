@@ -246,7 +246,7 @@ int main () {
       if ( OUT_COORD == 0 ) {
 	// Output coordinates: position and velocity
 	if (BINARY_OUTPUT == 0) {
-	  H5::H5File* h5OutFile_initDist = createH5File_timestep( 0, "initDist" );
+	  H5::H5File* h5OutFile_initDist = createH5File_timestep( 0, 0.0, "initDist" );
 	  H5::Group group_coords = h5OutFile_initDist->createGroup("/COORDS");
 	  
 	  out_coords_2D_h5( elec, nr_e, 1, Omega_pe, dz, "ELECTRONS", group_coords );
@@ -281,7 +281,7 @@ int main () {
 
     H5::H5File* h5OutFile_0 = NULL;
     if ( BINARY_OUTPUT == 0 ) {
-      h5OutFile_0 = createH5File_timestep( 0 );
+      h5OutFile_0 = createH5File_timestep( 0, 0.0 );
     }
     else {
       file_names_2D( 0 );
@@ -572,7 +572,7 @@ int main () {
 	fflush(timeIndex);
 	
 	if (BINARY_OUTPUT == 0) {
-	  H5::H5File* h5OutFile = createH5File_timestep( nsteps );
+	  H5::H5File* h5OutFile = createH5File_timestep( nsteps, nsteps*Omega_pe*1e9/(56414.6*sqrt(n_ref)) );
 
 	  //Density
 	  H5::Group group_dens = h5OutFile->createGroup("/DENSITY");

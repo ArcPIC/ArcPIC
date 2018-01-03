@@ -407,7 +407,8 @@ void out_coords_2D_h5( Particle pa[], size_t np, int fnorm,
 }
 
 // Create the HDF5 file for the current ouput timestep
-H5::H5File* createH5File_timestep(const int nsteps, std::string basename = "output"){
+H5::H5File* createH5File_timestep(const int nsteps, const double simTime,
+				  std::string basename = "output"){
   
   std::ostringstream timestep_string;
   timestep_string << std::setw(8) << std::setfill('0') << nsteps;
@@ -419,9 +420,17 @@ H5::H5File* createH5File_timestep(const int nsteps, std::string basename = "outp
   
   H5::H5File* returnFile = new H5::H5File(fname, H5F_ACC_TRUNC);
 
+  std::cout << nsteps << "; " << simTime << std::endl;
+  
+  // Attribute: Step number in the simulation
   H5::DataSpace dataspace_nsteps(H5S_SCALAR);
   H5::Attribute attribute_nsteps = returnFile->createAttribute("NSTEPS", H5::PredType::NATIVE_INT, dataspace_nsteps);
   attribute_nsteps.write(H5::PredType::NATIVE_INT, &nsteps);
+
+  // Attribute: Time in the simulation [ns]
+  H5::DataSpace dataspace_simTime(H5S_SCALAR);
+  H5::Attribute attribute_simTime = returnFile->createAttribute("SIMTIME", H5::PredType::NATIVE_DOUBLE, dataspace_simTime);
+  attribute_simTime.write(H5::PredType::NATIVE_DOUBLE, &simTime);
   
   return returnFile;
 }
