@@ -20,4 +20,4 @@
 
 void print_parameters_2D( void );
 
-
+void outputfile_addParameterMetadata(H5::H5File* outputFile, const int nsteps);

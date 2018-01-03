@@ -68,8 +68,7 @@ void out_coords_2D_h5( Particle pa[], size_t np, int fnorm,
 		       double omega_pe, double dz,
 		       const char* const tablename, H5::Group& group_coords );
 
-H5::H5File* createH5File_timestep( const int nsteps, const double simTime,
-				   std::string basename = "output" );
+H5::H5File* createH5File_timestep( const int nsteps, std::string basename = "output" );
 
 void diagn_stability_2D( const double dens[], Particle pa[], double diag_Te[], double diag_ve[], double diag_ne[],
 			 double sign, int np, double u0, int nr, int nz, int NR, int NZ, double Omega_pe,

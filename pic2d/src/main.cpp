@@ -2,7 +2,7 @@
 
   2D3V PIC-MCC CODE '2D Arc-PIC'
 
-  Copyright 2010-2015 CERN and Helsinki Institute of Physics.
+  Copyright 2010-2018 CERN, Helsinki Institute of Physics, and University of Oslo.
   This software is distributed under the terms of the
   GNU General Public License version 3 (GPL Version 3),
   copied verbatim in the file LICENCE.md. In applying this
@@ -11,8 +11,8 @@
   or submit itself to any jurisdiction.
 
   Project website: http://arcpic.web.cern.ch/
-  Developers: Helga Timko, Kyrre Sjobak 
-  
+  Developers: Helga Timko, Kyrre Sjobak
+
   main.cpp:
   Main program control and time stepping loop.
   Writing of LOCKFILE, out/timeIndex.dat, mainstats.dat
@@ -246,7 +246,7 @@ int main () {
       if ( OUT_COORD == 0 ) {
 	// Output coordinates: position and velocity
 	if (BINARY_OUTPUT == 0) {
-	  H5::H5File* h5OutFile_initDist = createH5File_timestep( 0, 0.0, "initDist" );
+	  H5::H5File* h5OutFile_initDist = createH5File_timestep( 0, "initDist" );
 	  H5::Group group_coords = h5OutFile_initDist->createGroup("/COORDS");
 	  
 	  out_coords_2D_h5( elec, nr_e, 1, Omega_pe, dz, "ELECTRONS", group_coords );
@@ -281,7 +281,7 @@ int main () {
 
     H5::H5File* h5OutFile_0 = NULL;
     if ( BINARY_OUTPUT == 0 ) {
-      h5OutFile_0 = createH5File_timestep( 0, 0.0 );
+      h5OutFile_0 = createH5File_timestep( 0 );
     }
     else {
       file_names_2D( 0 );
@@ -572,8 +572,11 @@ int main () {
 	fflush(timeIndex);
 	
 	if (BINARY_OUTPUT == 0) {
-	  H5::H5File* h5OutFile = createH5File_timestep( nsteps, nsteps*Omega_pe*1e9/(56414.6*sqrt(n_ref)) );
-
+	  H5::H5File* h5OutFile = createH5File_timestep( nsteps );
+	  
+	  //Metadata
+	  outputfile_addParameterMetadata(h5OutFile, nsteps);
+	  
 	  //Density
 	  H5::Group group_dens = h5OutFile->createGroup("/DENSITY");
 	  out_dens_2D_h5( n_e_av,              n_aver,    -1., nr, nz, NZ, Omega_pe, dr, dz, "ELECTRONS", group_dens );
