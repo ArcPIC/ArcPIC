@@ -322,7 +322,7 @@ void out_coords_2D_h5( Particle pa[], size_t np, int fnorm,
   
   double vnorm = dz/omega_pe/fnorm;
 
-  std::cout << "out_coords_2D_h5 tablename="<<tablename<<std::endl;
+  //std::cout << "out_coords_2D_h5 tablename="<<tablename<<std::endl;
   
   // HDF5 is internally row-major (i.e. C convention)
   hsize_t dims_file[2] = {np,5};
@@ -341,7 +341,7 @@ void out_coords_2D_h5( Particle pa[], size_t np, int fnorm,
   const hsize_t offset_memInFile[] = {0,0};
   dataspace_file.selectHyperslab(H5S_SELECT_SET, dims_mem, offset_memInFile);
 
-  for (size_t i=0; i<np; i++)  {
+  for (ssize_t i=0; i<np; i++)  {
     double databuffer[] = { pa[i].p.z*dz, pa[i].p.r*dz, pa[i].p.vz*vnorm, pa[i].p.vr*vnorm, pa[i].p.vt*vnorm};
 
       const hssize_t offset_memInFile_shift[] = {i,0};
@@ -351,18 +351,23 @@ void out_coords_2D_h5( Particle pa[], size_t np, int fnorm,
   
 }
 
+// Create the HDF5 file for the current ouput timestep
 H5::H5File* createH5File_timestep(const int nsteps){
-  // Create the HDF5 file for the current ouput timestep
   
   std::ostringstream timestep_string;
   timestep_string << std::setw(8) << std::setfill('0') << nsteps;
   
   std::string fname = "out/output_" + timestep_string.str() + ".h5";
-  H5std_string fname_h5(fname);
+  //H5std_string fname_h5(fname);
   
-  std::cout << "Making HDF5file, timestep="<<nsteps<<" filename="<<fname<<std::endl;
+  //std::cout << "Making HDF5file, timestep="<<nsteps<<" filename="<<fname<<std::endl;
   
-  H5::H5File* returnFile = new H5::H5File(fname_h5, H5F_ACC_TRUNC);
+  H5::H5File* returnFile = new H5::H5File(fname, H5F_ACC_TRUNC);
+
+  H5::DataSpace dataspace_nsteps(H5S_SCALAR);
+  H5::Attribute attribute_nsteps = returnFile->createAttribute("NSTEPS", H5::PredType::NATIVE_INT, dataspace_nsteps);
+  attribute_nsteps.write(H5::PredType::NATIVE_INT, &nsteps);
+  
   return returnFile;
 }
 
