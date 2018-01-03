@@ -591,6 +591,11 @@ int main () {
 	    out_coords_2D_h5( ions + NPART, nr_i[1], dt_ion, Omega_pe, dz, "IONS", group_coords );
 	    out_coords_2D_h5( ions + Lastion*NPART, nr_i[Lastion], dt_ion, Omega_pe, dz, "NEUTRALS", group_coords );
 	  }
+
+	  //Velocity moments
+	  H5::Group group_velavg = h5OutFile->createGroup("/VELOCITY_AVERAGE");
+	  out_vels_2D_h5( mom_el, nr, nz, NZ, cs*sqrt(M_ions[0]/M_ions[1]), dr, dz, "uez", "uer", "uet", group_velavg);
+	  out_vels_2D_h5( mom_ion + NG, nr, nz, NZ, cs*dt_ion*sqrt(M_ions[0]/M_ions[1]), dr, dz, "uiz", "uir", "uit", group_velavg);
 	  
 	  h5OutFile->close();
 	  delete h5OutFile;
