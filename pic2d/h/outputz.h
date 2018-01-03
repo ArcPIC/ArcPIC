@@ -23,14 +23,6 @@ void out_fv_along_2D( double fvz[], double fvr[], double fvabs[], int nr, int nz
 void out_fv_along_2D_h5( double fvz[], double fvr[], double fvabs[], int nr, int nz,
 			 const char* const tablename_z, const char* const tablename_r, const char* const tablename_abs, H5::Group& group_veldist );
 
-void out_tempn_2D( double n_el[], double n_ion[], int n_aver_e, int n_aver_ion, 
-	       int nr, int nz, int NZ, double Vcell[], double Omega_pe, double qp, 
-		   double dr, double dz, const char *dat_e, const char *dat_i );
-
-void out_n_2D( Moments mom_el[], Moments mom_ion[], int n_aver_e, int n_aver_ion, 
-	       int nr, int nz, int NZ, double Vcell[], double Omega_pe, double qp, 
-	       double dr, double dz, const char *dat_e, const char *dat_i );
-
 void out_dens_2D   ( double dens_av[], int n_aver, double sign,
 		     int nr, int nz, int NZ, double Omega_pe,
 		     double dr, double dz,
