@@ -86,6 +86,8 @@ if species == "all2":
     dz       = basefile['/METADATA/INPUTFILE'].attrs['dz']
     Omega_pe = basefile['/METADATA/INPUTFILE'].attrs['Omega_pe']
     T_ref    = basefile['/METADATA/INPUTFILE'].attrs['T_ref']
+
+    basefile.close()
     
     convFactor2 = 1.60217657e-19*N_sp/dT # superparticles/timestep -> Amps
     convFactor3 = (dz/Omega_pe)**2*T_ref #dimless potential -> Volts

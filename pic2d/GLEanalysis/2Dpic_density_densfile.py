@@ -33,7 +33,7 @@ DPI = 500
 
 #Get input
 if len(sys.argv) < 5 or len(sys.argv) > 8:
-    print "Usage: ./2Dpic_density_densfiles.py <mintime> <maxtime> <every nth frame to analyse> <{e|Cu|Cup|qdens|all|all2|allRow}> {<axisShape='square'|'image'>} {<FPS=5>} {cutR=MAX|number}"
+    print "Usage: ./2Dpic_density_densfile.py <mintime> <maxtime> <every nth frame to analyse> <{e|Cu|Cup|qdens|all|all2|allRow}> {<axisShape='square'|'image'>} {<FPS=5>} {cutR=MAX|number}"
     exit(1)
 
 mintime   = int(sys.argv[1])
