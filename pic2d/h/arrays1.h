@@ -30,16 +30,16 @@ XTRN size_t nr_i[NSpecies];         // Nr of ions
 XTRN double q_ions[NSpecies];       // Charge of ions
 XTRN double M_ions[NSpecies];       // Mass of ions
 XTRN double cs_ions[NSpecies];      // Sound velocity
-XTRN double vt_ions[NSpecies];      // Thermal velocity 
+XTRN double vt_ions[NSpecies];      // Thermal velocity
 
-XTRN Moments mom_el[NGR*NGZ],
-  mom_ion[NSpecies*NGR*NGZ];
+XTRN Moments* mom_el;
+XTRN Moments* mom_ion;
 
-XTRN double Vcell[NGR];     
+XTRN double* Vcell;
 
 // Densities
-XTRN double n_e[NGR*NGZ], n_i[NSpecies*NGR*NGZ],  
-  n_e_av[NGR*NGZ], n_i_av[NSpecies*NGR*NGZ]; 
+XTRN double n_e[NGR*NGZ], n_i[NSpecies*NGR*NGZ],
+  n_e_av[NGR*NGZ], n_i_av[NSpecies*NGR*NGZ];
 
 XTRN double phi[NGR*NGZ], phi_av[NGR*NGZ];
 XTRN double E_grid_r[NGR*NGZ], E_grid_z[NGR*NGZ];

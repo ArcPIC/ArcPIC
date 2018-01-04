@@ -19,6 +19,7 @@
 ***********************************************************************/
 
 #include  <slu_ddefs.h>
+#include  <iostream>
 
 #include  "pic.h"
 #include  "dim.h"
@@ -29,7 +30,7 @@
 #undef XTRN
 
 void allocate_arrays( int nr, int nz, int** perm_c, int** perm_r, double** rhs ) {
-
+  
   // Allocate particle arrays
   try {
     elec =  new Particle[NPART];
@@ -66,6 +67,13 @@ void allocate_arrays( int nr, int nz, int** perm_c, int** perm_r, double** rhs )
     vdf_nabs = NULL;
   }
   
+  //Various matrices
+  mom_el  = new Moments[(nr+1)*(nz+1)];
+  mom_ion = new Moments[NSpecies*(nr+1)*(nz+1)];
+
+  Vcell = new double[(nr+1)];
+  
+  //Field solver matrices for SuperLU
   int ni = (nr+1)*(nz+1);
   int nnz = 0;
   if      ( BC == 0 ) nnz = 2*(nr+1) + (nz-1) + 4*(nz-1) + 5*(nr-1)*(nz-1);
