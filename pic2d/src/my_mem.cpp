@@ -72,6 +72,22 @@ void allocate_arrays( int nr, int nz, int** perm_c, int** perm_r, double** rhs )
   mom_ion = new Moments[NSpecies*(nr+1)*(nz+1)];
 
   Vcell = new double[(nr+1)];
+
+  // Densities
+  n_e = new double[(nr+1)*(nz+1)];
+  n_i = new double[NSpecies*(nr+1)*(nz+1)];
+  n_e_av = new double[(nr+1)*(nz+1)];
+  n_i_av = new double[NSpecies*(nr+1)*(nz+1)];
+
+  // EM-fields
+  phi = new double[(nr+1)*(nz+1)];
+  phi_av = new double[(nr+1)*(nz+1)];
+  E_grid_r = new double[(nr+1)*(nz+1)];
+  E_grid_z = new double[(nr+1)*(nz+1)];
+  E_av_r = new double[(nr+1)*(nz+1)];
+  E_av_z = new double[(nr+1)*(nz+1)];
+  E_ion_r = new double[Lastion*(nr+1)*(nz+1)];
+  E_ion_z = new double[Lastion*(nr+1)*(nz+1)];
   
   //Field solver matrices for SuperLU
   int ni = (nr+1)*(nz+1);

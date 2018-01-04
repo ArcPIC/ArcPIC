@@ -32,19 +32,18 @@ XTRN double M_ions[NSpecies];       // Mass of ions
 XTRN double cs_ions[NSpecies];      // Sound velocity
 XTRN double vt_ions[NSpecies];      // Thermal velocity
 
-XTRN Moments* mom_el;
-XTRN Moments* mom_ion;
+XTRN Moments *mom_el, *mom_ion;
 
 XTRN double* Vcell;
 
 // Densities
-XTRN double n_e[NGR*NGZ], n_i[NSpecies*NGR*NGZ],
-  n_e_av[NGR*NGZ], n_i_av[NSpecies*NGR*NGZ];
+XTRN double *n_e, *n_i, *n_e_av, *n_i_av;
 
-XTRN double phi[NGR*NGZ], phi_av[NGR*NGZ];
-XTRN double E_grid_r[NGR*NGZ], E_grid_z[NGR*NGZ];
-XTRN double E_av_r[NGR*NGZ], E_av_z[NGR*NGZ];
-XTRN double E_ion_r[Lastion*NGR*NGZ], E_ion_z[Lastion*NGR*NGZ];
+// EM-fields
+XTRN double *phi, *phi_av;
+XTRN double *E_grid_r, *E_grid_z;
+XTRN double *E_av_r, *E_av_z;
+XTRN double *E_ion_r, *E_ion_z;
 
 // Stability diagnosis
 XTRN double diagn_Te[NGR*NGZ], diagn_ve[NGR*NGZ], 
