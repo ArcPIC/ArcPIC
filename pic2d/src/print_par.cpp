@@ -160,11 +160,11 @@ void outputfile_addParameterMetadata(H5::H5File* outputFile, const int nsteps) {
   attribute_Ndb.write(H5::PredType::NATIVE_DOUBLE, &Ndb);
 
   // Attribute: Number of cells (r) [-]
-  H5::Attribute attribute_nr = group_metadata_input.createAttribute("nr", H5::PredType::NATIVE_DOUBLE, dataspace_scalar);
+  H5::Attribute attribute_nr = group_metadata_input.createAttribute("nr", H5::PredType::NATIVE_INT, dataspace_scalar);
   attribute_nr.write(H5::PredType::NATIVE_INT, &nr);
 
   // Attribute: Number of cells (z) [-]
-  H5::Attribute attribute_nz = group_metadata_input.createAttribute("nz", H5::PredType::NATIVE_DOUBLE, dataspace_scalar);
+  H5::Attribute attribute_nz = group_metadata_input.createAttribute("nz", H5::PredType::NATIVE_INT, dataspace_scalar);
   attribute_nz.write(H5::PredType::NATIVE_INT, &nz);
 
   // Attribute: grid size dz [Debyes]
@@ -200,6 +200,16 @@ void outputfile_addParameterMetadata(H5::H5File* outputFile, const int nsteps) {
   double dZ = Ldb*dz;
   H5::Attribute attribute_dZ = group_metadata_calc.createAttribute("dZ", H5::PredType::NATIVE_DOUBLE, dataspace_scalar);
   attribute_dZ.write(H5::PredType::NATIVE_DOUBLE, &dZ);
+
+  // Attribute: Total grid size R [cm]
+  double R = dZ*nr;
+  H5::Attribute attribute_R = group_metadata_calc.createAttribute("R", H5::PredType::NATIVE_DOUBLE, dataspace_scalar);
+  attribute_R.write(H5::PredType::NATIVE_DOUBLE, &R);
+
+  // Attribute: Total grid size Z [cm]
+  double Z = dZ*nz;
+  H5::Attribute attribute_Z = group_metadata_calc.createAttribute("Z", H5::PredType::NATIVE_DOUBLE, dataspace_scalar);
+  attribute_Z.write(H5::PredType::NATIVE_DOUBLE, &Z);
   
   // -- DYNAMIC METADATA --
   

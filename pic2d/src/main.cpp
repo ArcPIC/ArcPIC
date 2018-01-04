@@ -322,19 +322,22 @@ int main () {
     
     printf("\n");
     
-    file_names_2D( 1 );
+    // II. CALCULATE FIELD
+    electric_field_2D( phi, E_grid_r, E_grid_z, E_ion_r, E_ion_z, nr, nz, NR, NZ );
+    
+    printf("\n");
+
     if ( BINARY_OUTPUT == 0 ) {
       out_phi_2D_h5(phi, 1, nr, nz, NZ, Omega_pe, dr, dz, "POTENTIAL", group_emfield_0);
+      if ( OUT_EFIELD == 0) {
+	out_efield_2D_h5( E_av_z, E_av_r, 1, nr, nz, NZ, Omega_pe, dr, dz, "EFIELD", group_emfield_0 );
+      }
     }
     else{
+      file_names_2D( 1 );
       out_phi_2D(phi, 1, nr, nz, NZ, Omega_pe, dr, dz, fphi);
     }
     
-    // II. CALCULATE FIELD
-    electric_field_2D( phi, E_grid_r, E_grid_z, E_ion_r, E_ion_z, nr, nz, NR, NZ );
-      
-    printf("\n");
-
     //Initialize reactions etc. just before writing metadata to h5OutFile_0
     init_reactions();
     print_parameters_2D();
@@ -601,7 +604,7 @@ int main () {
 	  // Electrostatic potential
 	  out_phi_2D_h5( phi_av, n_aver, nr, nz, NZ, Omega_pe, dr, dz, "POTENTIAL", group_emfield );
 	  if ( OUT_EFIELD == 0 ) {
-	    out_efield_2D_h5( E_av_z, E_av_r, n_aver, nr, nz, NZ, Omega_pe, dr, dz, "Ez", "Er", group_emfield );
+	    out_efield_2D_h5( E_av_z, E_av_r, n_aver, nr, nz, NZ, Omega_pe, dr, dz, "EFIELD", group_emfield );
 	  }
 
 	  //Position & velocity
