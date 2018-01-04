@@ -34,7 +34,8 @@ find_package (HDF5 COMPONENTS CXX) # Find non-cmake built HDF5
 target_include_directories (ArcPIC PUBLIC ${HDF5_INCLUDE_DIRS})
 target_link_libraries(ArcPIC ${HDF5_CXX_LIBRARIES})
 
-
-
 #Copy the input file
 configure_file(input.txt input.txt COPYONLY)
+
+#Get the analyses
+add_subdirectory(analysis)
