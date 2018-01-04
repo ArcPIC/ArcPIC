@@ -20,6 +20,7 @@
 ***********************************************************************/
 
 #include  <stdio.h>
+#include <iostream>
 #include  <math.h>
 #include  <sys/stat.h>
 #include  <time.h>
@@ -281,7 +282,9 @@ int main () {
 
     H5::H5File* h5OutFile_0 = NULL;
     if ( BINARY_OUTPUT == 0 ) {
+      std::cout << "Creating HDF5 output file for initial data " << std::flush;
       h5OutFile_0 = createH5File_timestep( 0 );
+      std::cout << h5OutFile_0->getFileName() << " ..." << std::flush << std::endl;
     }
     else {
       file_names_2D( 0 );
@@ -332,7 +335,14 @@ int main () {
       
     printf("\n");
 
+    //Initialize reactions etc. just before writing metadata to h5OutFile_0
+    init_reactions();
+    print_parameters_2D();
+    
     if ( BINARY_OUTPUT == 0 ) {
+      //Add metadata
+      outputfile_addParameterMetadata(h5OutFile_0, nsteps);
+      
       h5OutFile_0->close();
       delete h5OutFile_0;
       h5OutFile_0 = NULL;
@@ -365,11 +375,12 @@ int main () {
     else                        potential_factorise_2D( nr, nz, NR, NZ, dr, dz, &L_slu, &U_slu, &perm_c_slu, &perm_r_slu );
     
     printf("-- Continuing from old run. (%d steps) -- \n", nstepsmin);
+
+    init_reactions();
+    print_parameters_2D();
+
     // Continue with loop - electron push
   }
-  
-  init_reactions();
-  print_parameters_2D();
   
   
   printf( "*** Beginning main loop *** \n" );
@@ -572,9 +583,11 @@ int main () {
 	fflush(timeIndex);
 	
 	if (BINARY_OUTPUT == 0) {
+	  std::cout << "Writing HDF5 output file " << std::flush;
 	  H5::H5File* h5OutFile = createH5File_timestep( nsteps );
+	  std::cout << h5OutFile->getFileName() << " ..." << std::flush;
 	  
-	  //Metadata
+	  //Add metadata
 	  outputfile_addParameterMetadata(h5OutFile, nsteps);
 	  
 	  //Density
@@ -619,6 +632,7 @@ int main () {
 	  h5OutFile->close();
 	  delete h5OutFile;
 	  h5OutFile=NULL;
+	  std::cout << " done." << std::endl << std::flush;
 	}
 	else{
 	  file_names_2D( nsteps );
