@@ -25,7 +25,9 @@
 #include  <stdio.h>
 #include  <math.h>
 
-#define   XTRN  extern 
+#include "H5Cpp.h"
+
+#define   XTRN  extern
 
 #include  "var.h"
 #include  "outp.h"
@@ -107,7 +109,8 @@ void print_parameters_2D( void )
   printf( " - Output vdf:          %d \n", OUT_VDF );
   printf( " - Magnetic push:       %d \n", MAGNETIC );
   printf( " - Continuing old run:  %d \n", CONTINUATION );
-
+  printf( " - Binary output files: %d \n", BINARY_OUTPUT );
+  
   printf( "\n" );
   printf( " - Field boundary condition BC = %i \n", BC );
   if (BC == 0)
@@ -133,4 +136,90 @@ void print_parameters_2D( void )
 
 }
 
-      
+void outputfile_addParameterMetadata(H5::H5File* outputFile, const int nsteps) {
+  // Adds a new group with metadata useful for scaling
+  
+  H5::Group group_metadata       = outputFile->createGroup("/METADATA");
+  H5::Group group_metadata_input = outputFile->createGroup("/METADATA/INPUTFILE");
+  H5::Group group_metadata_calc  = outputFile->createGroup("/METADATA/CALCULATED");
+  H5::Group group_metadata_dynamic = outputFile->createGroup("/METADATA/DYNAMIC");
+  
+  H5::DataSpace dataspace_scalar(H5S_SCALAR);
+  
+  // -- INPUTFILE METADATA --
+  // Attribute: Reference density [cm^-3]
+  H5::Attribute attribute_n_ref = group_metadata_input.createAttribute("n_ref", H5::PredType::NATIVE_DOUBLE, dataspace_scalar);
+  attribute_n_ref.write(H5::PredType::NATIVE_DOUBLE, &n_ref);
+
+  // Attribute: Reference temperature [eV]
+  H5::Attribute attribute_T_ref = group_metadata_input.createAttribute("T_ref", H5::PredType::NATIVE_DOUBLE, dataspace_scalar);
+  attribute_T_ref.write(H5::PredType::NATIVE_DOUBLE, &T_ref);
+
+  // Attribute: Particles/Debye cube [-]
+  H5::Attribute attribute_Ndb = group_metadata_input.createAttribute("Ndb", H5::PredType::NATIVE_DOUBLE, dataspace_scalar);
+  attribute_Ndb.write(H5::PredType::NATIVE_DOUBLE, &Ndb);
+
+  // Attribute: Number of cells (r) [-]
+  H5::Attribute attribute_nr = group_metadata_input.createAttribute("nr", H5::PredType::NATIVE_INT, dataspace_scalar);
+  attribute_nr.write(H5::PredType::NATIVE_INT, &nr);
+
+  // Attribute: Number of cells (z) [-]
+  H5::Attribute attribute_nz = group_metadata_input.createAttribute("nz", H5::PredType::NATIVE_INT, dataspace_scalar);
+  attribute_nz.write(H5::PredType::NATIVE_INT, &nz);
+
+  // Attribute: grid size dz [Debyes]
+  H5::Attribute attribute_dz = group_metadata_input.createAttribute("dz", H5::PredType::NATIVE_DOUBLE, dataspace_scalar);
+  attribute_dz.write(H5::PredType::NATIVE_DOUBLE, &dz);
+
+  // Attribute: Timestep dt [Omega_pe^-1]
+  H5::Attribute attribute_Omega_pe = group_metadata_input.createAttribute("Omega_pe", H5::PredType::NATIVE_DOUBLE, dataspace_scalar);
+  attribute_Omega_pe.write(H5::PredType::NATIVE_DOUBLE, &Omega_pe);
+
+  
+  // -- CALCULATED METADATA --
+  
+  // Attribute: Particles/superparticle ratio [-]
+  H5::Attribute attribute_N_sp = group_metadata_calc.createAttribute("N_sp", H5::PredType::NATIVE_DOUBLE, dataspace_scalar);
+  attribute_N_sp.write(H5::PredType::NATIVE_DOUBLE, &N_sp);
+
+  // Attribute: Debye length [cm]
+  H5::Attribute attribute_Ldb = group_metadata_calc.createAttribute("Ldb", H5::PredType::NATIVE_DOUBLE, dataspace_scalar);
+  attribute_Ldb.write(H5::PredType::NATIVE_DOUBLE, &Ldb);
+
+  // Attribute: Plasma frequency [s^-1]
+  double O_pe = 56414.6*sqrt(n_ref);
+  H5::Attribute attribute_O_pe = group_metadata_calc.createAttribute("O_pe", H5::PredType::NATIVE_DOUBLE, dataspace_scalar);
+  attribute_O_pe.write(H5::PredType::NATIVE_DOUBLE, &O_pe);
+
+  // Attribute: Time step [s]
+  double dT = Omega_pe/O_pe;
+  H5::Attribute attribute_dT = group_metadata_calc.createAttribute("dT", H5::PredType::NATIVE_DOUBLE, dataspace_scalar);
+  attribute_dT.write(H5::PredType::NATIVE_DOUBLE, &dT);
+
+  // Attribute: Grid size [cm]
+  double dZ = Ldb*dz;
+  H5::Attribute attribute_dZ = group_metadata_calc.createAttribute("dZ", H5::PredType::NATIVE_DOUBLE, dataspace_scalar);
+  attribute_dZ.write(H5::PredType::NATIVE_DOUBLE, &dZ);
+
+  // Attribute: Total grid size R [cm]
+  double R = dZ*nr;
+  H5::Attribute attribute_R = group_metadata_calc.createAttribute("R", H5::PredType::NATIVE_DOUBLE, dataspace_scalar);
+  attribute_R.write(H5::PredType::NATIVE_DOUBLE, &R);
+
+  // Attribute: Total grid size Z [cm]
+  double Z = dZ*nz;
+  H5::Attribute attribute_Z = group_metadata_calc.createAttribute("Z", H5::PredType::NATIVE_DOUBLE, dataspace_scalar);
+  attribute_Z.write(H5::PredType::NATIVE_DOUBLE, &Z);
+  
+  // -- DYNAMIC METADATA --
+  
+  // Attribute: Current time in the simulation [ns]
+  double simTime = nsteps*Omega_pe*1e9/(56414.6*sqrt(n_ref));
+  H5::Attribute attribute_simTime = group_metadata_dynamic.createAttribute("simTime", H5::PredType::NATIVE_DOUBLE, dataspace_scalar);
+  attribute_simTime.write(H5::PredType::NATIVE_DOUBLE, &simTime);
+  
+  // Attribute: Step number in the simulation
+  H5::Attribute attribute_nsteps = group_metadata_dynamic.createAttribute("Nsteps", H5::PredType::NATIVE_INT, dataspace_scalar);
+  attribute_nsteps.write(H5::PredType::NATIVE_INT, &nsteps);
+  
+}

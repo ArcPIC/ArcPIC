@@ -5,4 +5,5 @@
 include(submodules.cmake)
 
 #SuperLU library
+set(enable_tests CACHE BOOL OFF)
 add_subdirectory(superlu)

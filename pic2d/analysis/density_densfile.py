@@ -1,22 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-#
-# Copyright 2010-2015 CERN and Helsinki Institute of Physics.
-# This software is distributed under the terms of the
-# GNU General Public License version 3 (GPL Version 3),
-# copied verbatim in the file LICENCE.md. In applying this
-# license, CERN does not waive the privileges and immunities granted to it
-# by virtue of its status as an Intergovernmental Organization
-# or submit itself to any jurisdiction.
-#
-# Project website: http://arcpic.web.cern.ch/
-# Developers: Helga Timko, Kyrre Sjobak
-#
-# 2Dpic_density_densfiles.py:
-# Calculates the density using the density output files from ArcPIC2D.
-# These gives the density at gridpoints using the Verbonceur volumes,
-# averaged over n_ave_time steps.
-#
+#! /usr/bin/env python
 
 import sys, os, shutil
 import numpy as np
@@ -27,13 +9,15 @@ import matplotlib.colorbar as colorbar
 
 from matplotlib import gridspec
 
+import h5py
+
 from matplotlib import rcParams,rc
 rcParams.update({'text.usetex': True}) #slow
-DPI = 500
+DPI = 150
 
 #Get input
 if len(sys.argv) < 5 or len(sys.argv) > 8:
-    print "Usage: ./2Dpic_density_densfile.py <mintime> <maxtime> <every nth frame to analyse> <{e|Cu|Cup|qdens|all|all2|allRow}> {<axisShape='square'|'image'>} {<FPS=5>} {cutR=MAX|number}"
+    print "Usage: ./density_densfile.py <mintime> <maxtime> <every nth frame to analyse> <{e|Cu|Cup|qdens|all|all2|allRow}> {<axisShape='square'|'image'>} {<FPS=5>} {cutR=MAX|number}"
     exit(1)
 
 mintime   = int(sys.argv[1])
@@ -44,7 +28,7 @@ species = sys.argv[4]
 if not (species == "e" or species == "Cu" or species == "Cup" or species == "qdens" or species == "all" or species == "all2" or species == "allRow"):
     print "species must be e, Cu, Cup, qdens, or all(2|Row)"
     exit(1)
-
+    
 if len(sys.argv) >= 6:
     axisShape = sys.argv[5]
     if not (axisShape == "square" or axisShape=="image"):
@@ -68,14 +52,7 @@ if len(sys.argv) >= 8:
     else:
         cutR = None
 else:
-    cutR == None
-
-#Get the scaling setup
-MODLOAD_parentdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0,MODLOAD_parentdir) 
-from calcScaling import InputFile
-inputfile = InputFile("../input.txt")
-inputfile.calcBasicParams()
+    cutR = None
 
 #Create output folder
 ofoldername = "pngs/density_densfiles_%s" % (species,)
@@ -85,7 +62,7 @@ if os.path.exists(ofoldername):
     else:
         print "Path '" + ofoldername + "' exists, but is not a directory. Aborting!"
         exit(1)
-os.mkdir(ofoldername)
+os.makedirs(ofoldername)
 print "Created directory '%s'" % (ofoldername,)
 
 print "Got options:"
@@ -102,10 +79,20 @@ print
 if species == "all2":
     (circ_ts, circ_deltaQ, circ_U) = np.loadtxt("../circuit.dat", usecols=(0,1,2), unpack=True)
 
-    convFactor2 = 1.60217657e-19*inputfile.N_sp/inputfile.dT # superparticles/timestep -> Amps
-    convFactor3 = (inputfile.dz/inputfile.Omega_pe)**2*inputfile.T_ref #dimless potential -> Volts
+    basefile = h5py.File("../out/output_00000000.h5",'r')
 
-    circ_t = circ_ts*inputfile.dT*1e9  #ns
+    N_sp = basefile['/METADATA/CALCULATED'].attrs['N_sp']
+    dT   = basefile['/METADATA/CALCULATED'].attrs['dT']
+    dz       = basefile['/METADATA/INPUTFILE'].attrs['dz']
+    Omega_pe = basefile['/METADATA/INPUTFILE'].attrs['Omega_pe']
+    T_ref    = basefile['/METADATA/INPUTFILE'].attrs['T_ref']
+
+    basefile.close()
+    
+    convFactor2 = 1.60217657e-19*N_sp/dT # superparticles/timestep -> Amps
+    convFactor3 = (dz/Omega_pe)**2*T_ref #dimless potential -> Volts
+
+    circ_t = circ_ts*dT*1e9  #ns
     circ_I = circ_deltaQ * convFactor2 #A
     circ_U = circ_U * convFactor3      #V
 
@@ -126,16 +113,25 @@ def plotIV(time=None):
     if time:
         ax1.axvline(x=time, color="k",ls="--")
     
-
 #Function to read and rescale files
-def readDensFile(fname):
-    (rList, zList, densList) = np.loadtxt(fname,unpack=True)
-    rList *= inputfile.Ldb*1e4 #um
-    zList *= inputfile.Ldb*1e4 #um
-    densList *= inputfile.n_ref #cm^-3
-    return (np.reshape( rList,(inputfile.nr+1,-1) ),
-            np.reshape( zList,(inputfile.nr+1,-1) ),
-            np.reshape(densList,(inputfile.nr+1,-1) ) )
+def readDensFile(fname,species_here):
+    if species_here == "e":
+        speciesname = "ELECTRONS"
+    elif species_here == "Cu":
+        speciesname = "NEUTRALS"
+    elif species_here == "Cup":
+        speciesname = "IONS"
+    
+    datafile = h5py.File(fname, 'r')
+    densityData = datafile['/DENSITY/'+speciesname]
+    #(rList, zList, densList) = np.loadtxt(fname,unpack=True)
+    Ldb   = datafile['/METADATA/CALCULATED'].attrs['Ldb']
+    n_ref = datafile['/METADATA/INPUTFILE'].attrs['n_ref']
+    rData    = densityData[:,:,0]*Ldb*1e4 #[um]
+    zData    = densityData[:,:,1]*Ldb*1e4 #[um]
+    densData = densityData[:,:,2]*n_ref   #[cm^-3]
+    
+    return ( rData, zData, densData )
 
 #Colorbar label?
 drawCB  = True
@@ -154,7 +150,7 @@ def plot_singleSpecies(r,z,dens):
         plt.ylim(0,cutR)
     return CS0
 def plot_singleSpecies_log(r,z,dens):
-    if dens.max() > 0:            
+    if dens.max() > 0:
         CS0 = plt.contourf(z,r,dens,locator=LogLocator(), vmin=1e10, vmax=1e20)
         if drawCB:
             CB0 = plt.colorbar(CS0)
@@ -252,12 +248,8 @@ for i in xrange(len(stepNum)):
     timeOutFile.flush()
 
     if (species == "e" or species == "Cu" or species == "Cup"):
-        if species == "e":
-            foo = "n"+species
-        else:
-            foo = species
-        (r,z,dens) = readDensFile("../out/" + foo + stepNum[i] + ".dat")
-
+        (r,z,dens) = readDensFile("../out/output_" + stepNum[i] + ".h5",species)
+        
         # plot_singleSpecies(r,z,dens)
         # plt.title("Density [cm$^{-3}$] of " + species + ", time = %.3f [ns]" % (timestamp[i],))
         # plt.savefig(ofoldername + "/dens_%08d.png" %(outIdx,),dpi=DPI)
@@ -269,8 +261,8 @@ for i in xrange(len(stepNum)):
         plt.clf()
     
     elif species == "qdens":
-        (r_e,z_e,dens_e)       = readDensFile("../out/ne"  + stepNum[i] + ".dat")
-        (r_Cup,z_Cup,dens_Cup) = readDensFile("../out/Cup" + stepNum[i] + ".dat")
+        (r_e,z_e,dens_e)       = readDensFile("../out/output_"  + stepNum[i] + ".h5",'e')
+        (r_Cup,z_Cup,dens_Cup) = readDensFile("../out/output_" + stepNum[i] + ".h5",'Cup')
         dens = dens_Cup - dens_e
         
         plot_qdens(r_e, z_e, dens)
@@ -281,7 +273,7 @@ for i in xrange(len(stepNum)):
         #True where one of dens is > 0, else true
         dens0_bool = np.logical_or(dens_Cup > 0.0, dens_e > 0.0)
         #0.0 where there are no data, masked if there are
-        dens0 = np.ma.masked_array(np.zeros_like(dens), dens0_bool)        
+        dens0 = np.ma.masked_array(np.zeros_like(dens), dens0_bool)
         plot_qdens_log(r_e, z_e, dens, dens0)
         plt.title("Density [e/cm$^{3}$], time = %.3f [ns]" % (timestamp[i],))
         plt.savefig(ofoldername + "/dens_log_%08d.png" %(outIdx,),dpi=DPI)
@@ -290,9 +282,9 @@ for i in xrange(len(stepNum)):
     elif species == "all" or species == "all2" or species == "allRow":
         drawCB = False
         #load data
-        (r_e,z_e,dens_e)       = readDensFile("../out/ne"  + stepNum[i] + ".dat")
-        (r_Cup,z_Cup,dens_Cup) = readDensFile("../out/Cup" + stepNum[i] + ".dat")
-        (r_Cu,z_Cu,dens_Cu)    = readDensFile("../out/Cu"  + stepNum[i] + ".dat")
+        (r_e,z_e,dens_e)       = readDensFile("../out/output_" + stepNum[i] + ".h5",'e')
+        (r_Cup,z_Cup,dens_Cup) = readDensFile("../out/output_" + stepNum[i] + ".h5",'Cup')
+        (r_Cu,z_Cu,dens_Cu)    = readDensFile("../out/output_" + stepNum[i] + ".h5",'Cu')
 
         if species!="allRow":
             (fig, axes) = plt.subplots(nrows=2, ncols=2)
@@ -304,7 +296,7 @@ for i in xrange(len(stepNum)):
             titletext_Y = 0.90
             
             rc('font',**{'family':'serif','serif':['Times'],'size':10})
-                        
+            
         #neutrals
         if species!="allRow":
             ax1 = plt.subplot(2,2,1)
