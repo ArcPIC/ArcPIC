@@ -97,20 +97,13 @@ int main(int argc, char* argv[]) {
   int *perm_r_slu;
   double *rhs_slu;
 
-  int NG = NGR*NGZ;  
-
   //Read "input" (even if it loads some extra/unneeded stuff)
   input();
 
+  int NG = (nr+1)*(nz+1);
+
   double U0 = 0;
   double UNz = 0;
-
-  //Sanity check of dim.h
-  if (NGR != nr+1 || NGZ != nz+1) {
-    printf("ERROR!! (NGR,NGZ) = (%i,%i), while (nr,nz)=(%i,%i)! (should be one smaller)\n", NGR, NGZ,nr,nz);
-    printf("Aborting!\n");
-    exit(1);
-  }
 
   dr = dz;
   
@@ -133,14 +126,14 @@ int main(int argc, char* argv[]) {
   
   potential_factorise_2D( nr, nz, NR, NZ, dr, dz, &L_slu, &U_slu, &perm_c_slu, &perm_r_slu );
 
-  for (int i=0; i<NSpecies*NGR*NGZ; i++) {
+  for (int i=0; i<NSpecies*(nr+1)*(nz+1); i++) {
     n_i[i]=0.;
   } 
-  for (int i=0; i<Lastion*NGR*NGZ; i++) {
+  for (int i=0; i<Lastion*(nr+1)*(nz+1); i++) {
     E_ion_r[i]=0.;
     E_ion_z[i]=0.;
   } 
-  for (int i=0; i<NGR*NGZ; i++) {
+  for (int i=0; i<(nr+1)*(nz+1); i++) {
     n_e[i]=0.;
     E_grid_r[i]=0.;
     E_grid_z[i]=0.;

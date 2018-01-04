@@ -45,15 +45,15 @@ void allocate_arrays( int nr, int nz, int** perm_c, int** perm_r, double** rhs )
 
   //Only allocate VDF arrays if they are needed
   if ( OUT_VDF == 0 ) {
-    vdf_ez   = new double[Nvdst*NGR/2*NGZ/2];
-    vdf_er   = new double[Nvdst*NGR/2*NGZ/2];
-    vdf_eabs = new double[Nvdst*NGR/2*NGZ/2];
-    vdf_iz   = new double[Nvdst*NGR/2*NGZ/2];
-    vdf_ir   = new double[Nvdst*NGR/2*NGZ/2];
-    vdf_iabs = new double[Nvdst*NGR/2*NGZ/2];
-    vdf_nz   = new double[Nvdst*NGR/2*NGZ/2];
-    vdf_nr   = new double[Nvdst*NGR/2*NGZ/2];
-    vdf_nabs = new double[Nvdst*NGR/2*NGZ/2];
+    vdf_ez   = new double[Nvdst*(nr+1)/2*(nz+1)/2];
+    vdf_er   = new double[Nvdst*(nr+1)/2*(nz+1)/2];
+    vdf_eabs = new double[Nvdst*(nr+1)/2*(nz+1)/2];
+    vdf_iz   = new double[Nvdst*(nr+1)/2*(nz+1)/2];
+    vdf_ir   = new double[Nvdst*(nr+1)/2*(nz+1)/2];
+    vdf_iabs = new double[Nvdst*(nr+1)/2*(nz+1)/2];
+    vdf_nz   = new double[Nvdst*(nr+1)/2*(nz+1)/2];
+    vdf_nr   = new double[Nvdst*(nr+1)/2*(nz+1)/2];
+    vdf_nabs = new double[Nvdst*(nr+1)/2*(nz+1)/2];
   }
   else {
     vdf_ez   = NULL;

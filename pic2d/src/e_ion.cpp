@@ -49,8 +49,8 @@ void scalEion_2D( double ei_r[], double ei_z[], int NR, int NZ, int dti, double 
   // Rest of the array
   for (i=Lastion-1; i>0; i--)
     {
-      eid_r = ei_r + i*NGR*NGZ;
-      eid_z = ei_z + i*NGR*NGZ;
+      eid_r = ei_r + i*NR*NZ;
+      eid_z = ei_z + i*NR*NZ;
       for (j=0; j<NR; j++) 
 	{
 	  for (k=0; k<NZ; k++) 

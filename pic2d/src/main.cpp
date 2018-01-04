@@ -106,7 +106,6 @@ int main () {
   
   // Initialise variables 
   double dvt;
-  int NG = NGR*NGZ;
   n_aver = 0, n_aver_ion = 0, n_aver_diagn = 0;
   
   //TODO: This should be backed up
@@ -118,12 +117,7 @@ int main () {
   
   //Read input.txt
   input();
-  //Sanity check of dim.h
-  if (NGR != nr+1 || NGZ != nz+1) {
-    printf("ERROR!! (NGR,NGZ) = (%i,%i), while (nr,nz)=(%i,%i)! (should be one smaller)\n", NGR, NGZ,nr,nz);
-    printf("Aborting!\n");
-    exit(1);
-  }
+  int NG = (nr+1)*(nz+1);
   //Sanity check of injection steps
   if (n2inj_step % dt_ion != 0 or n2inj_step == 0) {
     printf("ERROR!! n2inj_step=%i doesn't occur on dt_ion=%i\n", n2inj_step, dt_ion);
@@ -209,14 +203,14 @@ int main () {
     else                        potential_factorise_2D( nr, nz, NR, NZ, dr, dz, &L_slu, &U_slu, &perm_c_slu, &perm_r_slu );
     
     // Initialize densities, field, and sputtering arrays
-    for (int i=0; i<NSpecies*NGR*NGZ; i++) {
+    for (int i=0; i<NSpecies*(nr+1)*(nz+1); i++) {
       n_i[i]=0.;
     } 
-    for (int i=0; i<Lastion*NGR*NGZ; i++) {
+    for (int i=0; i<Lastion*(nr+1)*(nz+1); i++) {
       E_ion_r[i]=0.;
       E_ion_z[i]=0.;
     } 
-    for (int i=0; i<NGR*NGZ; i++) {
+    for (int i=0; i<(nr+1)*(nz+1); i++) {
       n_e[i]=0.;
       E_grid_r[i]=0.;
       E_grid_z[i]=0.;
@@ -302,8 +296,8 @@ int main () {
       out_dens_2D( n_e,      1, -1., nr, nz, NZ, Omega_pe, dr, dz, fn_e ); // NEW 25.8.2010
       out_dens_2D( n_i + NG, 1,  1., nr, nz, NZ, Omega_pe, dr, dz, fn_i ); // NEW 25.8.2010
     }
-    for (int i=0; i<NSpecies*NGR*NGZ; i++) n_i[i]=0.;
-    for (int i=0; i<NGR*NGZ; i++)          n_e[i]=0.;
+    for (int i=0; i<NSpecies*(nr+1)*(nz+1); i++) n_i[i]=0.;
+    for (int i=0; i<(nr+1)*(nz+1); i++)          n_e[i]=0.;
     
     // I. GET POTENTIAL
     H5::Group group_emfield_0 = h5OutFile_0->createGroup("/EMFIELD");

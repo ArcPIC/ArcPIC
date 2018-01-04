@@ -55,7 +55,7 @@ XTRN size_t *e_order, *i_order;
 // Energy outputting
 XTRN double *En_i;
 
-// VDF arrays (only allocated if VDF is activated)
+// VDF arrays (only allocated if VDF output is activated)
 XTRN double* vdf_ez;
 XTRN double* vdf_er;
 XTRN double* vdf_eabs;
