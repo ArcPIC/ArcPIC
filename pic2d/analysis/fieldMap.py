@@ -87,12 +87,6 @@ Z     = basefile['/METADATA/CALCULATED'].attrs['Z']
 nr    = basefile['/METADATA/INPUTFILE'].attrs['nr']
 nz    = basefile['/METADATA/INPUTFILE'].attrs['nz']
 
-N_sp = basefile['/METADATA/CALCULATED'].attrs['N_sp']
-dT   = basefile['/METADATA/CALCULATED'].attrs['dT']
-dz       = basefile['/METADATA/INPUTFILE'].attrs['dz']
-Omega_pe = basefile['/METADATA/INPUTFILE'].attrs['Omega_pe']
-T_ref    = basefile['/METADATA/INPUTFILE'].attrs['T_ref']
-
 basefile.close()
 
 rFactor   = 1e4*Ldb #output units -> um
