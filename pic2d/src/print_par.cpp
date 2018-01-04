@@ -172,8 +172,8 @@ void outputfile_addParameterMetadata(H5::H5File* outputFile, const int nsteps) {
   attribute_dz.write(H5::PredType::NATIVE_DOUBLE, &dz);
 
   // Attribute: Timestep dt [Omega_pe^-1]
-  H5::Attribute attribute_dt = group_metadata_input.createAttribute("dt", H5::PredType::NATIVE_DOUBLE, dataspace_scalar);
-  attribute_dt.write(H5::PredType::NATIVE_DOUBLE, &Omega_pe);
+  H5::Attribute attribute_Omega_pe = group_metadata_input.createAttribute("Omega_pe", H5::PredType::NATIVE_DOUBLE, dataspace_scalar);
+  attribute_Omega_pe.write(H5::PredType::NATIVE_DOUBLE, &Omega_pe);
 
   
   // -- CALCULATED METADATA --
