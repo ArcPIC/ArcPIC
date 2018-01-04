@@ -88,6 +88,18 @@ void allocate_arrays( int nr, int nz, int** perm_c, int** perm_r, double** rhs )
   E_av_z = new double[(nr+1)*(nz+1)];
   E_ion_r = new double[Lastion*(nr+1)*(nz+1)];
   E_ion_z = new double[Lastion*(nr+1)*(nz+1)];
+
+  diagn_Te = new double[(nr+1)*(nz+1)];
+  diagn_ve = new double[(nr+1)*(nz+1)];
+  diagn_ne = new double[(nr+1)*(nz+1)];
+  diagn_dens = new double[(nr+1)*(nz+1)];
+
+  // Ordering arrays for collisions
+  e_order = new size_t[(nr+1)*(nz+1)];
+  i_order = new size_t[NSpecies*(nr+1)*(nz+1)];
+  
+  // Energy outputting
+  En_i = new double[NSpecies];
   
   //Field solver matrices for SuperLU
   int ni = (nr+1)*(nz+1);

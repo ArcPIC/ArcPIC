@@ -46,16 +46,16 @@ XTRN double *E_av_r, *E_av_z;
 XTRN double *E_ion_r, *E_ion_z;
 
 // Stability diagnosis
-XTRN double diagn_Te[NGR*NGZ], diagn_ve[NGR*NGZ], 
-  diagn_ne[NGR*NGZ], diagn_dens[NGR*NGZ];
+XTRN double *diagn_Te, *diagn_ve,
+  *diagn_ne, *diagn_dens;
 
 // Ordering arrays for collisions
-XTRN size_t e_order[NGR*NGZ], i_order[NSpecies*NGR*NGZ]; 
+XTRN size_t *e_order, *i_order;
 
 // Energy outputting
-XTRN double En_i[NSpecies];
+XTRN double *En_i;
 
-// VDF arrays
+// VDF arrays (only allocated if VDF is activated)
 XTRN double* vdf_ez;
 XTRN double* vdf_er;
 XTRN double* vdf_eabs;
