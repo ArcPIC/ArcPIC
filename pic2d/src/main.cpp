@@ -33,6 +33,8 @@
 
 #include "H5Cpp.h"
 
+#include "ParticleSpecies.h"
+
 #define   XTRN
 #include  "pic.h"
 #include  "var.h"
@@ -80,7 +82,7 @@ int main () {
   fprintf(lockfile, "This is a lockfile - ArcPic will refuse to start as long as it's present.\n");
   fprintf(lockfile, "Goal: Avoid unintensional restarts which corrupts older data.\n");
   fclose(lockfile);
-
+  
   // Diagnostics
   int check_stab = 0; // PIC stability ok: 0=yes, 1=no
   int check_dens = 0; // Density well resolved: 0=yes, 1=no
@@ -117,6 +119,10 @@ int main () {
   
   //Read input.txt
   input();
+
+  //Create particle arrays
+  ParticleSpecies* electrons = new ParticleSpecies(nr,nz);
+  
   int NG = (nr+1)*(nz+1);
   //Sanity check of injection steps
   if (n2inj_step % dt_ion != 0 or n2inj_step == 0) {

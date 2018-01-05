@@ -21,6 +21,8 @@
 #ifndef ARRAYS1_H
 #define ARRAYS1_H
 
+// Note: The arrays are allocated in src/my_mem.cpp
+
 XTRN Particle *elec;
 XTRN Particle *ions;
 XTRN Particle *temp;
