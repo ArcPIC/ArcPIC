@@ -367,6 +367,3 @@ if __name__ == "__main__":
     print "Memory parameters for dim.h:"
     #TODO...
     # +Also print rought memory requirements
-    # +Autogenerate dim.h
-    print "\t Remember to set NGR = nr+1 =", inputfile.nr+1
-    print "\t Remember to set NGZ = nz+1 =", inputfile.nz+1

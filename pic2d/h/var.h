@@ -48,7 +48,7 @@ XTRN ArcBounds* pbounds;
 XTRN InitialParticles* iParts;
 
 XTRN int diagn_start,
-  dt_diagn, 
+  dt_diagn,
   dt_ion,
   n_aver,
   n_aver_diagn,
@@ -57,8 +57,8 @@ XTRN int diagn_start,
   nav_time,
   nav_dt,
   ncoll_el, ncoll_ion,
-  nr, nz,
-  NR, NZ,
+  nr, nz, //Number of cells
+  NR, NZ, //Number of grids (nr+=1)
   nsteps, nstepsmax, nstepsmin;
 
 //Array indices/used-lengths
@@ -71,11 +71,11 @@ XTRN int CONTINUATION,
   OUT_VDF,
   BC;
 
-XTRN int BINARY_OUTPUT; // Write binary output files (HDF5)
+XTRN int BINARY_OUTPUT; // Write binary output files (HDF5)?
 
 XTRN int e2inj_step, i2inj_step, n2inj_step;
 
-XTRN double En_e, En_f, En_p, En_tot; //En_i, En_n, 
+XTRN double En_e, En_f, En_p, En_tot; //En_i, En_n,
 
 XTRN Reaction  React_Cu_el, React_Cu_ion, React_Cup_Cu_el, React_Cu_Cu;
 XTRN double Ldb, N_sp;

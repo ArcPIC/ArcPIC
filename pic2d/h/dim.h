@@ -18,11 +18,8 @@
 
 ***********************************************************************/
 
-#define  NGR      481       // nr+1
-#define  NGZ      121       // nz+1
-
 #define  NPART    2000000
 #define  Lastion  2         // last ion with q != 0
-#define  NSpecies 3         // non-electron species  
+#define  NSpecies 3         // non-electron species
 
 #define  Nvdst    401       // vdf resolution, choose odd nr

@@ -35,9 +35,9 @@
 
 
 
-void print_parameters_2D( void )
-{
-        
+void print_parameters_2D( void ) {
+
+  printf( "\n" );
   printf( "Input parameters initialised: \n" );
   printf( "\n" );
   printf( "_______________________________________________________________\n" );
@@ -128,7 +128,7 @@ void print_parameters_2D( void )
   printf( "\n" );
 
   printf( "Array allocation parameters: \n" );
-  printf( " NPART = %i  NGZ = %i  NGR = %i  \n", NPART, NGZ, NGR );
+  printf( " NPART = %i  \n", NPART );
   printf( "\n" );
   printf( "_______________________________________________________________\n" );
   printf( " \n");

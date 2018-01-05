@@ -19,6 +19,7 @@
 ***********************************************************************/
 
 #include  <slu_ddefs.h>
+#include  <iostream>
 
 #include  "pic.h"
 #include  "dim.h"
@@ -29,7 +30,7 @@
 #undef XTRN
 
 void allocate_arrays( int nr, int nz, int** perm_c, int** perm_r, double** rhs ) {
-
+  
   // Allocate particle arrays
   try {
     elec =  new Particle[NPART];
@@ -44,15 +45,15 @@ void allocate_arrays( int nr, int nz, int** perm_c, int** perm_r, double** rhs )
 
   //Only allocate VDF arrays if they are needed
   if ( OUT_VDF == 0 ) {
-    vdf_ez   = new double[Nvdst*NGR/2*NGZ/2];
-    vdf_er   = new double[Nvdst*NGR/2*NGZ/2];
-    vdf_eabs = new double[Nvdst*NGR/2*NGZ/2];
-    vdf_iz   = new double[Nvdst*NGR/2*NGZ/2];
-    vdf_ir   = new double[Nvdst*NGR/2*NGZ/2];
-    vdf_iabs = new double[Nvdst*NGR/2*NGZ/2];
-    vdf_nz   = new double[Nvdst*NGR/2*NGZ/2];
-    vdf_nr   = new double[Nvdst*NGR/2*NGZ/2];
-    vdf_nabs = new double[Nvdst*NGR/2*NGZ/2];
+    vdf_ez   = new double[Nvdst*(nr+1)/2*(nz+1)/2];
+    vdf_er   = new double[Nvdst*(nr+1)/2*(nz+1)/2];
+    vdf_eabs = new double[Nvdst*(nr+1)/2*(nz+1)/2];
+    vdf_iz   = new double[Nvdst*(nr+1)/2*(nz+1)/2];
+    vdf_ir   = new double[Nvdst*(nr+1)/2*(nz+1)/2];
+    vdf_iabs = new double[Nvdst*(nr+1)/2*(nz+1)/2];
+    vdf_nz   = new double[Nvdst*(nr+1)/2*(nz+1)/2];
+    vdf_nr   = new double[Nvdst*(nr+1)/2*(nz+1)/2];
+    vdf_nabs = new double[Nvdst*(nr+1)/2*(nz+1)/2];
   }
   else {
     vdf_ez   = NULL;
@@ -66,6 +67,41 @@ void allocate_arrays( int nr, int nz, int** perm_c, int** perm_r, double** rhs )
     vdf_nabs = NULL;
   }
   
+  //Various matrices
+  mom_el  = new Moments[(nr+1)*(nz+1)];
+  mom_ion = new Moments[NSpecies*(nr+1)*(nz+1)];
+
+  Vcell = new double[(nr+1)];
+
+  // Densities
+  n_e = new double[(nr+1)*(nz+1)];
+  n_i = new double[NSpecies*(nr+1)*(nz+1)];
+  n_e_av = new double[(nr+1)*(nz+1)];
+  n_i_av = new double[NSpecies*(nr+1)*(nz+1)];
+
+  // EM-fields
+  phi = new double[(nr+1)*(nz+1)];
+  phi_av = new double[(nr+1)*(nz+1)];
+  E_grid_r = new double[(nr+1)*(nz+1)];
+  E_grid_z = new double[(nr+1)*(nz+1)];
+  E_av_r = new double[(nr+1)*(nz+1)];
+  E_av_z = new double[(nr+1)*(nz+1)];
+  E_ion_r = new double[Lastion*(nr+1)*(nz+1)];
+  E_ion_z = new double[Lastion*(nr+1)*(nz+1)];
+
+  diagn_Te = new double[(nr+1)*(nz+1)];
+  diagn_ve = new double[(nr+1)*(nz+1)];
+  diagn_ne = new double[(nr+1)*(nz+1)];
+  diagn_dens = new double[(nr+1)*(nz+1)];
+
+  // Ordering arrays for collisions
+  e_order = new size_t[(nr+1)*(nz+1)];
+  i_order = new size_t[NSpecies*(nr+1)*(nz+1)];
+  
+  // Energy outputting
+  En_i = new double[NSpecies];
+  
+  //Field solver matrices for SuperLU
   int ni = (nr+1)*(nz+1);
   int nnz = 0;
   if      ( BC == 0 ) nnz = 2*(nr+1) + (nz-1) + 4*(nz-1) + 5*(nr-1)*(nz-1);
