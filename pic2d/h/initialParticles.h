@@ -26,6 +26,8 @@
 #ifndef INITIALPARTICLES_H
 #define INITIALPARTICLES_H
 
+#include "ParticleSpecies.h"
+
 #include "pic.h"
 
 #include <stdio.h>
@@ -41,9 +43,9 @@ class InitialParticles {
 
   virtual void init() = 0;
 
-  virtual void inject_e(Particle pa[], size_t &np) = 0;
-  virtual void inject_n(Particle pa[], size_t &np) = 0;
-  virtual void inject_i(Particle pa[], size_t &np, unsigned int sort) = 0;
+  virtual void inject_e(ParticleSpecies* pa) = 0;
+  virtual void inject_n(ParticleSpecies* pa) = 0;
+  virtual void inject_i(ParticleSpecies* pa) = 0;
   
   virtual void print_par() = 0;
 
@@ -54,11 +56,11 @@ class UniformRestricted : public InitialParticles {
  public:
   UniformRestricted (std::vector<char*> options);
 
-  virtual void init();  
+  virtual void init();
 
-  virtual void inject_e(Particle pa[], size_t &np);
-  virtual void inject_n(Particle pa[], size_t &np);
-  virtual void inject_i(Particle pa[], size_t &np, unsigned int sort);
+  virtual void inject_e(ParticleSpecies* pa);
+  virtual void inject_n(ParticleSpecies* pa);
+  virtual void inject_i(ParticleSpecies* pa);
   
   virtual void print_par();
 
@@ -79,7 +81,7 @@ class UniformRestricted : public InitialParticles {
 
   double Tinj; //Injection temperature [eV]
 
-  void injector(Particle pa[], size_t &np, double vInj);
+  void injector(ParticleSpecies* pa, double vInj);
 
   double vol;
   double Ldb;

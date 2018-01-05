@@ -91,6 +91,11 @@ int main () {
     printf("Error detected when making filename for ferr, generated filename = '%s'\n", ferr);
     exit(1);
   }
+
+  //Particle arrays
+  ParticleSpecies* electrons;
+  std::vector<ParticleSpecies*> ionSpecies;
+  std::vector<ParticleSpecies*> neutralSpecies;
   
   // SuperLU parameters
   SuperMatrix L_slu, U_slu;
@@ -114,15 +119,12 @@ int main () {
   double induced_cathode_prev = 0.0;
   
   // Collision sanity checks
-  Vec3d mcheck = {0.0,0.0,0.0};        
+  Vec3d mcheck = {0.0,0.0,0.0};
   double echeck = 0.0;
   
   //Read input.txt
   input();
 
-  //Create particle arrays
-  ParticleSpecies* electrons = new ParticleSpecies(nr,nz);
-  
   int NG = (nr+1)*(nz+1);
   //Sanity check of injection steps
   if (n2inj_step % dt_ion != 0 or n2inj_step == 0) {
@@ -189,6 +191,11 @@ int main () {
       cs_ions[sort] =  sqrt(M_ions[0]/M_ions[sort])*vi_0;
       vt_ions[sort] =  sqrt(M_ions[0]/M_ions[sort])*v_ti;
     }
+
+    //Create particle arrays
+    electrons              = new ParticleSpecies(nr,nz, "ELECTRON", 1.0, qe);                    //e-
+    ionSpecies.push_back    (new ParticleSpecies(nr,nz, "CU_I", 63.546/1.0073*mi_over_me-1, qi));//Cu+
+    neutralSpecies.push_back(new ParticleSpecies(nr,nz, "CU_0", 63.546/1.0073*mi_over_me  , 0.0));//Cu
     
     rng_initialize(RNGbaseSeed, numParaThreads);
     printf("\n");
@@ -196,7 +203,7 @@ int main () {
     printf("\n");
 
     // External circuit elements
-    circuit->init();    
+    circuit->init();
     //Particle boundary conditions
     pbounds->init(nr, Zmin, Zmax, Rmax);
     //Initial particle distribution
@@ -224,7 +231,7 @@ int main () {
     }
     
     // Initialise particles
-    nr_e = 0, nr_i[0] = 0, nr_i[1] = 0, nr_i[2] = 0;
+    //nr_e = 0, nr_i[0] = 0, nr_i[1] = 0, nr_i[2] = 0;
     
     //Initialize time index file
     timeIndex = fopen("out/timeIndex.dat", "w");
@@ -237,31 +244,41 @@ int main () {
 
     // INITIAL PARTICLE DISTRIBUTION
     if (iParts != NULL) {
-      iParts->inject_e(elec, nr_e);
+      
+      iParts->inject_e(electrons);
+      for (auto neutral : neutralSpecies) {
+	iParts->inject_n(neutral);
+      }
+      for (auto ion : ionSpecies) {
+	iParts->inject_i(ion);
+      }
+      /*
       iParts->inject_n(ions + Lastion*NPART, nr_i[Lastion]);
       for (int sort=0; sort<NSpecies; sort++) {
 	if (q_ions[sort] != 0.) {
 	  iParts->inject_i(ions+sort*NPART, nr_i[sort], sort);
 	}
       }
+      */
+      
       if ( OUT_COORD == 0 ) {
 	// Output coordinates: position and velocity
 	if (BINARY_OUTPUT == 0) {
 	  H5::H5File* h5OutFile_initDist = createH5File_timestep( 0, "initDist" );
 	  H5::Group group_coords = h5OutFile_initDist->createGroup("/COORDS");
 	  
-	  out_coords_2D_h5( elec, nr_e, 1, Omega_pe, dz, "ELECTRONS", group_coords );
-	  out_coords_2D_h5( ions + NPART, nr_i[1], dt_ion, Omega_pe, dz, "IONS", group_coords );
-	  out_coords_2D_h5( ions + Lastion*NPART, nr_i[Lastion], dt_ion, Omega_pe, dz, "NEUTRALS", group_coords );
+	  out_coords_2D_h5( electrons, 1, Omega_pe, dz, "ELECTRONS", group_coords );
+	  out_coords_2D_h5( ionSpecies[0], dt_ion, Omega_pe, dz, "IONS", group_coords );
+	  out_coords_2D_h5( neutralSpecies[0], dt_ion, Omega_pe, dz, "NEUTRALS", group_coords );
 	  h5OutFile_initDist->close();
 	  delete h5OutFile_initDist;
 	  h5OutFile_initDist = NULL;
 	}
 	else {
 	  file_names_2D( 0 );
-	  out_coords_2D( elec, nr_e, 1, Omega_pe, dz, fr_e );
-	  out_coords_2D( ions + NPART, nr_i[1], dt_ion, Omega_pe, dz, fr_i );
-	  out_coords_2D( ions + Lastion*NPART, nr_i[Lastion], dt_ion, Omega_pe, dz, fr_n );
+	  out_coords_2D( electrons, 1, Omega_pe, dz, fr_e );
+	  out_coords_2D( ionSpecies[0], dt_ion, Omega_pe, dz, fr_i );
+	  out_coords_2D( neutralSpecies[0], dt_ion, Omega_pe, dz, fr_n );
 	}
       }
       
@@ -610,9 +627,9 @@ int main () {
 	  //Position & velocity
 	  if ( OUT_COORD == 0 ) {
 	    H5::Group group_coords = h5OutFile->createGroup("/COORDS");
-	    out_coords_2D_h5( elec, nr_e, 1, Omega_pe, dz, "ELECTRONS", group_coords );
-	    out_coords_2D_h5( ions + NPART, nr_i[1], dt_ion, Omega_pe, dz, "IONS", group_coords );
-	    out_coords_2D_h5( ions + Lastion*NPART, nr_i[Lastion], dt_ion, Omega_pe, dz, "NEUTRALS", group_coords );
+	    out_coords_2D_h5( electrons, 1, Omega_pe, dz, "ELECTRONS", group_coords );
+	    out_coords_2D_h5( ionSpecies[0], dt_ion, Omega_pe, dz, "IONS", group_coords );
+	    out_coords_2D_h5( neutralSpecies[0], dt_ion, Omega_pe, dz, "NEUTRALS", group_coords );
 	  }
 
 	  //Velocity moments
@@ -663,9 +680,9 @@ int main () {
 	  
 	  if ( OUT_COORD == 0 ) {
 	    // Output coordinates: position and velocity
-	    out_coords_2D( elec, nr_e, 1, Omega_pe, dz, fr_e );
-	    out_coords_2D( ions + NPART, nr_i[1], dt_ion, Omega_pe, dz, fr_i );
-	    out_coords_2D( ions + Lastion*NPART, nr_i[Lastion], dt_ion, Omega_pe, dz, fr_n );
+	    out_coords_2D( electrons, 1, Omega_pe, dz, fr_e );
+	    out_coords_2D( ionSpecies[0], dt_ion, Omega_pe, dz, fr_i );
+	    out_coords_2D( neutralSpecies[0], dt_ion, Omega_pe, dz, fr_n );
 	  }
 	}
 	

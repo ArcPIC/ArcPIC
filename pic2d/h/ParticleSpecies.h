@@ -22,12 +22,13 @@
 #define ParticleSpecies_h
 
 #include <vector>
+#include <string>
 
 class ParticleSpecies {
   
  public:
   //Constructor
- ParticleSpecies(size_t nr, size_t nz);
+  ParticleSpecies(size_t nr, size_t nz, std::string name, double m_over_me, double q);
   //Destructor
   ~ParticleSpecies();
   
@@ -41,18 +42,28 @@ class ParticleSpecies {
 
   //Ordering vector, updated by calling order_2D
   size_t* ordcount;
-
+  
   //Check the current number of particles
-  const int getN() const {
+  const size_t GetN() const {
     return z.size();
   };
-  
+  const int ExpandBy(size_t n_expand);
 
+  void ReserveSpace(size_t n);
+  
+  // Name of the particle species, used for printing, tables, etc.
+  const std::string name;
+
+  // Mass of the particle species, relative to the electron mass
+  const double m_over_me;
+  // Dimensionless particle charge
+  const double q;
+  
   //Order the particle arrays by cell
   void order_2D();
  private:
   // Local copy of the nr and nz settings
-  size_t nr, nz;
+  const size_t nr, nz;
   // Temporary array of vectors used for sorting;
   // use a field so we don't destroy&reallocate between each use.
   std::vector<size_t> *temP = NULL;
