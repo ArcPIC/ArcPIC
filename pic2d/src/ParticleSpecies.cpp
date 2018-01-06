@@ -9,11 +9,15 @@ ParticleSpecies::ParticleSpecies(size_t nr, size_t nz, std::string name, double 
   nr(nr), nz(nz), name(name), m_over_me(m_over_me), q(q) {
   ordcount = new size_t[nr*nz];
   temP = new std::vector<size_t>[nr*nz];
+  densMap = new double[(nr+1)*(nz+1)];
+  this->ZeroDensityMap();
 }
 
 ParticleSpecies::~ParticleSpecies(){
-  delete[] temP;
-  delete[] ordcount;
+  delete[] temP;     temP     = NULL;
+  delete[] ordcount; ordcount = NULL;
+  delete[] temP;     temP     = NULL;
+  delete[] densMap;  densMap  = NULL;
 }
 
 const int ParticleSpecies::ExpandBy(size_t n_expand) {
@@ -84,6 +88,42 @@ void ParticleSpecies::order_2D() {
     temP[cidx].clear();
   }
   
+}
+
+void ParticleSpecies::UpdateDensityMap( double V_cell[] ) {
+  // Initialise
+  this->ZeroDensityMap();
+  
+  // Positive ions: only this
+  for (size_t n=0; n<this->GetN(); n++) {
+    double hr = r[n];
+    int j  = (int)hr;
+    hr -= j;
+    
+    double hz = z[n];
+    int k  = (int)hz;
+    hz -= k;
+    
+    densMap[j*(nz+1) + k]         += (1-hr)*(1-hz)/V_cell[j];
+    densMap[(j+1)*(nz+1) + k]     += hr*(1-hz)/V_cell[j+1];
+    densMap[j*(nz+1) + (k+1)]     += (1-hr)*hz/V_cell[j];
+    densMap[(j+1)*(nz+1) + (k+1)] += hr*hz/V_cell[j+1];
+  }
+  
+  /*  Multipying by particles charge	   */
+  if (this->q != 0.0 ) {
+    for(size_t j=0; j<(nr+1)*(nz+1); j++) {
+      densMap[j] *= this->q;
+    }
+  }
+}
+
+void ParticleSpecies::ZeroDensityMap() {
+  for (size_t j=0; j<(nr+1); j++) {
+    for (size_t k=0; k<(nz+1); k++) {
+      densMap[j*(nz+1)+k] = 0.;
+    }
+  }
 }
 
 void ParticleSpecies::ShuffleArray(std::vector<double> &arr) {

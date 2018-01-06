@@ -61,11 +61,18 @@ class ParticleSpecies {
   
   //Order the particle arrays by cell
   void order_2D();
+
+  //Update the density map
+  void UpdateDensityMap( double V_cell[] );
+  void ZeroDensityMap( );
+  double* densMap;
+  
  private:
   // Local copy of the nr and nz settings
   const size_t nr, nz;
-  // Temporary array of vectors used for sorting;
-  // use a field so we don't destroy&reallocate between each use.
+  
+  // Temporary array of vectors used in order_2D to sort the particles;
+  // use a member variable so we don't destroy&reallocate the temp array between each use.
   std::vector<size_t> *temP = NULL;
   //Shuffle an array (i.e. z, r, vz, vr, or vt) according to temP;
   std::vector<double> shuffleTmpArr_dbl;

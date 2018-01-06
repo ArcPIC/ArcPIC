@@ -39,7 +39,7 @@ XTRN Moments *mom_el, *mom_ion;
 XTRN double* Vcell;
 
 // Densities
-XTRN double *n_e, *n_i, *n_e_av, *n_i_av;
+XTRN double *n_e_av, *n_i_av;
 
 // EM-fields
 XTRN double *phi, *phi_av;

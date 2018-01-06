@@ -74,8 +74,6 @@ void allocate_arrays( int nr, int nz, int** perm_c, int** perm_r, double** rhs )
   Vcell = new double[(nr+1)];
 
   // Densities
-  n_e = new double[(nr+1)*(nz+1)];
-  n_i = new double[NSpecies*(nr+1)*(nz+1)];
   n_e_av = new double[(nr+1)*(nz+1)];
   n_i_av = new double[NSpecies*(nr+1)*(nz+1)];
 
