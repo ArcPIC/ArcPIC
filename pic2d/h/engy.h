@@ -18,6 +18,8 @@
 
 ***********************************************************************/
 
+#include "ParticleSpecies.h"
+
 void energy_electrons_2D( Particle el[], size_t ne, double *We );
 
 void energy_all_2D( Particle el[], size_t ne, double *We, double *Wf, 
@@ -30,7 +32,7 @@ void energy_total_2D( Particle el[], size_t ne, Particle ion[], size_t ni, Parti
 		      const double E_r[], const double E_z[], int NR, int NZ, 
 		      double Vcell[], double Ndb, double omega_pe, double dz );
 
-void kin_pot_en( Particle el[], size_t ne, Particle ion[], size_t ni, Particle neu[], size_t nn,
+void kin_pot_en( ParticleSpecies* electron, ParticleSpecies* ions, ParticleSpecies* neutrals,
 		 double *We, double *Wi, double *Wn, double *Wp, double *Wt,
 		 double me_over_MCup, double me_over_MCu,
 		 const double Phi[], int NR, int NZ, double omega_pe, double dz );

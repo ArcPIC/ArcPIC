@@ -23,6 +23,7 @@
 
 #include <cstddef>
 
+#include "engy.h"
 
 void energy_electrons_2D( Particle el[], size_t ne, double *We )
 {
@@ -133,7 +134,7 @@ void energy_total_2D( Particle el[], size_t ne, Particle ion[], size_t ni, Parti
 
 
 
-void kin_pot_en( Particle el[], size_t ne, Particle ion[], size_t ni, Particle neu[], size_t nn,
+void kin_pot_en( ParticleSpecies* electrons, ParticleSpecies* ions, ParticleSpecies* neutrals,
 		 double *We, double *Wi, double *Wn, double *Wp, double *Wt,
 		 double me_over_MCup, double me_over_MCu,
 		 const double Phi[], int NR, int NZ, double omega_pe, double dz )
@@ -143,68 +144,63 @@ void kin_pot_en( Particle el[], size_t ne, Particle ion[], size_t ni, Particle n
      double hr,hz,Vr;
      extern double v_te;
     
-
      *We = 0.; // electrons kin en
      *Wi = 0.; // ions kin en
      *Wn = 0.; // neutrals kin en
      *Wp = 0.; // potential energy
      *Wt = 0.; // total energy
 
-     vte2 = 2.*v_te*v_te;	
+     vte2 = 2.*v_te*v_te;
 
-     for (size_t n=0; n<ne; n++)
+     for (size_t n=0; n<electrons->GetN(); n++)
      	{
-	  *We += SQU(el[n].p.vz) + SQU(el[n].p.vr) + SQU(el[n].p.vt);
+	  *We += SQU(electrons->vz[n]) + SQU(electrons->vr[n]) + SQU(electrons->vt[n]);
      	}
-     *We /= vte2;	// We/Te     
+     *We /= vte2;	// We/Te
 
-     for (size_t n=0; n<ni; n++)
+     for (size_t n=0; n<ions->GetN(); n++)
      	{
-	  *Wi += SQU(ion[n].p.vz) + SQU(ion[n].p.vr) + SQU(ion[n].p.vt);
+	  *Wi += SQU(ions->vz[n]) + SQU(ions->vr[n]) + SQU(ions->vt[n]);
      	}
-     *Wi /= me_over_MCup*vte2;	// Wi/Te   
+     *Wi /= me_over_MCup*vte2;	// Wi/Te
      
-     for (size_t n=0; n<nn; n++)
+     for (size_t n=0; n<neutrals->GetN(); n++)
      	{
-	  *Wn += SQU(neu[n].p.vz) + SQU(neu[n].p.vr) + SQU(neu[n].p.vt);
+	  *Wn += SQU(neutrals->vz[n]) + SQU(neutrals->vr[n]) + SQU(neutrals->vt[n]);
      	}
-     *Wn /= me_over_MCu*vte2;	// Wn/Te   
+     *Wn /= me_over_MCu*vte2;	// Wn/Te
      
 
-     for (size_t n=0; n<ne; n++)
-     	{
-	  hr  = el[n].p.r;
+     for (size_t n=0; n<electrons->GetN(); n++) {
+	  hr  = electrons->r[n];
 	  j   = (int)hr;
-	  hr -= j;       
+	  hr -= j;
 
-	  hz  = el[n].p.z;
+	  hz  = electrons->z[n];
 	  k   = (int)hz;
-	  hz -= k;   
+	  hz -= k;
 
-	  Vr  = (1-hr)*(1-hz)*Phi[j*NZ+k] + (1-hr)*hz*Phi[j*NZ+(k+1)] + hr*(1-hz)*Phi[(j+1)*NZ+k] + hr*hz*Phi[(j+1)*NZ+(k+1)]; 
-	  
+	  Vr  = (1-hr)*(1-hz)*Phi[j*NZ+k] + (1-hr)*hz*Phi[j*NZ+(k+1)] + hr*(1-hz)*Phi[(j+1)*NZ+k] + hr*hz*Phi[(j+1)*NZ+(k+1)];
+
 	  *Wp -= Vr;
-	}
+     }
 
-     for (size_t n=0; n<ni; n++)
-     	{
-	  hr  = ion[n].p.r;
+     for (size_t n=0; n<ions->GetN(); n++) {
+	  hr  = ions->r[n];
 	  j   = (int)hr;
-	  hr -= j;       
+	  hr -= j;
 
-	  hz  = ion[n].p.z;
+	  hz  = ions->z[n];
 	  k   = (int)hz;
-	  hz -= k;   
+	  hz -= k;
 
-	  Vr  = (1-hr)*(1-hz)*Phi[j*NZ+k] + (1-hr)*hz*Phi[j*NZ+(k+1)] + hr*(1-hz)*Phi[(j+1)*NZ+k] + hr*hz*Phi[(j+1)*NZ+(k+1)]; 
+	  Vr  = (1-hr)*(1-hz)*Phi[j*NZ+k] + (1-hr)*hz*Phi[j*NZ+(k+1)] + hr*(1-hz)*Phi[(j+1)*NZ+k] + hr*hz*Phi[(j+1)*NZ+(k+1)];
 	  
 	  *Wp += Vr;
-	}
+     }
      *Wp *= SQU(dz/omega_pe);  // Wp/Te
-
-
     
-     *Wt = *We + *Wi + *Wn + *Wp; 
+     *Wt = *We + *Wi + *Wn + *Wp;
      
 }
- 
+

@@ -285,10 +285,10 @@ int main () {
     }
 
     // INITIAL ENERGY
-    kin_pot_en( elec, nr_e, ions + NPART, nr_i[1], ions + Lastion*NPART, nr_i[Lastion], 
-		&En_e, En_i+1, En_i+Lastion, &En_p, &En_tot, 
+    kin_pot_en( electrons, ionSpecies[0], neutralSpecies[0],
+		&En_e, En_i+1, En_i+Lastion, &En_p, &En_tot,
 		1./M_ions[1], 1./M_ions[2], phi, NR, NZ, Omega_pe, dz );
-    printf( "...... Initial energy .................... \n" );  
+    printf( "...... Initial energy .................... \n" );
     printf( "e- ......: ne = %10zu En_e = %-9.5f \n",  nr_e, En_e );
     for (int sort = 0; sort < NSpecies; sort++) {
       printf( "%s......: np = %10zu En_p = %-9.5f \n", Names[sort], nr_i[sort], En_i[sort]);
@@ -686,7 +686,7 @@ int main () {
 	  }
 	}
 	
-	kin_pot_en( elec, nr_e, ions + NPART, nr_i[1], ions + Lastion*NPART, nr_i[Lastion], 
+	kin_pot_en( electrons, ionSpecies[0], neutralSpecies[0],
 		    &En_e, En_i+1, En_i+Lastion, &En_p, &En_tot, 
 		    1./M_ions[1], 1./M_ions[2], phi, NR, NZ, Omega_pe, dz );
 	printf( "...... Energy balance .................... \n" );  
