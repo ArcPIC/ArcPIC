@@ -416,8 +416,8 @@ int main () {
   for (nsteps=nstepsmin; nsteps<=nstepsmax; nsteps++) {
     
     // III. MOVE PARTICLES
-    if ( MAGNETIC == 0 )push_magnetic_2D( elec, E_grid_r, E_grid_z, Bz_ext, Bt_ext, 1., nr_e, NZ );
-    else                         push_2D( elec, E_grid_r, E_grid_z, nr_e,                     NZ );
+    if ( MAGNETIC == 0 )push_magnetic_2D( electrons, E_grid_r, E_grid_z, Bz_ext, Bt_ext, 1., NZ );
+    else                         push_2D( electrons, E_grid_r, E_grid_z,                     NZ );
     
     pbounds->remove_e( elec, nr_e);
     
@@ -432,17 +432,22 @@ int main () {
 
       scalEion_2D( E_ion_r, E_ion_z, NR, NZ, dt_ion, M_ions );  
       
-      for (unsigned int sort=0; sort<NSpecies; sort++ ) {
-	if (q_ions[sort] != 0.) {
-	  if ( MAGNETIC == 0 ) push_magnetic_2D( ions + sort*NPART, E_ion_r + sort*NG, E_ion_z + sort*NG, Bz_ext, Bt_ext, -1.*dt_ion/M_ions[sort], nr_i[sort], NZ );
-	  else                          push_2D( ions + sort*NPART, E_ion_r + sort*NG, E_ion_z + sort*NG,                                          nr_i[sort], NZ );
-	  
-	  pbounds->remove_i( ions + sort*NPART, nr_i[sort], sort );	  
+      for (auto ion : ionSpecies) {
+	unsigned int sort = 1; // TODO: FIXME!
+	if ( MAGNETIC == 0 ) {
+	  push_magnetic_2D( ion, E_ion_r + sort*NG, E_ion_z + sort*NG, Bz_ext, Bt_ext, -1.*dt_ion/ion->m_over_me, NZ );
 	}
 	else {
-	  push_neutrals_2D( ions + sort*NPART, nr_i[sort] );
-	  pbounds->remove_n(ions+sort*NPART, nr_i[sort]);
+	  push_2D( ion, E_ion_r + sort*NG, E_ion_z + sort*NG, NZ );
 	}
+	// TODO: FIXME
+	// pbounds->remove_i( ions + sort*NPART, nr_i[sort], sort );
+      }
+      
+      for (auto neutral : neutralSpecies) {
+	push_neutrals_2D( neutral );
+	// TODO: FIXME
+	// pbounds->remove_n(ions+sort*NPART, nr_i[sort]);
       }
       
       if ( nsteps/i2inj_step*i2inj_step  == nsteps ) {
