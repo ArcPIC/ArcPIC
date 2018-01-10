@@ -38,12 +38,12 @@ class ArcOriginalNewHS : public ArcRemover {
 
   virtual void print_par() const;
 
-  virtual void inject_e(Particle pa[], size_t &np, double const Ez[]);
-  virtual void inject_i(Particle pa[], size_t &np, double const Ez[], unsigned int sort) {}; //NOP
-  virtual void inject_n(Particle pa[], size_t &np, double const Ez[]);
+  virtual void inject_e(ParticleSpecies* pa, double const Ez[]);
+  virtual void inject_i(ParticleSpecies* pa, double const Ez[], unsigned int sort) {}; //NOP
+  virtual void inject_n(ParticleSpecies* pa, double const Ez[]);
 
-  virtual void remove_i(Particle pa[], size_t &np, unsigned int sort);
-  virtual void remove_n(Particle pa[], size_t &np);
+  virtual void remove_i(ParticleSpecies* pa, unsigned int sort);
+  virtual void remove_n(ParticleSpecies* pa);
   //remove_e() taken care of by ArcRemover
 
   virtual void timestep(unsigned int nstep, bool isOutputTimestep);
@@ -126,10 +126,10 @@ class ArcOriginalNewHS : public ArcRemover {
 
   //Calculate sputtering for a single particle
   // Returns a sputtering object, where Y=r=0 if there is no sputtering
-  inline Sput calc_sput(const Particle& pa, const double cs, unsigned int* current_enhancedY);
+  inline Sput calc_sput(const Particle pa, const double cs, unsigned int* current_enhancedY);
   //Inject netrals from sputtering on a single wall.
   // The sputtering array is automatically reset.
-  inline void inject_sput(Particle pa[], size_t &np,
+  inline void inject_sput(ParticleSpecies* pa,
 			  std::vector<Sput> &sput, bool isCathode);  
 };
 

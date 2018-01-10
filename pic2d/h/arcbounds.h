@@ -24,6 +24,8 @@
 #include "pic.h"
 #include "dim.h"
 
+#include "ParticleSpecies.h"
+
 #include <vector>
 #include <iostream>
 
@@ -52,14 +54,14 @@ class ArcBounds {
   virtual void restoreBackup(FILE* file) = 0;
   
   //Remove out-of-bounds particles
-  virtual void remove_e(Particle pa[], size_t &np) = 0;
-  virtual void remove_i(Particle pa[], size_t &np, unsigned int sort) = 0;
-  virtual void remove_n(Particle pa[], size_t &np) = 0;
+  virtual void remove_e(ParticleSpecies* pa) = 0;
+  virtual void remove_i(ParticleSpecies* pa, unsigned int sort) = 0;
+  virtual void remove_n(ParticleSpecies* pa) = 0;
   
   //Inject particles
-  virtual void inject_e(Particle pa[], size_t &np, double const Ez[]) = 0;
-  virtual void inject_i(Particle pa[], size_t &np, double const Ez[], unsigned int sort) = 0;
-  virtual void inject_n(Particle pa[], size_t &np, double const Ez[]) = 0;
+  virtual void inject_e(ParticleSpecies* pa, double const Ez[]) = 0;
+  virtual void inject_i(ParticleSpecies* pa, double const Ez[], unsigned int sort) = 0;
+  virtual void inject_n(ParticleSpecies* pa, double const Ez[]) = 0;
   
   //Get transported charge, advance to next timestep
   virtual const double getDeltaQ() const;
@@ -134,13 +136,13 @@ class ArcRemover : public ArcBounds {
   // Pure virtual class removing particles at the boundaries and counting them,
   // no sputtering etc.
  
-  virtual void remove_e(Particle pa[], size_t &np);
-  virtual void remove_i(Particle pa[], size_t &np, unsigned int sort);
-  virtual void remove_n(Particle pa[], size_t &np);
+  virtual void remove_e(ParticleSpecies* pa);
+  virtual void remove_i(ParticleSpecies* pa, unsigned int sort);
+  virtual void remove_n(ParticleSpecies* pa);
   
  protected:
   //This function does the actual work
-  void remover(Particle pa[], size_t &np,
+  void remover(ParticleSpecies* pa,
 	       int removed[], int current[],
 	       int chargeSign,
 	       std::vector<Particle>& removedVector );
@@ -160,14 +162,14 @@ class ArcDummy : public ArcBounds {
   virtual void restoreBackup(FILE* file) {};
 
   //Remove out-of-bounds particles
-  virtual void remove_e(Particle pa[], size_t &np);
-  virtual void remove_i(Particle pa[], size_t &np, unsigned int sort);
-  virtual void remove_n(Particle pa[], size_t &np);  
+  virtual void remove_e(ParticleSpecies* pa);
+  virtual void remove_i(ParticleSpecies* pa, unsigned int sort);
+  virtual void remove_n(ParticleSpecies* pa);
 
   //Inject particles
-  virtual void inject_e(Particle pa[], size_t &np, double const Ez[]);
-  virtual void inject_i(Particle pa[], size_t &np, double const Ez[], unsigned int sort);
-  virtual void inject_n(Particle pa[], size_t &np, double const Ez[]);
+  virtual void inject_e(ParticleSpecies* pa, double const Ez[]);
+  virtual void inject_i(ParticleSpecies* pa, double const Ez[], unsigned int sort);
+  virtual void inject_n(ParticleSpecies* pa, double const Ez[]);
   
   virtual const char* getName() const { return "ArcDummy"; };
 };
@@ -179,9 +181,9 @@ class ArcSimple : public ArcRemover {
   virtual void print_par() const;
   
   //Inject particles
-  virtual void inject_e(Particle pa[], size_t& np, double const Ez[]);
-  virtual void inject_i(Particle pa[], size_t &np, double const Ez[], unsigned int sort);
-  virtual void inject_n(Particle pa[], size_t &np, double const Ez[]);
+  virtual void inject_e(ParticleSpecies* pa, double const Ez[]);
+  virtual void inject_i(ParticleSpecies* pa, double const Ez[], unsigned int sort);
+  virtual void inject_n(ParticleSpecies* pa, double const Ez[]);
 
   
   //Save and restore backup data
@@ -193,7 +195,7 @@ class ArcSimple : public ArcRemover {
  private:
   unsigned int ne_inject, ni_inject, nn_inject;
 
-  void injector(Particle pa[], size_t &np, unsigned int n_inject);
+  void injector(ParticleSpecies* pa, unsigned int n_inject);
 };
 
 

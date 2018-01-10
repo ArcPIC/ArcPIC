@@ -35,7 +35,7 @@ class FlexFN : public ArcRemover {
 		      double* currentFN);
   //Inject superparticles into each ring, using the currentFN[]
   // (or a sum of those) calculated by calcFN_current()
-  void injectFN(Particle pa[], size_t &np, double* currentFN, double const Ez[]);
+  void injectFN(ParticleSpecies* pa, double* currentFN, double const Ez[]);
 
 };
 
@@ -50,14 +50,13 @@ class FlexFN_ring : public FlexFN {
 
   virtual void print_par() const;
 
-  virtual void inject_e(Particle pa[], size_t &np, double const Ez[]);
-  virtual void inject_i(Particle pa[], size_t &np, double const Ez[],
-			unsigned int sort) {}; //NOP
-  virtual void inject_n(Particle pa[], size_t &np, double const Ez[]) {}; //NOP
+  virtual void inject_e(ParticleSpecies* pa, double const Ez[]);
+  virtual void inject_i(ParticleSpecies* pa, double const Ez[], unsigned int sort) {}; //NOP
+  virtual void inject_n(ParticleSpecies* pa, double const Ez[]) {}; //NOP
 
   //Save and restore backup data
   virtual void backup(FILE* file) {};
-  virtual void restoreBackup(FILE* file) {};  
+  virtual void restoreBackup(FILE* file) {};
 
   virtual const char* getName() const { return "FlexFN_ring"; };
 
@@ -82,14 +81,13 @@ class FlexFN_twoComp : public FlexFN {
 
   virtual void print_par() const;
 
-  virtual void inject_e(Particle pa[], size_t &np, double const Ez[]);
-  virtual void inject_i(Particle pa[], size_t &np, double const Ez[],
-			unsigned int sort) {}; //NOP
-  virtual void inject_n(Particle pa[], size_t &np, double const Ez[]) {}; //NOP
+  virtual void inject_e(ParticleSpecies* pa, double const Ez[]);
+  virtual void inject_i(ParticleSpecies* pa, double const Ez[], unsigned int sort) {}; //NOP
+  virtual void inject_n(ParticleSpecies* pa, double const Ez[]) {}; //NOP
 
   //Save and restore backup data
   virtual void backup(FILE* file) {};
-  virtual void restoreBackup(FILE* file) {};  
+  virtual void restoreBackup(FILE* file) {};
 
   virtual const char* getName() const { return "FlexFN_twoComp"; };
 

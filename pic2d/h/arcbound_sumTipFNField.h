@@ -35,9 +35,9 @@ class SumTipFNField : public ArcRemover {
   virtual void print_par() const;
   
   //Inject particles
-  virtual void inject_e(Particle pa[], size_t& np, double const Ez[]);
-  virtual void inject_i(Particle pa[], size_t &np, double const Ez[], unsigned int sort) {}; // NOP
-  virtual void inject_n(Particle pa[], size_t &np, double const Ez[]) {}; // NOP
+  virtual void inject_e(ParticleSpecies* pa, double const Ez[]);
+  virtual void inject_i(ParticleSpecies* pa, double const Ez[], unsigned int sort) {}; // NOP
+  virtual void inject_n(ParticleSpecies* pa, double const Ez[]) {}; // NOP
 
   
   //Save and restore backup data

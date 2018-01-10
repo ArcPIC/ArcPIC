@@ -59,7 +59,7 @@ void SumTipFNField::print_par() const {
   printf( " - file_timestep        %u \n", this->file_timestep );
 }
 
-void SumTipFNField::inject_e(Particle pa[], size_t &np, double const Ez[]) {
+void SumTipFNField::inject_e(ParticleSpecies* pa, double const Ez[]) {
   //Calculate field
   double fieldConst = N_sp*1.602176565e-19/(4*PI*8.854187e-12); // -N_sp*e/(4*pi*eps0) [V*m]
   double unitConst0 = dz*Ldb*1e-2;                         //dimless length (dz) -> m
@@ -67,12 +67,12 @@ void SumTipFNField::inject_e(Particle pa[], size_t &np, double const Ez[]) {
   double unitConst2 = unitConst1 * 2.0 / (Ldb*1e-2) / dz;  //dimless field -> V/m
 
   double field = 0.0;
-  for(size_t i = 0; i < np; i++) {
-    double R3   = pow( SQU(pa[i].p.z) + SQU(pa[i].p.r), 3.0/2.0);
-    double fLoc = 2*fieldConst * ( pa[i].p.z / (R3 * SQU(unitConst0)) );
+  for(size_t i = 0; i < pa->GetN(); i++) {
+    double R3   = pow( SQU(pa->z[i]) + SQU(pa->r[i]), 3.0/2.0);
+    double fLoc = 2*fieldConst * ( pa->z[i] / (R3 * SQU(unitConst0)) );
     //printf("%g %g %g\n", pa[i].p.z, pa[i].p.r, fLoc);
     field += fLoc;
-  }  
+  }
   double field2 = -(circuit->getUNz()-circuit->getU0())*unitConst1/(nz*unitConst0) + field;
 
   //For output
@@ -107,34 +107,31 @@ void SumTipFNField::inject_e(Particle pa[], size_t &np, double const Ez[]) {
   if ( RAND <= j ) tmp++;
   //printf("tmp = %zu\n", tmp);
   tip_emitted = tmp; //for output
-
-  if ( ( np + tmp ) >= NPART) {
-    printf("Error in SumTipFNField::inject_e(): Particle array overflow (FN at field emitter)\n");
-    exit(1);
-  }
+  pa->ExpandBy(tmp);
   
-  for  (size_t k=0; k<tmp; k++ ) {     
+  for  (size_t k=0; k<tmp; k++ ) {
     // Gaussian scheme
     do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
     r2 = RAND * TWOPI;
-    pa[np+k].p.vr = r1*cos(r2)*v_inj_e;
-    pa[np+k].p.vt = r1*sin(r2)*v_inj_e;
+    pa->vr.push_back( r1*cos(r2)*v_inj_e );
+    pa->vt.push_back( r1*sin(r2)*v_inj_e );
     
     // Gaussian scheme
     do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
-    pa[np+k].p.vz = r1*v_inj_e; 
+    pa->vz.push_back( r1*v_inj_e );
     
-    pa[np+k].p.z = zmin + pa[np+k].p.vz;
-    pa[np+k].p.r = Remission * sqrt(RAND) + pa[np+k].p.vr;
+    pa->z.push_back( zmin + pa->vz.back());
+    pa->r.push_back( Remission * sqrt(RAND) + pa->vr.back() );
     
-    if ( pa[np+k].p.r < 0 ) pa[np+k].p.r = 1.e-20;
-    else if (pa[np+k].p.r > nr) pa[np+k].p.r = 2*nr - pa[np+k].p.r;
+    if ( pa->r.back() < 0 )     pa->r.back() = 1.e-20;
+    else if (pa->r.back() > nr) pa->r.back() = 2*nr - pa->r.back();
 
-    pa[np+k].p.m = 1;
-    current_e[0] += 2*( int(pa[np+k].p.r) ) + 1;
-    current_cathode[ int(pa[np+k].p.r) ] += 1;
+    pa->m.push_back( 1 );
+    
+    current_e[0] += 2*( int(pa->r.back()) ) + 1;
+    current_cathode[ int(pa->r.back()) ] += 1;
   }
-  np += tmp;  
+  
   injected_e[0] += tmp;
 }
 

@@ -22,12 +22,7 @@ ParticleSpecies::~ParticleSpecies(){
 
 const int ParticleSpecies::ExpandBy(size_t n_expand) {
   size_t N = GetN();
-  z.resize(N+n_expand);
-  r.resize(N+n_expand);
-  vz.resize(N+n_expand);
-  vr.resize(N+n_expand);
-  vt.resize(N+n_expand);
-  m.resize(N+n_expand);
+  this->ReserveSpace( N + n_expand );
   return GetN();
 }
 
@@ -124,6 +119,17 @@ void ParticleSpecies::ZeroDensityMap() {
       densMap[j*(nz+1)+k] = 0.;
     }
   }
+}
+
+Particle ParticleSpecies::GetOneParticle(size_t n) {
+  Particle pa;
+  pa.p.z  = this->z[n];
+  pa.p.r  = this->r[n];
+  pa.p.vz = this->vz[n];
+  pa.p.vr = this->vr[n];
+  pa.p.vt = this->vt[n];
+  pa.p.m  = this->m[n];
+  return pa;
 }
 
 void ParticleSpecies::ShuffleArray(std::vector<double> &arr) {

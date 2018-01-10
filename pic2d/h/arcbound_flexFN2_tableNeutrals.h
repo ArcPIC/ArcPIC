@@ -35,14 +35,13 @@ class FlexFN2_tableNeutrals : public FlexFN2 {
 
   virtual void print_par() const;
 
-  virtual void inject_e(Particle pa[], size_t &np, double const Ez[]);
-  virtual void inject_i(Particle pa[], size_t &np, double const Ez[],
-			unsigned int sort) {}; //NOP
-  virtual void inject_n(Particle pa[], size_t &np, double const Ez[]);
+  virtual void inject_e(ParticleSpecies* pa, double const Ez[]);
+  virtual void inject_i(ParticleSpecies* pa, double const Ez[], unsigned int sort) {}; //NOP
+  virtual void inject_n(ParticleSpecies* pa, double const Ez[]);
 
   //Save and restore backup data
   virtual void backup(FILE* file) {};
-  virtual void restoreBackup(FILE* file) {};  
+  virtual void restoreBackup(FILE* file) {};
 
   virtual const char* getName() const { return "FlexFN2_tableNeutrals"; };
  private:

@@ -419,10 +419,10 @@ int main () {
     if ( MAGNETIC == 0 )push_magnetic_2D( electrons, E_grid_r, E_grid_z, Bz_ext, Bt_ext, 1., NZ );
     else                         push_2D( electrons, E_grid_r, E_grid_z,                     NZ );
     
-    pbounds->remove_e( elec, nr_e);
+    pbounds->remove_e( electrons );
     
     if ( nsteps/e2inj_step*e2inj_step  == nsteps ) {
-      pbounds-> inject_e(elec, nr_e, E_grid_z);
+      pbounds->inject_e(electrons, E_grid_z);
     }
     
     // IV. CALCULATE DENSITIES
@@ -440,21 +440,18 @@ int main () {
 	else {
 	  push_2D( ion, E_ion_r + sort*NG, E_ion_z + sort*NG, NZ );
 	}
-	// TODO: FIXME
-	// pbounds->remove_i( ions + sort*NPART, nr_i[sort], sort );
+	pbounds->remove_i(ion, sort);
       }
       
       for (auto neutral : neutralSpecies) {
 	push_neutrals_2D( neutral );
-	// TODO: FIXME
-	// pbounds->remove_n(ions+sort*NPART, nr_i[sort]);
+	pbounds->remove_n( neutral );
       }
       
       if ( nsteps/i2inj_step*i2inj_step  == nsteps ) {
-	for (int sort=0; sort<NSpecies; sort++) {
-	  if (q_ions[sort] != 0.) {
-	    pbounds->inject_i(ions+sort*NPART, nr_i[sort], E_grid_z, sort);
-	  }
+	unsigned int sort = 1; // TODO: FIXME!
+	for (auto ion : ionSpecies) {
+	  pbounds->inject_i(ion,E_grid_z,sort);
 	}
       }
 
@@ -463,8 +460,10 @@ int main () {
       }
       
       if ( nsteps/n2inj_step*n2inj_step  == nsteps ) {
-	pbounds->inject_n(ions + Lastion*NPART, nr_i[Lastion], E_grid_z);
-      }	
+	for (auto neutral : neutralSpecies) {
+	  pbounds->inject_n(neutral, E_grid_z);
+	}
+      }
 
       if( nsteps >= nav_start ) {
 	// neutral density, only for outputting
@@ -739,6 +738,20 @@ int main () {
 
   delete circuit;
   delete pbounds;
+
+  delete   electrons;
+
+  for (auto ion : ionSpecies) {
+    delete ion;
+    ion = NULL;
+  }
+  ionSpecies.clear();
+
+  for (auto neutral : neutralSpecies) {
+    delete neutral;
+    neutral = NULL;
+  }
+  neutralSpecies.clear();
 
   fclose(timeIndex);
 

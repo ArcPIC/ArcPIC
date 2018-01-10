@@ -21,6 +21,8 @@
 #ifndef ParticleSpecies_h
 #define ParticleSpecies_h
 
+#include "pic.h"
+
 #include <vector>
 #include <string>
 
@@ -66,6 +68,9 @@ class ParticleSpecies {
   void UpdateDensityMap( double V_cell[] );
   void ZeroDensityMap( );
   double* densMap;
+
+  // Extract one particle object
+  Particle GetOneParticle(size_t n);
   
  private:
   // Local copy of the nr and nz settings

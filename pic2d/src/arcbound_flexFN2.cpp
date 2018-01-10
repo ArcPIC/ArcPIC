@@ -33,7 +33,7 @@
 using namespace std;
 
 // ******** Implementation of FlexFN2 ******************
-void FlexFN2::injectFNring(Particle pa[], size_t &np,
+void FlexFN2::injectFNring(ParticleSpecies* pa,
 			   double alpha, double beta, double const Ez[],
 			   double r1, double r2) {
 
@@ -86,11 +86,7 @@ void FlexFN2::injectFNring(Particle pa[], size_t &np,
     //Number to inject
     size_t Ninj = (size_t) I_FN;
     if ( RAND <= I_FN-Ninj ) Ninj++;
-    //Safety check
-    if (Ninj + np > NPART) {
-      printf("Error in FlexFN2::injectFNring(): Particle array overflow (FN at field emitter)\n");
-      exit(1);
-    }
+    pa->ExpandBy(Ninj);
     
     //Inject Ninj superparticles
     double r1; //Temp variable
@@ -99,33 +95,33 @@ void FlexFN2::injectFNring(Particle pa[], size_t &np,
       //Velocity
       do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
       double r2 = RAND * TWOPI;
-      pa[np+k].p.vr = r1*cos(r2)*v_inj_e;
-      pa[np+k].p.vt = r1*sin(r2)*v_inj_e;
+      pa->vr.push_back( r1*cos(r2)*v_inj_e );
+      pa->vt.push_back( r1*sin(r2)*v_inj_e );
       do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
-      pa[np+k].p.vz = r1*v_inj_e;
+      pa->vz.push_back( r1*v_inj_e );
       
       //Position
       // uniform random position on annulus (R1, R2) as found above
-      pa[np+k].p.r = sqrt( (SQU(R2)-SQU(R1))*RAND + SQU(R1) );
-      pa[np+k].p.z = zmin;
+      pa->r.push_back( sqrt( (SQU(R2)-SQU(R1))*RAND + SQU(R1) ) );
+      pa->z.push_back( zmin );
       
       //Fractional timestep push (euler method)
       double Rp = RAND; //1-R; how (fractionally) far into the timestep
       // are we at z=0?
-      pa[np+k].p.r  += Rp*e2inj_step*pa[np+k].p.vr;
-      pa[np+k].p.z  += Rp*e2inj_step*pa[np+k].p.vz;
+      pa->r.back()  += Rp*e2inj_step*pa->vr.back();
+      pa->z.back()  += Rp*e2inj_step*pa->vz.back();
       //Assume no magnetic field, E = Ez on surface
-      pa[np+k].p.vz -= (Rp*e2inj_step-0.5)*2*Ez[i*NZ];
+      pa->vz.back() -= (Rp*e2inj_step-0.5)*2*Ez[i*NZ];
       
-      if ( pa[np+k].p.r < 0 ) pa[np+k].p.r = -pa[np+k].p.r; //Reflect on axis
-      else if (pa[np+k].p.r > nr ) pa[np+k].p.r = 2*nr - pa[np+k].p.r;
+      if ( pa->r.back() < 0 )      pa->r.back() = -pa->r.back(); //Reflect on axis
+      else if (pa->r.back() > nr ) pa->r.back() = 2*nr - pa->r.back();
       
-      pa[np+k].p.m = 1;
+      pa->m.push_back( 1 );
       
-      current_e[0] += 2*( int(pa[np+k].p.r) ) + 1;
-      current_cathode[ int(pa[np+k].p.r) ] += 1;
+      current_e[0] += 2*( int(pa->r.back()) ) + 1;
+      current_cathode[ int(pa->r.back()) ] += 1;
     }
-    np += Ninj;
+
     injected_e[0] += Ninj;
     
   } // END loop over meshpoints
@@ -160,7 +156,7 @@ void FlexFN2_ring::re_init(unsigned int nr, double zmin, double zmax, double rma
   FlexFN2_ring::init(nr, zmin, zmax, rmax);
 }
 
-void FlexFN2_ring::inject_e(Particle pa[], size_t &np, double const Ez[]) {
-  injectFNring(pa, np, ring_alpha, ring_beta, Ez, ring_r1, ring_r2);
+void FlexFN2_ring::inject_e(ParticleSpecies* pa, double const Ez[]) {
+  injectFNring(pa, ring_alpha, ring_beta, Ez, ring_r1, ring_r2);
 }
 

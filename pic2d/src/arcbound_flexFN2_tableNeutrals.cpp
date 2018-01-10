@@ -67,11 +67,11 @@ void FlexFN2_tableNeutrals::re_init(unsigned int nr, double zmin, double zmax, d
   FlexFN2_tableNeutrals::init(nr, zmin, zmax, rmax);
 }
 
-void FlexFN2_tableNeutrals::inject_e(Particle pa[], size_t &np, double const Ez[]) {
-  injectFNring(pa, np, emitter_alpha, emitter_beta, Ez, 0, emitter_radius);
-  injectFNring(pa, np, flat_alpha,    flat_beta,    Ez, 0, nr);
+void FlexFN2_tableNeutrals::inject_e(ParticleSpecies* pa, double const Ez[]) {
+  injectFNring(pa, emitter_alpha, emitter_beta, Ez, 0, emitter_radius);
+  injectFNring(pa, flat_alpha,    flat_beta,    Ez, 0, nr);
 }
 
-void FlexFN2_tableNeutrals::inject_n(Particle pa[], size_t &np, double const Ez[]) {
+void FlexFN2_tableNeutrals::inject_n(ParticleSpecies* pa, double const Ez[]) {
   //Here goes the sputtering injection. Probably should also overwrite remove_i and remove_n
 }
