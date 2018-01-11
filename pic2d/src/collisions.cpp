@@ -46,16 +46,13 @@
  otherwise i-i
 
  Input:
- - ordcount        Ordering array, ordcount[i] = number of particles
-                     in cell i=ir*NZ+iz
  - nr              Number of cells in r-direction
  - nz              Number of cells in z-direction
  - NZ              Number of grids in z-direction = nz+1
- - Mpa_over_me     Mass of colliding particles/electron mass
  - kind            Type of particle: 0 for electrons, != 0 for ions
  - ncoll           How many timesteps between each call to collisions
  In/Out:
- - Particle pa[]   Array of particles to collide, sorted by cell
+ - ParticleSpecies* pa    Particles to collide, sorted by cell
  Out:
  - momcheck        Diagnostics, checking that momentum is conserved
  - engcheck        Diagnostics, checking that energy is conserved
@@ -64,7 +61,7 @@
 
 void coll_el_knm_2D( ParticleSpecies*  pa,
 		     int nr,int nz,int NZ,
-		     double Mpa_over_me, int kind,
+		     int kind,
 		     Vec3d *momcheck, double *engcheck, int ncoll) {
   
   Vec3d	v_rel, v_rel_DELTA;
@@ -76,7 +73,7 @@ void coll_el_knm_2D( ParticleSpecies*  pa,
   static const double LanLog = 13.;       // Coulomb Log
   //Constant factor in coulomb collisions
   double Acoll = Amplcoulomb * ( !kind ? 1.0 : dt_ion*dt_ion*dt_ion ) * LanLog * SQU(SQU(Omega_pe)) * ncoll /
-    ( TWOPI*PI * SQU(SQU(dz))*SQU(dz) * SQU(Mpa_over_me) * SQU(Ndb) * N_sp );
+    ( TWOPI*PI * SQU(SQU(dz))*SQU(dz) * SQU(pa->mass) * SQU(Ndb) * N_sp );
   
   size_t Next = 0; // Index in pa[] of first particle in cell ir*NZ+iz (the way this is done today messes up paralellization)
   for (int ir=0; ir<nr;  ir++) {
@@ -196,8 +193,8 @@ void coll_el_knm_2D( ParticleSpecies*  pa,
 
 ***********************************************************************/
 
-void coll_ion_neutral_noSP_2D( ParticleSpecies* neutrals, double M_n,
-			       ParticleSpecies* ions, double M_i,
+void coll_ion_neutral_noSP_2D( ParticleSpecies* neutrals,
+			       ParticleSpecies* ions,
 			       int nr, int nz, int NZ, Reaction React,
 			       Vec3d *momcheck, double *engcheck   ) {
 
@@ -264,12 +261,12 @@ void coll_ion_neutral_noSP_2D( ParticleSpecies* neutrals, double M_n,
 
 	    // 1-exp(-n_n*W_0*Si*dt_coll)
 	    if ( RAND < n_n*W_0*S_i*dti/(2*jr+1) ) { // correct Si with 2D volume factor (2j+1) here   
-	      *engcheck += 0.5*M_i*(SQU(ions->vz[i_ion + Next_ion]) + SQU(ions->vr[i_ion + Next_ion]) + SQU(ions->vt[i_ion + Next_ion]));
-	      *engcheck += 0.5*M_n*(SQU(neutrals->vz[i_n + Next_n]) + SQU(neutrals->vr[i_n + Next_n]) + SQU(neutrals->vt[i_n + Next_n]));
+	      *engcheck += 0.5*ions->mass*(SQU(ions->vz[i_ion + Next_ion]) + SQU(ions->vr[i_ion + Next_ion]) + SQU(ions->vt[i_ion + Next_ion]));
+	      *engcheck += 0.5*neutrals->mass*(SQU(neutrals->vz[i_n + Next_n]) + SQU(neutrals->vr[i_n + Next_n]) + SQU(neutrals->vt[i_n + Next_n]));
 	      
-	      (*momcheck).z += M_i*ions->vz[i_ion + Next_ion] + M_n*neutrals->vz[i_n + Next_n];
-	      (*momcheck).r += M_i*ions->vr[i_ion + Next_ion] + M_n*neutrals->vr[i_n + Next_n];
-	      (*momcheck).t += M_i*ions->vt[i_ion + Next_ion] + M_n*neutrals->vt[i_n + Next_n];
+	      (*momcheck).z += ions->mass*ions->vz[i_ion + Next_ion] + neutrals->mass*neutrals->vz[i_n + Next_n];
+	      (*momcheck).r += ions->mass*ions->vr[i_ion + Next_ion] + neutrals->mass*neutrals->vr[i_n + Next_n];
+	      (*momcheck).t += ions->mass*ions->vt[i_ion + Next_ion] + neutrals->mass*neutrals->vt[i_n + Next_n];
 	      
 	      W_0  = MAX( W_0, 1.e-10);
 	      IW_0 = 1./W_0;
@@ -303,20 +300,20 @@ void coll_ion_neutral_noSP_2D( ParticleSpecies* neutrals, double M_n,
 	      v_rel.r -= vz*sin_beta*cos_theta + vr*cos_beta + vt*sin_beta*sin_theta;
 	      v_rel.t -= vt*cos_theta - vz*sin_theta;
 	      
-	      ions->vz[i_ion + Next_ion] -= M_n/(M_n + M_i)*v_rel.z;
-	      ions->vr[i_ion + Next_ion] -= M_n/(M_n + M_i)*v_rel.r;
-	      ions->vt[i_ion + Next_ion] -= M_n/(M_n + M_i)*v_rel.t;
+	      ions->vz[i_ion + Next_ion] -= neutrals->mass/(neutrals->mass + ions->mass)*v_rel.z;
+	      ions->vr[i_ion + Next_ion] -= neutrals->mass/(neutrals->mass + ions->mass)*v_rel.r;
+	      ions->vt[i_ion + Next_ion] -= neutrals->mass/(neutrals->mass + ions->mass)*v_rel.t;
 	      
-	      neutrals->vz[i_n + Next_n] += M_i/(M_n + M_i)*v_rel.z;
-	      neutrals->vr[i_n + Next_n] += M_i/(M_n + M_i)*v_rel.r;
-	      neutrals->vt[i_n + Next_n] += M_i/(M_n + M_i)*v_rel.t;
+	      neutrals->vz[i_n + Next_n] += ions->mass/(neutrals->mass + ions->mass)*v_rel.z;
+	      neutrals->vr[i_n + Next_n] += ions->mass/(neutrals->mass + ions->mass)*v_rel.r;
+	      neutrals->vt[i_n + Next_n] += ions->mass/(neutrals->mass + ions->mass)*v_rel.t;
 	      
-	      *engcheck -= 0.5*M_i*(SQU(ions->vz[i_ion + Next_ion]) + SQU(ions->vr[i_ion + Next_ion]) + SQU(ions->vt[i_ion + Next_ion]));
-	      *engcheck -= 0.5*M_n*(SQU(neutrals->vz[i_n + Next_n]) + SQU(neutrals->vr[i_n + Next_n]) + SQU(neutrals->vt[i_n + Next_n]));
+	      *engcheck -= 0.5*ions->mass*(SQU(ions->vz[i_ion + Next_ion]) + SQU(ions->vr[i_ion + Next_ion]) + SQU(ions->vt[i_ion + Next_ion]));
+	      *engcheck -= 0.5*neutrals->mass*(SQU(neutrals->vz[i_n + Next_n]) + SQU(neutrals->vr[i_n + Next_n]) + SQU(neutrals->vt[i_n + Next_n]));
 	      
-	      (*momcheck).z -= M_i*ions->vz[i_ion + Next_ion] + M_n*neutrals->vz[i_n + Next_n];
-	      (*momcheck).r -= M_i*ions->vr[i_ion + Next_ion] + M_n*neutrals->vr[i_n + Next_n];
-	      (*momcheck).t -= M_i*ions->vt[i_ion + Next_ion] + M_n*neutrals->vt[i_n + Next_n];
+	      (*momcheck).z -= ions->mass*ions->vz[i_ion + Next_ion] + neutrals->mass*neutrals->vz[i_n + Next_n];
+	      (*momcheck).r -= ions->mass*ions->vr[i_ion + Next_ion] + neutrals->mass*neutrals->vr[i_n + Next_n];
+	      (*momcheck).t -= ions->mass*ions->vt[i_ion + Next_ion] + neutrals->mass*neutrals->vt[i_n + Next_n];
 	      
 	    }   // if (W2_0  RAND < n_n*W_0*Si)
 	    
@@ -363,12 +360,12 @@ void coll_ion_neutral_noSP_2D( ParticleSpecies* neutrals, double M_n,
 	    
 	    // 1-exp(-n_n*W_0*Si*dt_coll)
 	    if ( RAND < n_ion*W_0*S_i*dti/(2*jr+1) ) { // correct Si with 2D volume factor (2j+1) here
-	      *engcheck += 0.5*M_i*(SQU(ions->vz[i_ion + Next_ion]) + SQU(ions->vr[i_ion + Next_ion]) + SQU(ions->vt[i_ion + Next_ion]));
-	      *engcheck +=  0.5*M_n*(SQU(neutrals->vz[i_n + Next_n]) + SQU(neutrals->vr[i_n + Next_n]) + SQU(neutrals->vt[i_n + Next_n]));
+	      *engcheck += 0.5*ions->mass*(SQU(ions->vz[i_ion + Next_ion]) + SQU(ions->vr[i_ion + Next_ion]) + SQU(ions->vt[i_ion + Next_ion]));
+	      *engcheck +=  0.5*neutrals->mass*(SQU(neutrals->vz[i_n + Next_n]) + SQU(neutrals->vr[i_n + Next_n]) + SQU(neutrals->vt[i_n + Next_n]));
 	      
-	      (*momcheck).z += M_i*ions->vz[i_ion + Next_ion] + M_n*neutrals->vz[i_n + Next_n];
-	      (*momcheck).r += M_i*ions->vr[i_ion + Next_ion] + M_n*neutrals->vr[i_n + Next_n];
-	      (*momcheck).t += M_i*ions->vt[i_ion + Next_ion] + M_n*neutrals->vt[i_n + Next_n];
+	      (*momcheck).z += ions->mass*ions->vz[i_ion + Next_ion] + neutrals->mass*neutrals->vz[i_n + Next_n];
+	      (*momcheck).r += ions->mass*ions->vr[i_ion + Next_ion] + neutrals->mass*neutrals->vr[i_n + Next_n];
+	      (*momcheck).t += ions->mass*ions->vt[i_ion + Next_ion] + neutrals->mass*neutrals->vt[i_n + Next_n];
 	      
 	      W_0  = MAX( W_0, 1.e-10);
 	      IW_0 = 1./W_0;
@@ -402,21 +399,21 @@ void coll_ion_neutral_noSP_2D( ParticleSpecies* neutrals, double M_n,
 	      v_rel.r -= vz*sin_beta*cos_theta + vr*cos_beta + vt*sin_beta*sin_theta;
 	      v_rel.t -= vt*cos_theta - vz*sin_theta;
 	      
-	      ions->vz[i_ion + Next_ion] -= M_n/(M_n + M_i)*v_rel.z;
-	      ions->vr[i_ion + Next_ion] -= M_n/(M_n + M_i)*v_rel.r;
-	      ions->vt[i_ion + Next_ion] -= M_n/(M_n + M_i)*v_rel.t;
+	      ions->vz[i_ion + Next_ion] -= neutrals->mass/(neutrals->mass + ions->mass)*v_rel.z;
+	      ions->vr[i_ion + Next_ion] -= neutrals->mass/(neutrals->mass + ions->mass)*v_rel.r;
+	      ions->vt[i_ion + Next_ion] -= neutrals->mass/(neutrals->mass + ions->mass)*v_rel.t;
 	      
-	      neutrals->vz[i_n + Next_n] += M_i/(M_n + M_i)*v_rel.z;
-	      neutrals->vr[i_n + Next_n] += M_i/(M_n + M_i)*v_rel.r;
-	      neutrals->vt[i_n + Next_n] += M_i/(M_n + M_i)*v_rel.t;
+	      neutrals->vz[i_n + Next_n] += ions->mass/(neutrals->mass + ions->mass)*v_rel.z;
+	      neutrals->vr[i_n + Next_n] += ions->mass/(neutrals->mass + ions->mass)*v_rel.r;
+	      neutrals->vt[i_n + Next_n] += ions->mass/(neutrals->mass + ions->mass)*v_rel.t;
 	      
 	      
-	      *engcheck -= 0.5*M_i*(SQU(ions->vz[i_ion + Next_ion]) + SQU(ions->vr[i_ion + Next_ion]) + SQU(ions->vt[i_ion + Next_ion]));
-	      *engcheck -= 0.5*M_n*(SQU(neutrals->vz[i_n + Next_n]) + SQU(neutrals->vr[i_n + Next_n]) + SQU(neutrals->vt[i_n + Next_n]));
+	      *engcheck -= 0.5*ions->mass*(SQU(ions->vz[i_ion + Next_ion]) + SQU(ions->vr[i_ion + Next_ion]) + SQU(ions->vt[i_ion + Next_ion]));
+	      *engcheck -= 0.5*neutrals->mass*(SQU(neutrals->vz[i_n + Next_n]) + SQU(neutrals->vr[i_n + Next_n]) + SQU(neutrals->vt[i_n + Next_n]));
 	      
-	      (*momcheck).z -= M_i*ions->vz[i_ion + Next_ion] + M_n*neutrals->vz[i_n + Next_n];
-	      (*momcheck).r -= M_i*ions->vr[i_ion + Next_ion] + M_n*neutrals->vr[i_n + Next_n];
-	      (*momcheck).t -= M_i*ions->vt[i_ion + Next_ion] + M_n*neutrals->vt[i_n + Next_n];
+	      (*momcheck).z -= ions->mass*ions->vz[i_ion + Next_ion] + neutrals->mass*neutrals->vz[i_n + Next_n];
+	      (*momcheck).r -= ions->mass*ions->vr[i_ion + Next_ion] + neutrals->mass*neutrals->vr[i_n + Next_n];
+	      (*momcheck).t -= ions->mass*ions->vt[i_ion + Next_ion] + neutrals->mass*neutrals->vt[i_n + Next_n];
 	      
 	    }   // if (W2_0  RAND < n_n*W_0*Si)            
 	    
@@ -678,8 +675,8 @@ void coll_n_n_2D( ParticleSpecies* neutrals,
 
 ***********************************************************************/
 
-void coll_el_all_fake_2D( ParticleSpecies* molecules, double M_m,   // molecules
-			  ParticleSpecies* electrons,               // electrons
+void coll_el_all_fake_2D( ParticleSpecies* molecules,   // molecules
+			  ParticleSpecies* electrons,   // electrons
 			  int nr, int nz, int NZ, Reaction React) {
   
   const double m_e = 1.;
@@ -749,11 +746,11 @@ void coll_el_all_fake_2D( ParticleSpecies* molecules, double M_m,   // molecules
 	    
 	    /*
 	     *engcheck += 0.5*m_e*(SQU(electrons[i_el + Next_el].p.vz) + SQU(electrons[i_el + Next_el].p.vr) + SQU(electrons[i_el + Next_el].p.vt));
-	     *engcheck += 0.5*M_m*(SQU(molecules[i_m + Next_m].p.vz*dti) + SQU(molecules[i_m + Next_m].p.vr*dti) + SQU(molecules[i_m + Next_m].p.vt*dti)) - 0.5*m_e*M_m/(m_e+M_m)*E_th ;
+	     *engcheck += 0.5*molecules->mass*(SQU(molecules[i_m + Next_m].p.vz*dti) + SQU(molecules[i_m + Next_m].p.vr*dti) + SQU(molecules[i_m + Next_m].p.vt*dti)) - 0.5*m_e*molecules->mass/(m_e+molecules->mass)*E_th ;
 	     
-	     (*momcheck).z += m_e*electrons[i_el + Next_el].p.vz + M_m*molecules[i_m + Next_m].p.vz*dti;
-	     (*momcheck).r += m_e*electrons[i_el + Next_el].p.vr + M_m*molecules[i_m + Next_m].p.vr*dti;
-	     (*momcheck).t += m_e*electrons[i_el + Next_el].p.vt + M_m*molecules[i_m + Next_m].p.vt*dti;
+	     (*momcheck).z += m_e*electrons[i_el + Next_el].p.vz + molecules->mass*molecules[i_m + Next_m].p.vz*dti;
+	     (*momcheck).r += m_e*electrons[i_el + Next_el].p.vr + molecules->mass*molecules[i_m + Next_m].p.vr*dti;
+	     (*momcheck).t += m_e*electrons[i_el + Next_el].p.vt + molecules->mass*molecules[i_m + Next_m].p.vt*dti;
 	    */
 	    
 	    W_0  = MAX( W_0, 1.e-14);
@@ -809,21 +806,21 @@ void coll_el_all_fake_2D( ParticleSpecies* molecules, double M_m,   // molecules
 	    target_v.t = molecules->vt[i_m + Next_m].p.vt*dti;  // remove it after debugging
 	    */
 	    
-	    electrons->vz[i_el + Next_el] -= M_m/(M_m + m_e)*v_rel.z;
-	    electrons->vr[i_el + Next_el] -= M_m/(M_m + m_e)*v_rel.r;
-	    electrons->vt[i_el + Next_el] -= M_m/(M_m + m_e)*v_rel.t;
+	    electrons->vz[i_el + Next_el] -= molecules->mass/(molecules->mass + m_e)*v_rel.z;
+	    electrons->vr[i_el + Next_el] -= molecules->mass/(molecules->mass + m_e)*v_rel.r;
+	    electrons->vt[i_el + Next_el] -= molecules->mass/(molecules->mass + m_e)*v_rel.t;
 
 	    /*
-	    target_v.z += m_e/(M_m + m_e)*v_rel.z;
-	    target_v.r += m_e/(M_m + m_e)*v_rel.r;
-	    target_v.t += m_e/(M_m + m_e)*v_rel.t;
+	    target_v.z += m_e/(molecules->mass + m_e)*v_rel.z;
+	    target_v.r += m_e/(molecules->mass + m_e)*v_rel.r;
+	    target_v.t += m_e/(molecules->mass + m_e)*v_rel.t;
 	    
 	     *engcheck -= 0.5*m_e*(SQU(electrons[i_el + Next_el].p.vz) + SQU(electrons[i_el + Next_el].p.vr)+ SQU(electrons[i_el + Next_el].p.vt));
-	     *engcheck -= 0.5*M_m*(SQU(target_v.z) + SQU(target_v.r)+ SQU(target_v.t));
+	     *engcheck -= 0.5*molecules->mass*(SQU(target_v.z) + SQU(target_v.r)+ SQU(target_v.t));
 	     
-	     (*momcheck).z -= m_e*electrons[i_el + Next_el].p.vz + M_m*target_v.z;
-	     (*momcheck).r -= m_e*electrons[i_el + Next_el].p.vr + M_m*target_v.r;
-	     (*momcheck).t -= m_e*electrons[i_el + Next_el].p.vt + M_m*target_v.t;
+	     (*momcheck).z -= m_e*electrons[i_el + Next_el].p.vz + molecules->mass*target_v.z;
+	     (*momcheck).r -= m_e*electrons[i_el + Next_el].p.vr + molecules->mass*target_v.r;
+	     (*momcheck).t -= m_e*electrons[i_el + Next_el].p.vt + molecules->mass*target_v.t;
 	    */
 	    
 	    
@@ -857,12 +854,12 @@ void coll_el_all_fake_2D( ParticleSpecies* molecules, double M_m,   // molecules
 
 ***********************************************************************/
 
-void coll_el_neutrals_2D( ParticleSpecies* neutrals, double M_n,
+void coll_el_neutrals_2D( ParticleSpecies* neutrals,
 			  ParticleSpecies* electrons,
 			  ParticleSpecies* ions, int nr, int nz, int NZ, Reaction React,
 			  Vec3d *momcheck, double *engcheck ) {
   
-  const double m_e =1.;
+  const double m_e = 1.;
   
   double W2, W, IW, W2_0, W_0, IW_0, v_proj_zr, ivp, cos_theta, sin_theta, cos_beta, sin_beta;
   //double W0;
@@ -953,11 +950,11 @@ void coll_el_neutrals_2D( ParticleSpecies* neutrals, double M_n,
 	    if (W2_0 >= E_th && RAND < Nn_real*W_0*S_i/(2*jr+1) )  {// correct Si with 2D volume factor (2j+1) here
 	      
 	      *engcheck += 0.5*m_e*(SQU(electrons->vz[i_el + Next_el]) + SQU(electrons->vr[i_el + Next_el]) + SQU(electrons->vt[i_el + Next_el]));
-	      *engcheck += 0.5*M_n*(SQU(neutrals->vz[i_n + Next_n]*dti) + SQU(neutrals->vr[i_n + Next_n]*dti) + SQU(neutrals->vt[i_n + Next_n]*dti)) - 0.5*m_e*M_n/(m_e+M_n)*E_th;
+	      *engcheck += 0.5*neutrals->mass*(SQU(neutrals->vz[i_n + Next_n]*dti) + SQU(neutrals->vr[i_n + Next_n]*dti) + SQU(neutrals->vt[i_n + Next_n]*dti)) - 0.5*m_e*neutrals->mass/(m_e+neutrals->mass)*E_th;
 	      
-	      (*momcheck).z += m_e*electrons->vz[i_el + Next_el] + M_n*neutrals->vz[i_n + Next_n]*dti;
-	      (*momcheck).r += m_e*electrons->vr[i_el + Next_el] + M_n*neutrals->vr[i_n + Next_n]*dti;
-	      (*momcheck).t += m_e*electrons->vt[i_el + Next_el] + M_n*neutrals->vt[i_n + Next_n]*dti;
+	      (*momcheck).z += m_e*electrons->vz[i_el + Next_el] + neutrals->mass*neutrals->vz[i_n + Next_n]*dti;
+	      (*momcheck).r += m_e*electrons->vr[i_el + Next_el] + neutrals->mass*neutrals->vr[i_n + Next_n]*dti;
+	      (*momcheck).t += m_e*electrons->vt[i_el + Next_el] + neutrals->mass*neutrals->vt[i_n + Next_n]*dti;
 	      
 	      IW_0 = 1./W_0;
 	      
@@ -1007,13 +1004,13 @@ void coll_el_neutrals_2D( ParticleSpecies* neutrals, double M_n,
 	      target_v.r = neutrals->vr[i_n + Next_n]*dti;
 	      target_v.t = neutrals->vt[i_n + Next_n]*dti;
 	      
-	      electrons->vz[i_el + Next_el] -= M_n/(M_n + m_e)*v_rel.z;
-	      electrons->vr[i_el + Next_el] -= M_n/(M_n + m_e)*v_rel.r;
-	      electrons->vt[i_el + Next_el] -= M_n/(M_n + m_e)*v_rel.t;
+	      electrons->vz[i_el + Next_el] -= neutrals->mass/(neutrals->mass + m_e)*v_rel.z;
+	      electrons->vr[i_el + Next_el] -= neutrals->mass/(neutrals->mass + m_e)*v_rel.r;
+	      electrons->vt[i_el + Next_el] -= neutrals->mass/(neutrals->mass + m_e)*v_rel.t;
 	      
-	      target_v.z += m_e/(M_n + m_e)*v_rel.z;
-	      target_v.r += m_e/(M_n + m_e)*v_rel.r;
-	      target_v.t += m_e/(M_n + m_e)*v_rel.t;
+	      target_v.z += m_e/(neutrals->mass + m_e)*v_rel.z;
+	      target_v.r += m_e/(neutrals->mass + m_e)*v_rel.r;
+	      target_v.t += m_e/(neutrals->mass + m_e)*v_rel.t;
 
 	      // 2D: add also z-component of particle position
 	      ions->z.push_back( neutrals->z[i_n + Next_n] );
@@ -1026,11 +1023,11 @@ void coll_el_neutrals_2D( ParticleSpecies* neutrals, double M_n,
 	      
 	      ions->m.push_back( 1 );
 	      
-	      *engcheck -= 0.5*(M_n-m_e)*(SQU(ions->vz.back()*dti) + SQU(ions->vr.back()*dti) + SQU(ions->vt.back()*dti));
+	      *engcheck -= 0.5*(neutrals->mass-m_e)*(SQU(ions->vz.back()*dti) + SQU(ions->vr.back()*dti) + SQU(ions->vt.back()*dti));
 	      
-	      (*momcheck).z -= (M_n-m_e)*ions->vz.back()*dti;
-	      (*momcheck).r -= (M_n-m_e)*ions->vr.back()*dti;
-	      (*momcheck).t -= (M_n-m_e)*ions->vt.back()*dti;
+	      (*momcheck).z -= (neutrals->mass-m_e)*ions->vz.back()*dti;
+	      (*momcheck).r -= (neutrals->mass-m_e)*ions->vr.back()*dti;
+	      (*momcheck).t -= (neutrals->mass-m_e)*ions->vt.back()*dti;
 	      
 	      
 	      /* electron-neutral inelastic collision with a loss of E_th energy
@@ -1162,11 +1159,11 @@ void coll_el_neutrals_2D( ParticleSpecies* neutrals, double M_n,
 		
 		
 		*engcheck += 0.5*m_e*(SQU(electrons->vz[i_el + Next_el]) + SQU(electrons->vr[i_el + Next_el]) + SQU(electrons->vt[i_el + Next_el]));
-		*engcheck += 0.5*M_n*(SQU(neutrals->vz[i_n + Next_n]*dti) + SQU(neutrals->vr[i_n + Next_n]*dti) + SQU(neutrals->vt[i_n + Next_n]*dti)) - 0.5*m_e*M_n/(m_e+M_n)*E_th;
+		*engcheck += 0.5*neutrals->mass*(SQU(neutrals->vz[i_n + Next_n]*dti) + SQU(neutrals->vr[i_n + Next_n]*dti) + SQU(neutrals->vt[i_n + Next_n]*dti)) - 0.5*m_e*neutrals->mass/(m_e+neutrals->mass)*E_th;
 		
-		(*momcheck).z += m_e*electrons->vz[i_el + Next_el] + M_n*neutrals->vz[i_n + Next_n]*dti;
-		(*momcheck).r += m_e*electrons->vr[i_el + Next_el] + M_n*neutrals->vr[i_n + Next_n]*dti;
-		(*momcheck).t += m_e*electrons->vt[i_el + Next_el] + M_n*neutrals->vt[i_n + Next_n]*dti;
+		(*momcheck).z += m_e*electrons->vz[i_el + Next_el] + neutrals->mass*neutrals->vz[i_n + Next_n]*dti;
+		(*momcheck).r += m_e*electrons->vr[i_el + Next_el] + neutrals->mass*neutrals->vr[i_n + Next_n]*dti;
+		(*momcheck).t += m_e*electrons->vt[i_el + Next_el] + neutrals->mass*neutrals->vt[i_n + Next_n]*dti;
 		
 		IW_0 = 1./W_0;
 		
@@ -1217,13 +1214,13 @@ void coll_el_neutrals_2D( ParticleSpecies* neutrals, double M_n,
 		target_v.r = neutrals->vr[i_n + Next_n]*dti;
 		target_v.t = neutrals->vt[i_n + Next_n]*dti;
 		
-		electrons->vz[i_el + Next_el] -= M_n/(M_n + m_e)*v_rel.z;
-		electrons->vr[i_el + Next_el] -= M_n/(M_n + m_e)*v_rel.r;
-		electrons->vt[i_el + Next_el] -= M_n/(M_n + m_e)*v_rel.t;
+		electrons->vz[i_el + Next_el] -= neutrals->mass/(neutrals->mass + m_e)*v_rel.z;
+		electrons->vr[i_el + Next_el] -= neutrals->mass/(neutrals->mass + m_e)*v_rel.r;
+		electrons->vt[i_el + Next_el] -= neutrals->mass/(neutrals->mass + m_e)*v_rel.t;
 		
-		target_v.z += m_e/(M_n + m_e)*v_rel.z;
-		target_v.r += m_e/(M_n + m_e)*v_rel.r;
-		target_v.t += m_e/(M_n + m_e)*v_rel.t;
+		target_v.z += m_e/(neutrals->mass + m_e)*v_rel.z;
+		target_v.r += m_e/(neutrals->mass + m_e)*v_rel.r;
+		target_v.t += m_e/(neutrals->mass + m_e)*v_rel.t;
 		
 		ions->z.push_back( neutrals->z[i_n + Next_n] );
 		ions->r.push_back( neutrals->r[i_n + Next_n] );
@@ -1232,11 +1229,11 @@ void coll_el_neutrals_2D( ParticleSpecies* neutrals, double M_n,
 		ions->vt.push_back( target_v.t*dt_ion );
 		ions->m.push_back( 1 );
 		
-		*engcheck -= 0.5*(M_n-m_e)*(SQU(ions->vz.back()*dti) + SQU(ions->vr.back()*dti) + SQU(ions->vt.back()*dti));
+		*engcheck -= 0.5*(neutrals->mass-m_e)*(SQU(ions->vz.back()*dti) + SQU(ions->vr.back()*dti) + SQU(ions->vt.back()*dti));
 		
-		(*momcheck).z -= (M_n-m_e)*ions->vz.back()*dti;
-		(*momcheck).r -= (M_n-m_e)*ions->vr.back()*dti;
-		(*momcheck).t -= (M_n-m_e)*ions->vt.back()*dti;
+		(*momcheck).z -= (neutrals->mass-m_e)*ions->vz.back()*dti;
+		(*momcheck).r -= (neutrals->mass-m_e)*ions->vr.back()*dti;
+		(*momcheck).t -= (neutrals->mass-m_e)*ions->vt.back()*dti;
 		
 		/*
 		 * electron-neutral inelastic collision with a loss of E_th energy

@@ -43,6 +43,7 @@ class ParticleSpecies {
   std::vector<int> m;
 
   //Ordering vector, updated by calling order_2D
+  // ordcount[i] = number of particles in cell i=ir*(nz+1)+iz
   size_t* ordcount;
   
   //Check the current number of particles

@@ -25,11 +25,11 @@
 
 void coll_el_knm_2D( ParticleSpecies* pa,
 		     int nr,int nz,int NZ,
-		     double Mpa_over_me, int kind,
+		     int kind,
 		     Vec3d *momcheck, double *engcheck, int ncoll);
 
-void coll_ion_neutral_noSP_2D( ParticleSpecies* neutrals, double M_n,
-			       ParticleSpecies* ions, double M_i,
+void coll_ion_neutral_noSP_2D( ParticleSpecies* neutrals,
+			       ParticleSpecies* ions,
 			       int nr, int nz, int NZ, Reaction React,
 			       Vec3d *momcheck, double *engcheck   );
 
@@ -38,11 +38,11 @@ void coll_n_n_2D( ParticleSpecies* neutrals,
 		  int nr, int nz, int NZ, Reaction React,
 		  Vec3d *momcheck, double *engcheck );
 
-void coll_el_all_fake_2D( ParticleSpecies* molecules, double M_m,   // molecules
+void coll_el_all_fake_2D( ParticleSpecies* molecules,   // molecules
 			  ParticleSpecies* electrons,              // electrons
 			  int nr, int nz, int NZ, Reaction React);
 
-void coll_el_neutrals_2D( ParticleSpecies* neutrals, double M_n,
+void coll_el_neutrals_2D( ParticleSpecies* neutrals,
 			  ParticleSpecies* electrons,
 			  ParticleSpecies* ions, int nr, int nz, int NZ, Reaction React,
 			  Vec3d *momcheck, double *engcheck );

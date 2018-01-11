@@ -283,7 +283,8 @@ int main () {
     // INITIAL ENERGY
     kin_pot_en( electrons, ionSpecies[1], neutralSpecies[0],
 		&En_e, En_i+1, En_i+Lastion, &En_p, &En_tot,
-		1./M_ions[1], 1./M_ions[2], phi, NR, NZ, Omega_pe, dz );
+		1./ionSpecies[1]->mass, 1./neutralSpecies[0]->mass,
+		phi, NR, NZ, Omega_pe, dz );
     printf( "...... Initial energy .................... \n" );
 
     std::cout   << std::setw(8) << std::setfill('.') << std::left << electrons->name
@@ -504,11 +505,11 @@ int main () {
     if (ncoll_el>0 && nsteps/ncoll_el*ncoll_el == nsteps) {
       // e-e Coulomb collisions
       electrons->Order2D();
-      coll_el_knm_2D(electrons, nr, nz, NZ, 1., 0, &mcheck, &echeck, ncoll_el);
+      coll_el_knm_2D(electrons, nr, nz, NZ, 0, &mcheck, &echeck, ncoll_el);
       
       // i-i Coulomb collisions
       ionSpecies[1]->Order2D(); //TODO: All species!
-      coll_el_knm_2D(ionSpecies[1], nr, nz, NZ, M_ions[1], 1, &mcheck, &echeck, ncoll_el);
+      coll_el_knm_2D(ionSpecies[1], nr, nz, NZ, 1, &mcheck, &echeck, ncoll_el);
     }  
     
     // Other collisions
@@ -521,19 +522,19 @@ int main () {
       neutralSpecies[0]->Order2D(); //TODO: All species!
       
       //elastic Cu+ Cu collisions
-      coll_ion_neutral_noSP_2D( neutralSpecies[0], M_ions[Lastion],
-				ionSpecies[1], M_ions[1],
+      coll_ion_neutral_noSP_2D( neutralSpecies[0],
+				ionSpecies[1],
 				nr, nz, NZ, React_Cup_Cu_el, &mcheck, &echeck );
       
       //elastic Cu Cu collisions
       coll_n_n_2D( neutralSpecies[0], nr, nz, NZ, React_Cu_Cu, &mcheck, &echeck );
       
       //elastic el Cu collisions
-      coll_el_all_fake_2D( neutralSpecies[0], M_ions[Lastion],
+      coll_el_all_fake_2D( neutralSpecies[0],
 			   electrons, nr, nz, NZ, React_Cu_el );
       
       // e + Cu = Cu+ + 2e
-      coll_el_neutrals_2D( neutralSpecies[0], M_ions[Lastion],
+      coll_el_neutrals_2D( neutralSpecies[0],
 			   electrons, ionSpecies[1],
 			   nr, nz, NZ, React_Cu_ion, &mcheck, &echeck );
     }
