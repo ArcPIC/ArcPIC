@@ -206,25 +206,14 @@ void ArcOriginal::remove_i(ParticleSpecies* pa, unsigned int sort) {
       continue; 
     }
     //Implicit else: keep this particle
+    // (Only need to move particles if something has been lost)
     if (n_lost > 0) {
-      //Only need to move particles if something has been lost
-      pa->z[n-n_lost] = pa->z[n];
-      pa->r[n-n_lost] = pa->r[n];
-      pa->vz[n-n_lost] = pa->vz[n];
-      pa->vr[n-n_lost] = pa->vr[n];
-      pa->vt[n-n_lost] = pa->vt[n];
-      pa->m[n-n_lost] = pa->m[n];
+      pa->CopyParticle(n,n-n_lost);
     }
   }
   //Delete the final n_lost particles
   if (n_lost > 0 ){
-    size_t np = pa->GetN();
-    pa->z.resize(np-n_lost);
-    pa->r.resize(np-n_lost);
-    pa->vz.resize(np-n_lost);
-    pa->vr.resize(np-n_lost);
-    pa->vt.resize(np-n_lost);
-    pa->m.resize(np-n_lost);
+    pa->ResizeDelete(n_lost);
   }
   
   // Enhanced yield?
@@ -300,29 +289,18 @@ void ArcOriginal::remove_n(ParticleSpecies* pa){
       Sput newSput = calc_sput(pa->GetOneParticle(n), cs_ions[NSpecies-1], NULL);
       if ( newSput.Y != 0 ) sput_anode.push_back(newSput);
 
-      n_lost++; 
-      continue; 
+      n_lost++;
+      continue;
     }
     //Implicit else: keep this particle
+    // (Only need to move particles if something has been lost)
     if (n_lost > 0) {
-      //Only need to move particles if something has been lost
-      pa->z[n-n_lost] = pa->z[n];
-      pa->r[n-n_lost] = pa->r[n];
-      pa->vz[n-n_lost] = pa->vz[n];
-      pa->vr[n-n_lost] = pa->vr[n];
-      pa->vt[n-n_lost] = pa->vt[n];
-      pa->m[n-n_lost] = pa->m[n];
+      pa->CopyParticle(n,n-n_lost);
     }
   }
   //Delete the final n_lost particles
   if (n_lost > 0 ){
-    size_t np = pa->GetN();
-    pa->z.resize(np-n_lost);
-    pa->r.resize(np-n_lost);
-    pa->vz.resize(np-n_lost);
-    pa->vr.resize(np-n_lost);
-    pa->vt.resize(np-n_lost);
-    pa->m.resize(np-n_lost);
+    pa->ResizeDelete(n_lost);
   }
 }
 

@@ -306,7 +306,7 @@ void ArcRemover::remover(ParticleSpecies* pa,
       current_anode[jr] -= chargeSign;
       removedVector.push_back(pa->GetOneParticle(n));
       n_lost++;
-      continue; 
+      continue;
     }
     else if ( pa->z[n] < zmin ) {
       removed[0]++;
