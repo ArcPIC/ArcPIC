@@ -25,19 +25,19 @@
 #include "var.h"
 #undef    XTRN
 
-double inducedCharge_cathode(Particle pa[], size_t np, size_t ordcount[]) {
+double inducedCharge_cathode(ParticleSpecies* pa) {
   //TODO: It may be more accurate to use ordcount to group particles with similar weight,
   //starting with those with small weight.
   
   double induced = 0.0;
-  for (size_t i = 0; i < np; i++) {
-    induced += 1.0 - pa[i].p.z/nz;
+  for (size_t i = 0; i < pa->GetN(); i++) {
+    induced += 1.0 - pa->z[i]/nz;
   }
   
   return induced;
 }
 
-double inducedCharge_anode(Particle pa[], size_t np, size_t ordcount[]) {
+double inducedCharge_anode(ParticleSpecies* pa) {
   //NOT YET IMPLEMENTED!
   return 0.0;
 }

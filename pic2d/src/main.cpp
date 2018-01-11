@@ -542,13 +542,13 @@ int main () {
     
     // VI. UPDATE POTENTIAL
     //printf("induced cathode charge elec = %g, ions = %g, deltaQ = %g ", inducedCharge_cathode(elec, nr_e, e_order), inducedCharge_cathode(ions+NPART, nr_i[1], i_order+NG), pbounds->getDeltaQ());
-    double induced_cathode = inducedCharge_cathode(ions+NPART, nr_i[1], i_order+NG) - inducedCharge_cathode(elec, nr_e, e_order);
+    //TODO: Generalize
+    double induced_cathode = inducedCharge_cathode(ionSpecies[1]) - inducedCharge_cathode(electrons);
     double induced_cathode_delta = induced_cathode - induced_cathode_prev; //positive for negative particles leaving surface and positive coming towards it
     //printf("induced current = %g wall current = %g total current = %g\n", induced_cathode_delta, pbounds->getDeltaQ(), pbounds->getDeltaQ() + induced_cathode_delta);
     induced_cathode_prev = induced_cathode;
     //circuit->timestep(pbounds->getDeltaQ(), nsteps);
     circuit->timestep(pbounds->getDeltaQ()+induced_cathode_delta, nsteps);
-    
 
     //Notify the pbounds if this is a output timestep
     pbounds->timestep(nsteps, nsteps >= nav_start && nsteps == nav_start+nav_time);
