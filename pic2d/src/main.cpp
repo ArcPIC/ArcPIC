@@ -226,9 +226,6 @@ int main () {
       phi[i]=0.;
     }
     
-    // Initialise particles
-    //nr_e = 0, nr_i[0] = 0, nr_i[1] = 0, nr_i[2] = 0;
-    
     //Initialize time index file
     timeIndex = fopen("out/timeIndex.dat", "w");
     fprintf(timeIndex, "# StepNum SimTime[ns]\n");
@@ -248,14 +245,6 @@ int main () {
       for (auto ion : ionSpecies) {
 	iParts->inject_i(ion);
       }
-      /*
-      iParts->inject_n(ions + Lastion*NPART, nr_i[Lastion]);
-      for (int sort=0; sort<NSpecies; sort++) {
-	if (q_ions[sort] != 0.) {
-	  iParts->inject_i(ions+sort*NPART, nr_i[sort], sort);
-	}
-      }
-      */
       
       if ( OUT_COORD == 0 ) {
 	// Output coordinates: position and velocity
@@ -570,7 +559,7 @@ int main () {
     step_time = omp_get_wtime()-step_time;
     fprintf(mainStats, "%08i %010e %f %zu %zu %zu \n",
 	    nsteps, nsteps*Omega_pe*1e9/(56414.6*sqrt(n_ref)), step_time,
-	    nr_e, nr_i[1], nr_i[Lastion]);
+	    electrons->GetN(), ionSpecies[1]->GetN(), neutralSpecies[0]->GetN());
     fflush(mainStats);
     step_time = omp_get_wtime();
 
@@ -625,7 +614,7 @@ int main () {
       if( nsteps == nav_start+nav_time ) {
 	printf("*** Outputting now. (%d steps) *** \n", nsteps);
 	print_time( omp_get_wtime()-time_start);
-	printf("No. electrons: %zu, ions: %zu, neutrals: %zu \n", nr_e,nr_i[1],nr_i[Lastion]);
+	printf("No. electrons: %zu, ions: %zu, neutrals: %zu \n", electrons->GetN(),ionSpecies[1]->GetN(),neutralSpecies[0]->GetN());
 	printf("\n");
 	
 	fprintf(timeIndex, "%08i %010e\n", nsteps, nsteps*Omega_pe*1e9/(56414.6*sqrt(n_ref)) );
