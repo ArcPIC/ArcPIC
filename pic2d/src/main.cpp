@@ -596,14 +596,16 @@ int main () {
 
     if (nsteps >= nav_start) {
       if ( OUT_VDF == 0 ) {
+	//TODO: Generalize for all species
+	
 	dvt = 6.66666667/v_te;
-	vel_dst_along_2D( vdf_ez, vdf_er, vdf_eabs, elec,                 nr_e,          nr, nz, dvt, n_aver );   
+	vel_dst_along_2D( vdf_ez, vdf_er, vdf_eabs, electrons,         nr, nz, dvt, n_aver );
 	
 	dvt = 6.66666667/cs_ions[1];
-	vel_dst_along_2D( vdf_iz, vdf_ir, vdf_iabs, ions + NPART,         nr_i[1],       nr, nz, dvt, n_aver );
+	vel_dst_along_2D( vdf_iz, vdf_ir, vdf_iabs, ionSpecies[1],     nr, nz, dvt, n_aver );
 	
 	dvt = 6.66666667/cs_ions[Lastion];
-	vel_dst_along_2D( vdf_nz, vdf_nr, vdf_nabs, ions + Lastion*NPART, nr_i[Lastion], nr, nz, dvt, n_aver );  
+	vel_dst_along_2D( vdf_nz, vdf_nr, vdf_nabs, neutralSpecies[0], nr, nz, dvt, n_aver );
       }
       
       aver_moments_2D( mom_el, n_aver, electrons, nr, nz, NZ );
