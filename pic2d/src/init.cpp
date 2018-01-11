@@ -59,10 +59,6 @@ void calc_parameters_2D( void ) {
   qe = -SQU(Omega_pe/dz)/(Ndb*dz); 
   qi = -qe;        // for Z=1   
 
-  q_ions[0] =  qi;       //  H+
-  q_ions[1] =  qi;       //  Cu+
-  q_ions[2] =  0.;       //  Cu
-      
   // Lengths normalised to dz, timescales to dt
   lambda_De  = 1./dz;          
 
@@ -98,13 +94,9 @@ void calc_parameters_2D( void ) {
 
 void re_init( void ) {
   // Dimensionless charge
-  qe = -SQU(Omega_pe/dz)/(Ndb*dz); 
-  qi = -qe;        // for Z=1   
-
-  q_ions[0] =  qi;       //  H+
-  q_ions[1] =  qi;       //  Cu+
-  q_ions[2] =  0.;       //  Cu
-      
+  qe = -SQU(Omega_pe/dz)/(Ndb*dz);
+  qi = -qe;        // for Z=1
+  
   // Timesteps
   nav_dt = (int)(dt_out/Omega_pe+0.1);
   nav_start += nav_dt;
