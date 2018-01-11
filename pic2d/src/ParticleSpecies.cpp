@@ -6,8 +6,8 @@
 #include <iostream>
 #include <vector>
 
-ParticleSpecies::ParticleSpecies(size_t nr, size_t nz, std::string name, double m_over_me, double q) :
-  nr(nr), nz(nz), name(name), m_over_me(m_over_me), q(q) {
+ParticleSpecies::ParticleSpecies(size_t nr, size_t nz, std::string name, double mass, double charge) :
+  nr(nr), nz(nz), name(name), mass(mass), charge(charge) {
   ordcount = new size_t[(nr+1)*(nz+1)];
   temP = new std::vector<size_t>[(nr+1)*(nz+1)];
   densMap = new double[(nr+1)*(nz+1)];
@@ -112,9 +112,9 @@ void ParticleSpecies::UpdateDensityMap( double V_cell[] ) {
   }
   
   /*  Multipying by particles charge	   */
-  if (this->q != 0.0 ) {
+  if (this->charge != 0.0 ) {
     for(size_t j=0; j<(nr+1)*(nz+1); j++) {
-      densMap[j] *= this->q;
+      densMap[j] *= this->charge;
     }
   }
 }

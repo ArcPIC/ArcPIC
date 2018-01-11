@@ -451,7 +451,7 @@ int main () {
       for (auto ion : ionSpecies) {
 	unsigned int sort = 1; // TODO: FIXME!
 	if ( MAGNETIC == 0 ) {
-	  push_magnetic_2D( ion, E_ion_r + sort*NG, E_ion_z + sort*NG, Bz_ext, Bt_ext, -1.*dt_ion/ion->m_over_me, NZ );
+	  push_magnetic_2D( ion, E_ion_r + sort*NG, E_ion_z + sort*NG, Bz_ext, Bt_ext, -1.*dt_ion/ion->mass, NZ );
 	}
 	else {
 	  push_2D( ion, E_ion_r + sort*NG, E_ion_z + sort*NG, NZ );

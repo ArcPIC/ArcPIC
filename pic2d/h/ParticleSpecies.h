@@ -30,7 +30,7 @@ class ParticleSpecies {
   
  public:
   //Constructor
-  ParticleSpecies(size_t nr, size_t nz, std::string name, double m_over_me, double q);
+  ParticleSpecies(size_t nr, size_t nz, std::string name, double mass, double charge);
   //Destructor
   ~ParticleSpecies();
   
@@ -83,9 +83,9 @@ class ParticleSpecies {
   const std::string name;
 
   // Mass of the particle species, relative to the electron mass
-  const double m_over_me;
+  const double mass;
   // Dimensionless particle charge
-  const double q;
+  const double charge;
   
   //Order the particle arrays by cell
   void Order2D();

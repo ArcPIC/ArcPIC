@@ -165,7 +165,7 @@ void UniformRestricted::inject_e(ParticleSpecies* pa) {
   if (doInject_e) injector(pa, vInj);
 }
 void UniformRestricted::inject_n(ParticleSpecies* pa) {
-  if ( pa->q != 0. ) {
+  if ( pa->charge != 0. ) {
     printf ( "Error in UniformRestricted::inject_n(): Species '%s' is not a neutral!", pa->name );
     exit(1);
   }
@@ -174,12 +174,12 @@ void UniformRestricted::inject_n(ParticleSpecies* pa) {
   if (doInject_n) injector(pa, vInj);
 }
 void UniformRestricted::inject_i(ParticleSpecies* pa) {
-  if ( pa->q == 0. ) {
+  if ( pa->charge == 0. ) {
     printf ( "Error in UniformRestricted::inject_i(): Species '%s' is not an ion!", pa->name );
     exit(1);
   }
   
-  double vInj = dt_ion * sqrt(1/pa->m_over_me) * sqrt(Tinj/T_ref)*v_te;
+  double vInj = dt_ion * sqrt(1/pa->mass) * sqrt(Tinj/T_ref)*v_te;
   if (doInject_i) injector(pa, vInj);
 }
 
