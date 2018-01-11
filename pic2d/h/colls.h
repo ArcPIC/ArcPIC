@@ -18,31 +18,33 @@
 
 ***********************************************************************/
 
-#ifndef COLLS_H
-#define COLLS_H
+#ifndef COLLISIONS_H
+#define COLLISIONS_H
 
-void coll_el_knm_2D( Particle  pa[], size_t ordcount[],
-		     int nr,int nz,int NZ, 
+#include "ParticleSpecies.h"
+
+void coll_el_knm_2D( ParticleSpecies* pa,
+		     int nr,int nz,int NZ,
 		     double Mpa_over_me, int kind,
 		     Vec3d *momcheck, double *engcheck, int ncoll);
 
-void coll_ion_neutral_noSP_2D( Particle  neutrals[], size_t ordcount_ntrls[], double M_n,
-			       Particle  ions[], size_t ordcount_ion[], double M_i,
+void coll_ion_neutral_noSP_2D( ParticleSpecies* neutrals, double M_n,
+			       ParticleSpecies* ions, double M_i,
 			       int nr, int nz, int NZ, Reaction React,
 			       Vec3d *momcheck, double *engcheck   );
 
 #define COLL_N_N_2D_OMP_MINPARTICLES 1000 //Lower bound for where paralellization kicks in
-void coll_n_n_2D( Particle neutrals[], size_t ordcount_ntrls[],                              
+void coll_n_n_2D( ParticleSpecies* neutrals,
 		  int nr, int nz, int NZ, Reaction React,
 		  Vec3d *momcheck, double *engcheck );
 
-void coll_el_all_fake_2D( Particle molecules[], size_t ordcount_m[], double M_m,   // molecules
-			  Particle electrons[], size_t ordcount_el[],              // electrons
+void coll_el_all_fake_2D( ParticleSpecies* molecules, double M_m,   // molecules
+			  ParticleSpecies* electrons,              // electrons
 			  int nr, int nz, int NZ, Reaction React);
 
-void coll_el_neutrals_2D( Particle  neutrals[], size_t *nn, size_t ordcount_ntrls[], double M_n,
-			  Particle  electrons[], size_t *ne, size_t ordcount_el[],
-			  Particle  ions[], size_t *ni, int nr, int nz, int NZ, Reaction React,
+void coll_el_neutrals_2D( ParticleSpecies* neutrals, double M_n,
+			  ParticleSpecies* electrons,
+			  ParticleSpecies* ions, int nr, int nz, int NZ, Reaction React,
 			  Vec3d *momcheck, double *engcheck );
 
 #endif

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <iostream>
 #include <vector>
 
 ParticleSpecies::ParticleSpecies(size_t nr, size_t nz, std::string name, double m_over_me, double q) :
@@ -20,19 +21,24 @@ ParticleSpecies::~ParticleSpecies(){
   delete[] densMap;  densMap  = NULL;
 }
 
-const int ParticleSpecies::ExpandBy(size_t n_expand) {
-  size_t N = GetN();
-  this->ReserveSpace( N + n_expand );
-  return GetN();
+void ParticleSpecies::ResizeDelete(const size_t newSize) {
+  if (newSize > GetN()) {
+    std::cout << "Error when resizing ParticleSpecies; newSize > oldSize!" << std::endl;
+    exit(1);
+  }
+  z.resize(newSize);
+  r.resize(newSize);
+  vz.resize(newSize);
+  vr.resize(newSize);
+  vt.resize(newSize);
+  m.resize(newSize);
 }
-
-void ParticleSpecies::ReserveSpace(size_t n){
-  z.reserve(n);
-  r.reserve(n);
-  vz.reserve(n);
-  vr.reserve(n);
-  vt.reserve(n);
-  m.reserve(n);
+void ParticleSpecies::ResizeDeleteBy(const size_t nDelete){
+  if (nDelete > GetN()){
+    std::cout << "Error when downsizing ParticleSpecies; nDelete > oldSize!" << std::endl;
+    exit(1);
+  }
+  ResizeDelete(GetN()-nDelete);
 }
 
 void ParticleSpecies::Order2D() {

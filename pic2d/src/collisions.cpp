@@ -15,7 +15,7 @@
 
   collisions.cpp:
   2D (r,z) collision routines after Konstantin Matyash
-    x -> z 
+    x -> z
     y -> r
     z -> t
 
@@ -62,8 +62,8 @@
 
 ***********************************************************************/
 
-void coll_el_knm_2D( Particle  pa[], size_t ordcount[],
-		     int nr,int nz,int NZ, 
+void coll_el_knm_2D( ParticleSpecies*  pa,
+		     int nr,int nz,int NZ,
 		     double Mpa_over_me, int kind,
 		     Vec3d *momcheck, double *engcheck, int ncoll) {
   
@@ -73,22 +73,22 @@ void coll_el_knm_2D( Particle  pa[], size_t ordcount[],
                                         // (neither over spieces- or cell)
 
   static const double Amplcoulomb =  1.;  // Amplification of coulomb collisions, only for testing purposes
-  static const double LanLog = 13.;       // Coulomb Log 
+  static const double LanLog = 13.;       // Coulomb Log
   //Constant factor in coulomb collisions
-  double Acoll = Amplcoulomb * ( !kind ? 1.0 : dt_ion*dt_ion*dt_ion ) * LanLog * SQU(SQU(Omega_pe)) * ncoll / 
+  double Acoll = Amplcoulomb * ( !kind ? 1.0 : dt_ion*dt_ion*dt_ion ) * LanLog * SQU(SQU(Omega_pe)) * ncoll /
     ( TWOPI*PI * SQU(SQU(dz))*SQU(dz) * SQU(Mpa_over_me) * SQU(Ndb) * N_sp );
   
   size_t Next = 0; // Index in pa[] of first particle in cell ir*NZ+iz (the way this is done today messes up paralellization)
   for (int ir=0; ir<nr;  ir++) {
-    for (int iz=0; iz<nz; iz++) { 	        
+    for (int iz=0; iz<nz; iz++) {
 
       //Number of particles left to collide in cell (ir,iz)
-      size_t N2coll = ordcount[ir*NZ+iz];
+      size_t N2coll = pa->ordcount[ir*NZ+iz];
       //Resize the indices
       inds2coll.resize(N2coll);
 
       //Constant factor in columb collisions for this cell
-      double Acoll_cell = Acoll*ordcount[ir*NZ+iz]/(2.0*ir+1.0);
+      double Acoll_cell = Acoll*pa->ordcount[ir*NZ+iz]/(2.0*ir+1.0);
 
       if ( N2coll>1 ) {
 	//Pick two random particle indices (j,k) from the particles that has not yet collided
@@ -116,17 +116,17 @@ void coll_el_knm_2D( Particle  pa[], size_t ordcount[],
 	  }
 	  
 	  // BEGIN Just for diagnostic purposes - remove when done
-	  (*momcheck).z += pa[j + Next].p.vz + pa[k + Next].p.vz;
-	  (*momcheck).r += pa[j + Next].p.vr + pa[k + Next].p.vr;
-	  (*momcheck).t += pa[j + Next].p.vt + pa[k + Next].p.vt;
-	  *engcheck += SQU(pa[j + Next].p.vz) + SQU(pa[j + Next].p.vr) + SQU(pa[j + Next].p.vt) + 
-	    SQU(pa[k + Next].p.vz) + SQU(pa[k + Next].p.vr) + SQU(pa[k + Next].p.vt);
+	  (*momcheck).z += pa->vz[j + Next] + pa->vz[k + Next];
+	  (*momcheck).r += pa->vr[j + Next] + pa->vr[k + Next];
+	  (*momcheck).t += pa->vt[j + Next] + pa->vt[k + Next];
+	  *engcheck += SQU(pa->vz[j + Next]) + SQU(pa->vr[j + Next]) + SQU(pa->vt[j + Next]) +
+	               SQU(pa->vz[k + Next]) + SQU(pa->vr[k + Next]) + SQU(pa->vt[k + Next]);
 	  // END
 
 	  // relative velocity
-	  v_rel.z = pa[j + Next].p.vz - pa[k + Next].p.vz;
-	  v_rel.r = pa[j + Next].p.vr - pa[k + Next].p.vr;
-	  v_rel.t = pa[j + Next].p.vt - pa[k + Next].p.vt;
+	  v_rel.z = pa->vz[j + Next] - pa->vz[k + Next];
+	  v_rel.r = pa->vr[j + Next] - pa->vr[k + Next];
+	  v_rel.t = pa->vt[j + Next] - pa->vt[k + Next];
 	  // W = ||v_rel|| (and inverse)
 	  double W  = sqrt( SQU(v_rel.z) + SQU(v_rel.r) + SQU(v_rel.t));
 	  //printf("\tW=%e\n",W);
@@ -165,24 +165,25 @@ void coll_el_knm_2D( Particle  pa[], size_t ordcount[],
 	  }
 
 	  //Update the particle velocities
-	  pa[j + Next].p.vz += v_rel_DELTA.z/2.;    
-	  pa[j + Next].p.vr += v_rel_DELTA.r/2.;
-	  pa[j + Next].p.vt += v_rel_DELTA.t/2.;
+	  pa->vz[j + Next] += v_rel_DELTA.z/2.;    
+	  pa->vr[j + Next] += v_rel_DELTA.r/2.;
+	  pa->vt[j + Next] += v_rel_DELTA.t/2.;
 	  
-	  pa[k + Next].p.vz -= v_rel_DELTA.z/2.;
-	  pa[k + Next].p.vr -= v_rel_DELTA.r/2.;
-	  pa[k + Next].p.vt -= v_rel_DELTA.t/2.;
+	  pa->vz[k + Next] -= v_rel_DELTA.z/2.;
+	  pa->vr[k + Next] -= v_rel_DELTA.r/2.;
+	  pa->vt[k + Next] -= v_rel_DELTA.t/2.;
 	  
 	  // BEGIN Just for diagnostic purposes - remove it when U done
-	  (*momcheck).z -= pa[j + Next].p.vz + pa[k + Next].p.vz;
-	  (*momcheck).r -= pa[j + Next].p.vr + pa[k + Next].p.vr;
-	  (*momcheck).t -= pa[j + Next].p.vt + pa[k + Next].p.vt;
-	  *engcheck -= SQU(pa[j + Next].p.vz) + SQU(pa[j + Next].p.vr) + SQU(pa[j + Next].p.vt) + SQU(pa[k + Next].p.vz) + SQU(pa[k + Next].p.vr) + SQU(pa[k + Next].p.vt);
+	  (*momcheck).z -= pa->vz[j + Next] + pa->vz[k + Next];
+	  (*momcheck).r -= pa->vr[j + Next] + pa->vr[k + Next];
+	  (*momcheck).t -= pa->vt[j + Next] + pa->vt[k + Next];
+	  *engcheck -= SQU(pa->vz[j + Next]) + SQU(pa->vr[j + Next]) + SQU(pa->vt[j + Next]) +
+	               SQU(pa->vz[k + Next]) + SQU(pa->vr[k + Next]) + SQU(pa->vt[k + Next]);
 	  // END (of diagnostics )
 
 	}//END do-loop over particles
       }//END if (N2coll > 1)
-      Next+=ordcount[ir*NZ+iz];
+      Next+=pa->ordcount[ir*NZ+iz];
       //END loop over cells
     }
   }
@@ -195,16 +196,16 @@ void coll_el_knm_2D( Particle  pa[], size_t ordcount[],
 
 ***********************************************************************/
 
-void coll_ion_neutral_noSP_2D( Particle  neutrals[], size_t ordcount_ntrls[], double M_n,
-			       Particle  ions[], size_t ordcount_ion[], double M_i,
+void coll_ion_neutral_noSP_2D( ParticleSpecies* neutrals, double M_n,
+			       ParticleSpecies* ions, double M_i,
 			       int nr, int nz, int NZ, Reaction React,
 			       Vec3d *momcheck, double *engcheck   ) {
 
   double W2_0, W_0, IW_0, v_proj_zr, ivp, cos_theta, sin_theta, cos_beta, sin_beta;
   double cos_phi, sin_phi, psi;
 
-  double vz, vr, vt; 
-  Vec3d	v_rel;                                               
+  double vz, vr, vt;
+  Vec3d	v_rel;
 
   static std::vector<size_t> indxs; //Not nice for parallelization
                                     // (neither over spieces- or cell)
@@ -224,8 +225,8 @@ void coll_ion_neutral_noSP_2D( Particle  neutrals[], size_t ordcount_ntrls[], do
 
   for (int jr=0; jr<nr; jr++) {
     for (int jz=0; jz<nz; jz++) {
-      size_t n_n  = ordcount_ntrls[jr*NZ+jz];
-      size_t n_ion = ordcount_ion[jr*NZ+jz];
+      size_t n_n  = neutrals->ordcount[jr*NZ+jz];
+      size_t n_ion = ions->ordcount[jr*NZ+jz];
 
       if ( n_n && n_ion ) {
 	if ( n_ion < n_n ) {
@@ -235,20 +236,20 @@ void coll_ion_neutral_noSP_2D( Particle  neutrals[], size_t ordcount_ntrls[], do
 	  
 	  for (size_t i_ion = 0; i_ion < n_ion; i_ion++ ) {
 	    size_t k = (size_t)(N2coll*RAND);
-	    if (k == N2coll) k--;                            		         
-	    indxs[i_ion] = k;  
+	    if (k == N2coll) k--;
+	    indxs[i_ion] = k;
 	  }
 	  
 	  for (size_t i_ion = 0; i_ion < n_ion; i_ion++) {
 	    size_t i_n = indxs[i_ion];
 	    
 	    // relative velocity
-	    v_rel.z = ions[i_ion + Next_ion].p.vz - neutrals[i_n + Next_n].p.vz;
-	    v_rel.r = ions[i_ion + Next_ion].p.vr - neutrals[i_n + Next_n].p.vr;       
-	    v_rel.t = ions[i_ion + Next_ion].p.vt - neutrals[i_n + Next_n].p.vt;
+	    v_rel.z = ions->vz[i_ion + Next_ion] - neutrals->vz[i_n + Next_n];
+	    v_rel.r = ions->vr[i_ion + Next_ion] - neutrals->vr[i_n + Next_n];
+	    v_rel.t = ions->vt[i_ion + Next_ion] - neutrals->vt[i_n + Next_n];
 	    
 	    // before scattering
-	    W2_0 = SQU(v_rel.z) + SQU(v_rel.r) + SQU(v_rel.t);               
+	    W2_0 = SQU(v_rel.z) + SQU(v_rel.r) + SQU(v_rel.t);
 	    W_0  = sqrt(W2_0);
 	    
 	    // Linear fit for Cross-section
@@ -263,23 +264,23 @@ void coll_ion_neutral_noSP_2D( Particle  neutrals[], size_t ordcount_ntrls[], do
 
 	    // 1-exp(-n_n*W_0*Si*dt_coll)
 	    if ( RAND < n_n*W_0*S_i*dti/(2*jr+1) ) { // correct Si with 2D volume factor (2j+1) here   
-	      *engcheck += 0.5*M_i*(SQU(ions[i_ion + Next_ion].p.vz) + SQU(ions[i_ion + Next_ion].p.vr) + SQU(ions[i_ion + Next_ion].p.vt));
-	      *engcheck += 0.5*M_n*(SQU(neutrals[i_n + Next_n].p.vz) + SQU(neutrals[i_n + Next_n].p.vr) + SQU(neutrals[i_n + Next_n].p.vt));
+	      *engcheck += 0.5*M_i*(SQU(ions->vz[i_ion + Next_ion]) + SQU(ions->vr[i_ion + Next_ion]) + SQU(ions->vt[i_ion + Next_ion]));
+	      *engcheck += 0.5*M_n*(SQU(neutrals->vz[i_n + Next_n]) + SQU(neutrals->vr[i_n + Next_n]) + SQU(neutrals->vt[i_n + Next_n]));
 	      
-	      (*momcheck).z += M_i*ions[i_ion + Next_ion].p.vz + M_n*neutrals[i_n + Next_n].p.vz;
-	      (*momcheck).r += M_i*ions[i_ion + Next_ion].p.vr + M_n*neutrals[i_n + Next_n].p.vr;
-	      (*momcheck).t += M_i*ions[i_ion + Next_ion].p.vt + M_n*neutrals[i_n + Next_n].p.vt;
+	      (*momcheck).z += M_i*ions->vz[i_ion + Next_ion] + M_n*neutrals->vz[i_n + Next_n];
+	      (*momcheck).r += M_i*ions->vr[i_ion + Next_ion] + M_n*neutrals->vr[i_n + Next_n];
+	      (*momcheck).t += M_i*ions->vt[i_ion + Next_ion] + M_n*neutrals->vt[i_n + Next_n];
 	      
-	      W_0  = MAX( W_0, 1.e-10);   
-	      IW_0 = 1./W_0;                          
+	      W_0  = MAX( W_0, 1.e-10);
+	      IW_0 = 1./W_0;
 	      
-	      v_proj_zr = sqrt( SQU(v_rel.z) + SQU(v_rel.r) ); 
-	      v_proj_zr = MAX( v_proj_zr, 1.e-10);              
+	      v_proj_zr = sqrt( SQU(v_rel.z) + SQU(v_rel.r) );
+	      v_proj_zr = MAX( v_proj_zr, 1.e-10);
 	      ivp       = 1./v_proj_zr;
 	      
-	      cos_theta = v_rel.t * IW_0;     
+	      cos_theta = v_rel.t * IW_0;
 	      sin_theta = v_proj_zr*IW_0;
-	      cos_beta = v_rel.z*ivp;    
+	      cos_beta = v_rel.z*ivp;
 	      sin_beta = v_rel.r*ivp;
 	      
 	      if (RAND < 0.5) {
@@ -294,35 +295,35 @@ void coll_ion_neutral_noSP_2D( Particle  neutrals[], size_t ordcount_ntrls[], do
 	      sin_phi = sqrt(1. - SQU(cos_phi));
 	      psi  = TWOPI*RAND;
 	      
-	      vt = W_0*cos_phi;     
+	      vt = W_0*cos_phi;
 	      vz = W_0*sin_phi*cos(psi);
 	      vr = W_0*sin_phi*sin(psi);
 	      
 	      v_rel.z -= vz*cos_beta*cos_theta - vr*sin_beta + vt*cos_beta*sin_theta;
-	      v_rel.r -= vz*sin_beta*cos_theta + vr*cos_beta + vt*sin_beta*sin_theta;  
+	      v_rel.r -= vz*sin_beta*cos_theta + vr*cos_beta + vt*sin_beta*sin_theta;
 	      v_rel.t -= vt*cos_theta - vz*sin_theta;
 	      
-	      ions[i_ion + Next_ion].p.vz -= M_n/(M_n + M_i)*v_rel.z;
-	      ions[i_ion + Next_ion].p.vr -= M_n/(M_n + M_i)*v_rel.r;
-	      ions[i_ion + Next_ion].p.vt -= M_n/(M_n + M_i)*v_rel.t;
+	      ions->vz[i_ion + Next_ion] -= M_n/(M_n + M_i)*v_rel.z;
+	      ions->vr[i_ion + Next_ion] -= M_n/(M_n + M_i)*v_rel.r;
+	      ions->vt[i_ion + Next_ion] -= M_n/(M_n + M_i)*v_rel.t;
 	      
-	      neutrals[i_n + Next_n].p.vz    += M_i/(M_n + M_i)*v_rel.z; 
-	      neutrals[i_n + Next_n].p.vr    += M_i/(M_n + M_i)*v_rel.r;     
-	      neutrals[i_n + Next_n].p.vt    += M_i/(M_n + M_i)*v_rel.t;    
+	      neutrals->vz[i_n + Next_n] += M_i/(M_n + M_i)*v_rel.z;
+	      neutrals->vr[i_n + Next_n] += M_i/(M_n + M_i)*v_rel.r;
+	      neutrals->vt[i_n + Next_n] += M_i/(M_n + M_i)*v_rel.t;
 	      
-	      *engcheck -= 0.5*M_i*(SQU(ions[i_ion + Next_ion].p.vz) + SQU(ions[i_ion + Next_ion].p.vr) + SQU(ions[i_ion + Next_ion].p.vt));
-	      *engcheck -= 0.5*M_n*(SQU(neutrals[i_n + Next_n].p.vz) + SQU(neutrals[i_n + Next_n].p.vr) + SQU(neutrals[i_n + Next_n].p.vt));
+	      *engcheck -= 0.5*M_i*(SQU(ions->vz[i_ion + Next_ion]) + SQU(ions->vr[i_ion + Next_ion]) + SQU(ions->vt[i_ion + Next_ion]));
+	      *engcheck -= 0.5*M_n*(SQU(neutrals->vz[i_n + Next_n]) + SQU(neutrals->vr[i_n + Next_n]) + SQU(neutrals->vt[i_n + Next_n]));
 	      
-	      (*momcheck).z -= M_i*ions[i_ion + Next_ion].p.vz + M_n*neutrals[i_n + Next_n].p.vz;
-	      (*momcheck).r -= M_i*ions[i_ion + Next_ion].p.vr + M_n*neutrals[i_n + Next_n].p.vr;
-	      (*momcheck).t -= M_i*ions[i_ion + Next_ion].p.vt + M_n*neutrals[i_n + Next_n].p.vt;
+	      (*momcheck).z -= M_i*ions->vz[i_ion + Next_ion] + M_n*neutrals->vz[i_n + Next_n];
+	      (*momcheck).r -= M_i*ions->vr[i_ion + Next_ion] + M_n*neutrals->vr[i_n + Next_n];
+	      (*momcheck).t -= M_i*ions->vt[i_ion + Next_ion] + M_n*neutrals->vt[i_n + Next_n];
 	      
 	    }   // if (W2_0  RAND < n_n*W_0*Si)
 	    
 	  }   // for ( i_ion = 0; i_ion < n_ion; i_ion++)
 	}   // if (n_ion < n_n)
 
-	/* Case when n_n <= n_ion*/       
+	/* Case when n_n <= n_ion*/
 	else {
 	  /********************************************************
 	       Let's make array of random indexes for ions here
@@ -341,12 +342,12 @@ void coll_ion_neutral_noSP_2D( Particle  neutrals[], size_t ordcount_ntrls[], do
 	    size_t i_ion = indxs[i_n];
 	    
 	    // relative velocity
-	    v_rel.z= ions[i_ion + Next_ion].p.vz - neutrals[i_n + Next_n].p.vz;  
-	    v_rel.r= ions[i_ion + Next_ion].p.vr - neutrals[i_n + Next_n].p.vr;          
-	    v_rel.t= ions[i_ion + Next_ion].p.vt - neutrals[i_n + Next_n].p.vt;
+	    v_rel.z = ions->vz[i_ion + Next_ion] - neutrals->vz[i_n + Next_n];
+	    v_rel.r = ions->vr[i_ion + Next_ion] - neutrals->vr[i_n + Next_n];
+	    v_rel.t = ions->vt[i_ion + Next_ion] - neutrals->vt[i_n + Next_n];
 	    
 	    // before scattering
-	    W2_0 = SQU(v_rel.z) + SQU(v_rel.r) + SQU(v_rel.t);  
+	    W2_0 = SQU(v_rel.z) + SQU(v_rel.r) + SQU(v_rel.t);
 	    W_0  = sqrt(W2_0);
 	    
 	    // Linear fit for Cross-section
@@ -361,30 +362,30 @@ void coll_ion_neutral_noSP_2D( Particle  neutrals[], size_t ordcount_ntrls[], do
 	    
 	    
 	    // 1-exp(-n_n*W_0*Si*dt_coll)
-	    if ( RAND < n_ion*W_0*S_i*dti/(2*jr+1) ) { // correct Si with 2D volume factor (2j+1) here     
-	      *engcheck += 0.5*M_i*(SQU(ions[i_ion + Next_ion].p.vz) + SQU(ions[i_ion + Next_ion].p.vr) + SQU(ions[i_ion + Next_ion].p.vt));
-	      *engcheck +=  0.5*M_n*(SQU(neutrals[i_n + Next_n].p.vz) + SQU(neutrals[i_n + Next_n].p.vr) + SQU(neutrals[i_n + Next_n].p.vt));
+	    if ( RAND < n_ion*W_0*S_i*dti/(2*jr+1) ) { // correct Si with 2D volume factor (2j+1) here
+	      *engcheck += 0.5*M_i*(SQU(ions->vz[i_ion + Next_ion]) + SQU(ions->vr[i_ion + Next_ion]) + SQU(ions->vt[i_ion + Next_ion]));
+	      *engcheck +=  0.5*M_n*(SQU(neutrals->vz[i_n + Next_n]) + SQU(neutrals->vr[i_n + Next_n]) + SQU(neutrals->vt[i_n + Next_n]));
 	      
-	      (*momcheck).z += M_i*ions[i_ion + Next_ion].p.vz + M_n*neutrals[i_n + Next_n].p.vz;
-	      (*momcheck).r += M_i*ions[i_ion + Next_ion].p.vr + M_n*neutrals[i_n + Next_n].p.vr;
-	      (*momcheck).t += M_i*ions[i_ion + Next_ion].p.vt + M_n*neutrals[i_n + Next_n].p.vt;
+	      (*momcheck).z += M_i*ions->vz[i_ion + Next_ion] + M_n*neutrals->vz[i_n + Next_n];
+	      (*momcheck).r += M_i*ions->vr[i_ion + Next_ion] + M_n*neutrals->vr[i_n + Next_n];
+	      (*momcheck).t += M_i*ions->vt[i_ion + Next_ion] + M_n*neutrals->vt[i_n + Next_n];
 	      
-	      W_0  = MAX( W_0, 1.e-10);       
-	      IW_0 = 1./W_0;                          
+	      W_0  = MAX( W_0, 1.e-10);
+	      IW_0 = 1./W_0;
 	      
-	      v_proj_zr = sqrt( SQU(v_rel.z) + SQU(v_rel.r) );   
-	      v_proj_zr = MAX( v_proj_zr, 1.e-10);              
+	      v_proj_zr = sqrt( SQU(v_rel.z) + SQU(v_rel.r) );
+	      v_proj_zr = MAX( v_proj_zr, 1.e-10);
 	      ivp       = 1./v_proj_zr;
 	      
-	      cos_theta = v_rel.t * IW_0;   
+	      cos_theta = v_rel.t * IW_0;
 	      sin_theta = v_proj_zr*IW_0;
-	      cos_beta = v_rel.z*ivp;  
+	      cos_beta = v_rel.z*ivp;
 	      sin_beta = v_rel.r*ivp;
 	      
 	      
 	      if (RAND < 0.5) {
 		// just 4 test!! Use = (2.+E-2.*pow((1+E), RAND))/E instead
-		cos_phi = 2.*RAND -1. ; 
+		cos_phi = 2.*RAND -1. ;
 	      }
 	      else {
 		cos_phi = -1.;
@@ -393,29 +394,29 @@ void coll_ion_neutral_noSP_2D( Particle  neutrals[], size_t ordcount_ntrls[], do
 	      sin_phi = sqrt(1. - SQU(cos_phi));
 	      psi  = TWOPI*RAND;
 	      
-	      vt = W_0*cos_phi;          
+	      vt = W_0*cos_phi;
 	      vz = W_0*sin_phi*cos(psi);
 	      vr = W_0*sin_phi*sin(psi);
 	      
-	      v_rel.z -= vz*cos_beta*cos_theta - vr*sin_beta + vt*cos_beta*sin_theta;  
-	      v_rel.r -= vz*sin_beta*cos_theta + vr*cos_beta + vt*sin_beta*sin_theta;   
+	      v_rel.z -= vz*cos_beta*cos_theta - vr*sin_beta + vt*cos_beta*sin_theta;
+	      v_rel.r -= vz*sin_beta*cos_theta + vr*cos_beta + vt*sin_beta*sin_theta;
 	      v_rel.t -= vt*cos_theta - vz*sin_theta;
 	      
-	      ions[i_ion + Next_ion].p.vz -= M_n/(M_n + M_i)*v_rel.z;
-	      ions[i_ion + Next_ion].p.vr -= M_n/(M_n + M_i)*v_rel.r;
-	      ions[i_ion + Next_ion].p.vt -= M_n/(M_n + M_i)*v_rel.t;
+	      ions->vz[i_ion + Next_ion] -= M_n/(M_n + M_i)*v_rel.z;
+	      ions->vr[i_ion + Next_ion] -= M_n/(M_n + M_i)*v_rel.r;
+	      ions->vt[i_ion + Next_ion] -= M_n/(M_n + M_i)*v_rel.t;
 	      
-	      neutrals[i_n + Next_n].p.vz += M_i/(M_n + M_i)*v_rel.z;   
-	      neutrals[i_n + Next_n].p.vr += M_i/(M_n + M_i)*v_rel.r;   
-	      neutrals[i_n + Next_n].p.vt += M_i/(M_n + M_i)*v_rel.t;    
+	      neutrals->vz[i_n + Next_n] += M_i/(M_n + M_i)*v_rel.z;
+	      neutrals->vr[i_n + Next_n] += M_i/(M_n + M_i)*v_rel.r;
+	      neutrals->vt[i_n + Next_n] += M_i/(M_n + M_i)*v_rel.t;
 	      
 	      
-	      *engcheck -= 0.5*M_i*(SQU(ions[i_ion + Next_ion].p.vz) + SQU(ions[i_ion + Next_ion].p.vr) + SQU(ions[i_ion + Next_ion].p.vt));
-	      *engcheck -= 0.5*M_n*(SQU(neutrals[i_n + Next_n].p.vz) + SQU(neutrals[i_n + Next_n].p.vr) + SQU(neutrals[i_n + Next_n].p.vt));
+	      *engcheck -= 0.5*M_i*(SQU(ions->vz[i_ion + Next_ion]) + SQU(ions->vr[i_ion + Next_ion]) + SQU(ions->vt[i_ion + Next_ion]));
+	      *engcheck -= 0.5*M_n*(SQU(neutrals->vz[i_n + Next_n]) + SQU(neutrals->vr[i_n + Next_n]) + SQU(neutrals->vt[i_n + Next_n]));
 	      
-	      (*momcheck).z -= M_i*ions[i_ion + Next_ion].p.vz + M_n*neutrals[i_n + Next_n].p.vz;
-	      (*momcheck).r -= M_i*ions[i_ion + Next_ion].p.vr + M_n*neutrals[i_n + Next_n].p.vr;
-	      (*momcheck).t -= M_i*ions[i_ion + Next_ion].p.vt + M_n*neutrals[i_n + Next_n].p.vt;
+	      (*momcheck).z -= M_i*ions->vz[i_ion + Next_ion] + M_n*neutrals->vz[i_n + Next_n];
+	      (*momcheck).r -= M_i*ions->vr[i_ion + Next_ion] + M_n*neutrals->vr[i_n + Next_n];
+	      (*momcheck).t -= M_i*ions->vt[i_ion + Next_ion] + M_n*neutrals->vt[i_n + Next_n];
 	      
 	    }   // if (W2_0  RAND < n_n*W_0*Si)            
 	    
@@ -442,7 +443,7 @@ void coll_ion_neutral_noSP_2D( Particle  neutrals[], size_t ordcount_ntrls[], do
 
 ***********************************************************************/
 
-void coll_n_n_2D( Particle neutrals[], size_t ordcount_ntrls[],                              
+void coll_n_n_2D( ParticleSpecies* neutrals,
 		  int nr, int nz, int NZ, Reaction React,
 		  Vec3d *momcheck, double *engcheck ) {
   
@@ -460,7 +461,7 @@ void coll_n_n_2D( Particle neutrals[], size_t ordcount_ntrls[],
     int jz = cidx-jr*nz;
     //printf("%i/%i , %i/%i\n", jr, nr, jz, nz);
     //np += ordcount_ntrls[jr*NZ+jz];
-    ordcount_cum[cidx+1] = ordcount_cum[cidx] + ordcount_ntrls[jr*NZ+jz];
+    ordcount_cum[cidx+1] = ordcount_cum[cidx] + neutrals->ordcount[jr*NZ+jz];
   }
   size_t np = ordcount_cum[nr*nz];
 
@@ -489,7 +490,7 @@ void coll_n_n_2D( Particle neutrals[], size_t ordcount_ntrls[],
       //Linear continious cell indexing
       int jr = cidx/nz;
       int jz = cidx-jr*nz;
-      np_now += ordcount_ntrls[jr*NZ+jz];
+      np_now += neutrals->ordcount[jr*NZ+jz];
       if (np_now > particles_per_CPU) {
 	splitIdx[orderIdx] = cidx;
 	orderIdx += 1;
@@ -505,7 +506,7 @@ void coll_n_n_2D( Particle neutrals[], size_t ordcount_ntrls[],
   static std::vector<size_t>* indxs_all     = NULL;
   if (sub_2coll_all == NULL) sub_2coll_all = new std::vector<size_t> [numParaThreads];
   if (indxs_all     == NULL) indxs_all     = new std::vector<size_t> [numParaThreads];
-     
+  
   //Here comes the paralellization stuff!
 #pragma omp parallel if(splitIdx[1] != ((size_t)nr)*((size_t)nz)) 
   {
@@ -517,9 +518,9 @@ void coll_n_n_2D( Particle neutrals[], size_t ordcount_ntrls[],
     
     double vz, vr, vt; 
     
-    Vec3d v_rel;                                               
+    Vec3d v_rel;
     
-    double one_or_half;  // half if without pair            
+    double one_or_half;  // half if without pair
     
     double Emin  = React.Emin;
     //double Emax  = React.Emax;
@@ -535,12 +536,12 @@ void coll_n_n_2D( Particle neutrals[], size_t ordcount_ntrls[],
     std::vector<size_t>& sub_2coll = sub_2coll_all[CPUIDX];
     std::vector<size_t>& indxs     = indxs_all    [CPUIDX];
     
-    for (size_t cidx=splitIdx[CPUIDX]; cidx<splitIdx[CPUIDX+1]; cidx++) {      
+    for (size_t cidx=splitIdx[CPUIDX]; cidx<splitIdx[CPUIDX+1]; cidx++) {
       //Linear continious cell indexing
       int jr = cidx/nz;
       int jz = cidx-jr*nz;
       
-      size_t n_n  = ordcount_ntrls[jr*NZ+jz];
+      size_t n_n  = neutrals->ordcount[jr*NZ+jz];
       sub_2coll.resize(n_n);
       indxs.resize(n_n);
       
@@ -549,18 +550,18 @@ void coll_n_n_2D( Particle neutrals[], size_t ordcount_ntrls[],
 	
 	size_t N2coll = n_n;     // only for SP = 1 !!
 	for (size_t i=0; i<n_n;  i++ ) {
-	  sub_2coll[i] = 1;      // same here	    
+	  sub_2coll[i] = 1;      // same here
 	}
 	
 	/********************************************************
 	 Let's make array of random indexes for neutrals here
 	********************************************************/
 	
-	for (size_t i=0; i<n_n; i++ ) { 
+	for (size_t i=0; i<n_n; i++ ) {
 	  size_t k = (size_t)(N2coll*Random(CPUIDX));
 	  if (k == N2coll) k--;
 	  
-	  size_t i_n    = 0;             
+	  size_t i_n    = 0;
 	  size_t i_next = sub_2coll[i_n];
 	  
 	  while ( i_next <= k ) {
@@ -588,12 +589,12 @@ void coll_n_n_2D( Particle neutrals[], size_t ordcount_ntrls[],
 	  }  
 	  
 	  // relative velocity
-	  v_rel.z = neutrals[i_n1 + Next_n].p.vz - neutrals[i_n2 + Next_n].p.vz; 
-	  v_rel.r = neutrals[i_n1 + Next_n].p.vr - neutrals[i_n2 + Next_n].p.vr;
-	  v_rel.t = neutrals[i_n1 + Next_n].p.vt - neutrals[i_n2 + Next_n].p.vt;
+	  v_rel.z = neutrals->vz[i_n1 + Next_n] - neutrals->vz[i_n2 + Next_n];
+	  v_rel.r = neutrals->vr[i_n1 + Next_n] - neutrals->vr[i_n2 + Next_n];
+	  v_rel.t = neutrals->vt[i_n1 + Next_n] - neutrals->vt[i_n2 + Next_n];
 	  
 	  // before scattering
-	  W2_0 = SQU(v_rel.z) + SQU(v_rel.r) + SQU(v_rel.t);               
+	  W2_0 = SQU(v_rel.z) + SQU(v_rel.r) + SQU(v_rel.t);
 	  W_0  = sqrt(W2_0);
 	  
 	  // Linear fit for Cross-section
@@ -609,52 +610,51 @@ void coll_n_n_2D( Particle neutrals[], size_t ordcount_ntrls[],
 	  // 1-exp(-n_n*W_0*Si*dt_coll)
 	  if ( Random(CPUIDX) < n_n*W_0*S_i*dti/(2*jr+1) ) { // correct Si with 2D volume factor (2j+1) here
 	    
-	    *engcheck += SQU(neutrals[i_n1 + Next_n].p.vz) + SQU(neutrals[i_n1 + Next_n].p.vr) + SQU(neutrals[i_n1 + Next_n].p.vt);
-	    *engcheck += SQU(neutrals[i_n2 + Next_n].p.vz) + SQU(neutrals[i_n2 + Next_n].p.vr) + SQU(neutrals[i_n2 + Next_n].p.vt);
+	    *engcheck += SQU(neutrals->vz[i_n1 + Next_n]) + SQU(neutrals->vr[i_n1 + Next_n]) + SQU(neutrals->vt[i_n1 + Next_n]);
+	    *engcheck += SQU(neutrals->vz[i_n2 + Next_n]) + SQU(neutrals->vr[i_n2 + Next_n]) + SQU(neutrals->vt[i_n2 + Next_n]);
 	    
-	    (*momcheck).z += neutrals[i_n1 + Next_n].p.vz + neutrals[i_n2 + Next_n].p.vz;
-	    (*momcheck).r += neutrals[i_n1 + Next_n].p.vr + neutrals[i_n2 + Next_n].p.vr;
-	    (*momcheck).t += neutrals[i_n1 + Next_n].p.vt + neutrals[i_n2 + Next_n].p.vt;
+	    (*momcheck).z += neutrals->vz[i_n1 + Next_n] + neutrals->vz[i_n2 + Next_n];
+	    (*momcheck).r += neutrals->vr[i_n1 + Next_n] + neutrals->vr[i_n2 + Next_n];
+	    (*momcheck).t += neutrals->vt[i_n1 + Next_n] + neutrals->vt[i_n2 + Next_n];
 	    
 	    W_0  = MAX( W_0, 1.e-10);       // e-10 should be small enough
 	    IW_0 = 1./W_0;
 	    
 	    v_proj_zr = sqrt( SQU(v_rel.z) + SQU(v_rel.r) );
-	    v_proj_zr = MAX( v_proj_zr, 1.e-10);              
+	    v_proj_zr = MAX( v_proj_zr, 1.e-10);
 	    ivp       = 1./v_proj_zr;
 	    
-	    cos_theta = v_rel.t * IW_0;              
+	    cos_theta = v_rel.t * IW_0;
 	    sin_theta = v_proj_zr*IW_0;
-	    cos_beta = v_rel.z*ivp;               
+	    cos_beta = v_rel.z*ivp;
 	    sin_beta = v_rel.r*ivp;
 	    
-	    cos_phi = 2.*Random(CPUIDX) -1. ; 
+	    cos_phi = 2.*Random(CPUIDX) -1. ;
 	    sin_phi = sqrt(1. - SQU(cos_phi));
 	    psi  = TWOPI*Random(CPUIDX);
 	    
-	    vt = W_0*cos_phi;             
+	    vt = W_0*cos_phi;
 	    vz = W_0*sin_phi*cos(psi);
 	    vr = W_0*sin_phi*sin(psi);
 	    
-	    v_rel.z -= vz*cos_beta*cos_theta - vr*sin_beta + vt*cos_beta*sin_theta;    
-	    v_rel.r -= vz*sin_beta*cos_theta + vr*cos_beta + vt*sin_beta*sin_theta;   
+	    v_rel.z -= vz*cos_beta*cos_theta - vr*sin_beta + vt*cos_beta*sin_theta;
+	    v_rel.r -= vz*sin_beta*cos_theta + vr*cos_beta + vt*sin_beta*sin_theta;
 	    v_rel.t -= vt*cos_theta - vz*sin_theta;
 	    
-	    neutrals[i_n1 + Next_n].p.vz -= 0.5*v_rel.z;
-	    neutrals[i_n1 + Next_n].p.vr -= 0.5*v_rel.r;
-	    neutrals[i_n1 + Next_n].p.vt -= 0.5*v_rel.t;
+	    neutrals->vz[i_n1 + Next_n] -= 0.5*v_rel.z;
+	    neutrals->vr[i_n1 + Next_n] -= 0.5*v_rel.r;
+	    neutrals->vt[i_n1 + Next_n] -= 0.5*v_rel.t;
 	    
-	    neutrals[i_n2 + Next_n].p.vz += 0.5*v_rel.z;  
-	    neutrals[i_n2 + Next_n].p.vr += 0.5*v_rel.r;    
-	    neutrals[i_n2 + Next_n].p.vt += 0.5*v_rel.t;    
+	    neutrals->vz[i_n2 + Next_n] += 0.5*v_rel.z;
+	    neutrals->vr[i_n2 + Next_n] += 0.5*v_rel.r;
+	    neutrals->vt[i_n2 + Next_n] += 0.5*v_rel.t;
 	    
-	    *engcheck -= SQU(neutrals[i_n1 + Next_n].p.vz) + SQU(neutrals[i_n1 + Next_n].p.vr) + SQU(neutrals[i_n1 + Next_n].p.vt);
-	    *engcheck -= SQU(neutrals[i_n2 + Next_n].p.vz) + SQU(neutrals[i_n2 + Next_n].p.vr) + SQU(neutrals[i_n2 + Next_n].p.vt);
+	    *engcheck -= SQU(neutrals->vz[i_n1 + Next_n]) + SQU(neutrals->vr[i_n1 + Next_n]) + SQU(neutrals->vt[i_n1 + Next_n]);
+	    *engcheck -= SQU(neutrals->vz[i_n2 + Next_n]) + SQU(neutrals->vr[i_n2 + Next_n]) + SQU(neutrals->vt[i_n2 + Next_n]);
 	    
-	    (*momcheck).z -= neutrals[i_n1 + Next_n].p.vz + neutrals[i_n2 + Next_n].p.vz;
-	    (*momcheck).r -= neutrals[i_n1 + Next_n].p.vr + neutrals[i_n2 + Next_n].p.vr;
-	    (*momcheck).t -= neutrals[i_n1 + Next_n].p.vt + neutrals[i_n2 + Next_n].p.vt;
-	    
+	    (*momcheck).z -= neutrals->vz[i_n1 + Next_n] + neutrals->vz[i_n2 + Next_n];
+	    (*momcheck).r -= neutrals->vr[i_n1 + Next_n] + neutrals->vr[i_n2 + Next_n];
+	    (*momcheck).t -= neutrals->vt[i_n1 + Next_n] + neutrals->vt[i_n2 + Next_n];
 	    
 	  }   //  if (W2_0  RAND < n_n*W_0*Si)
 	  
@@ -678,8 +678,8 @@ void coll_n_n_2D( Particle neutrals[], size_t ordcount_ntrls[],
 
 ***********************************************************************/
 
-void coll_el_all_fake_2D( Particle molecules[], size_t ordcount_m[], double M_m,   // molecules
-			  Particle electrons[], size_t ordcount_el[],              // electrons
+void coll_el_all_fake_2D( ParticleSpecies* molecules, double M_m,   // molecules
+			  ParticleSpecies* electrons,               // electrons
 			  int nr, int nz, int NZ, Reaction React) {
   
   const double m_e = 1.;
@@ -689,7 +689,8 @@ void coll_el_all_fake_2D( Particle molecules[], size_t ordcount_m[], double M_m,
   double cos_phi, sin_phi, psi;
   
   double vz, vr, vt;
-  Vec3d v_rel, delta_v_rel, target_v;       
+  Vec3d v_rel, delta_v_rel;
+  //Vec3d target_v;
   
   double E_th  = React.Eth;
   double Emin  = React.Emin;
@@ -706,29 +707,29 @@ void coll_el_all_fake_2D( Particle molecules[], size_t ordcount_m[], double M_m,
   
   for (int jr=0; jr<nr; jr++) {
     for (int jz=0; jz<nz; jz++) {
-      size_t n_m  = ordcount_m[jr*NZ+jz];
-      size_t n_el = ordcount_el[jr*NZ+jz];
+      size_t n_m  = molecules->ordcount[jr*NZ+jz];
+      size_t n_el = electrons->ordcount[jr*NZ+jz];
       
       if ( n_m && n_el ) {
 	size_t nm_real  = 0;
 	
 	for (size_t i=0; i<n_m; i++) {
-	  nm_real += molecules[i + Next_m].p.m;            
+	  nm_real += molecules->m[i + Next_m];
 	}
 	
-	//size_t N2coll = nm_real;              
+	//size_t N2coll = nm_real;
 	
 	for (size_t i_el=0; i_el<n_el; i_el++) {
 	  size_t i_m = (size_t)(n_m*RAND);
-	  if (i_m == n_m) i_m--;              
+	  if (i_m == n_m) i_m--;
 	  
 	  // relative velocity
-	  v_rel.z = electrons[i_el + Next_el].p.vz - molecules[i_m + Next_m].p.vz*dti; 
-	  v_rel.r = electrons[i_el + Next_el].p.vr - molecules[i_m + Next_m].p.vr*dti;
-	  v_rel.t = electrons[i_el + Next_el].p.vt - molecules[i_m + Next_m].p.vt*dti;
+	  v_rel.z = electrons->vz[i_el + Next_el] - molecules->vz[i_m + Next_m]*dti;
+	  v_rel.r = electrons->vr[i_el + Next_el] - molecules->vr[i_m + Next_m]*dti;
+	  v_rel.t = electrons->vt[i_el + Next_el] - molecules->vt[i_m + Next_m]*dti;
 	  
 	  // before scattering
-	  W2_0 = SQU(v_rel.z) + SQU(v_rel.r) + SQU(v_rel.t);                
+	  W2_0 = SQU(v_rel.z) + SQU(v_rel.r) + SQU(v_rel.t);
 	  W_0  = sqrt(W2_0);
 	  
 	  // Linear fit for Cross-section
@@ -744,7 +745,7 @@ void coll_el_all_fake_2D( Particle molecules[], size_t ordcount_m[], double M_m,
 	  S_i *= Ampl;
 	  
 	  // 1-exp(-n_m*W_0*Si*dt_coll)
-	  if (W2_0 >= E_th && RAND < nm_real*W_0*S_i/(2*jr+1) ) { // correct Si with 2D volume factor (2j+1) here 
+	  if (W2_0 >= E_th && RAND < nm_real*W_0*S_i/(2*jr+1) ) { // correct Si with 2D volume factor (2j+1) here
 	    
 	    /*
 	     *engcheck += 0.5*m_e*(SQU(electrons[i_el + Next_el].p.vz) + SQU(electrons[i_el + Next_el].p.vr) + SQU(electrons[i_el + Next_el].p.vt));
@@ -755,66 +756,68 @@ void coll_el_all_fake_2D( Particle molecules[], size_t ordcount_m[], double M_m,
 	     (*momcheck).t += m_e*electrons[i_el + Next_el].p.vt + M_m*molecules[i_m + Next_m].p.vt*dti;
 	    */
 	    
-	    W_0  = MAX( W_0, 1.e-14);   
+	    W_0  = MAX( W_0, 1.e-14);
 	    IW_0 = 1./W_0;
 	    
 	    W2 = W2_0 - E_th;
-	    W  = sqrt(W2);    
+	    W  = sqrt(W2);
 	    
 	    // After energy loss
 	    delta_v_rel.z = v_rel.z*(W*IW_0 -1.);
-	    delta_v_rel.r = v_rel.r*(W*IW_0 -1.);     
+	    delta_v_rel.r = v_rel.r*(W*IW_0 -1.);
 	    delta_v_rel.t = v_rel.t*(W*IW_0 -1.);
 	    
 	    v_rel.z += delta_v_rel.z;
 	    v_rel.r += delta_v_rel.r;
 	    v_rel.t += delta_v_rel.t;
 	    
-	    W  = MAX( W, 1.e-10);    
+	    W  = MAX( W, 1.e-10);
 	    IW = 1./W;
 	    
 	    
-	    v_proj_zr = sqrt( SQU(v_rel.z) + SQU(v_rel.r) ); 
-	    v_proj_zr = MAX( v_proj_zr, 1.e-10);              
+	    v_proj_zr = sqrt( SQU(v_rel.z) + SQU(v_rel.r) );
+	    v_proj_zr = MAX( v_proj_zr, 1.e-10);
 	    ivp       = 1./v_proj_zr;
 	    
-	    cos_theta = v_rel.t * IW;   
+	    cos_theta = v_rel.t * IW;
 	    sin_theta = v_proj_zr*IW;
-	    cos_beta = v_rel.z*ivp;                
+	    cos_beta = v_rel.z*ivp;
 	    sin_beta = v_rel.r*ivp;
 	    
 	    
 	    /* Sampling scattering angles in C.M. system */
 	    // just 4 test!! Use = (2.+E-2.*pow((1+E), RAND))/E instead
-	    cos_phi = 2.*RAND -1. ; 
+	    cos_phi = 2.*RAND -1. ;
 	    sin_phi = sqrt(1. - SQU(cos_phi));
 	    psi  = TWOPI*RAND;
 	    
-	    vt = W*cos_phi;           
+	    vt = W*cos_phi;
 	    vz = W*sin_phi*cos(psi);
 	    vr = W*sin_phi*sin(psi);
 	    
-	    v_rel.z -= vz*cos_beta*cos_theta - vr*sin_beta + vt*cos_beta*sin_theta; 
-	    v_rel.r -= vz*sin_beta*cos_theta + vr*cos_beta + vt*sin_beta*sin_theta;   
+	    v_rel.z -= vz*cos_beta*cos_theta - vr*sin_beta + vt*cos_beta*sin_theta;
+	    v_rel.r -= vz*sin_beta*cos_theta + vr*cos_beta + vt*sin_beta*sin_theta;
 	    v_rel.t -= vt*cos_theta - vz*sin_theta;
 	    
 	    v_rel.z -= delta_v_rel.z;
 	    v_rel.r -= delta_v_rel.r;
 	    v_rel.t -= delta_v_rel.t;
+
+	    /*
+	    target_v.z = molecules->vz[i_m + Next_m].p.vz*dti;  // remove it after debugging
+	    target_v.r = molecules->vr[i_m + Next_m].p.vr*dti;  // remove it after debugging
+	    target_v.t = molecules->vt[i_m + Next_m].p.vt*dti;  // remove it after debugging
+	    */
 	    
-	    target_v.z = molecules[i_m + Next_m].p.vz*dti;  // remove it after debugging
-	    target_v.r = molecules[i_m + Next_m].p.vr*dti;  // remove it after debugging 
-	    target_v.t = molecules[i_m + Next_m].p.vt*dti;  // remove it after debugging
-	    
-	    electrons[i_el + Next_el].p.vz -= M_m/(M_m + m_e)*v_rel.z;
-	    electrons[i_el + Next_el].p.vr -= M_m/(M_m + m_e)*v_rel.r;
-	    electrons[i_el + Next_el].p.vt -= M_m/(M_m + m_e)*v_rel.t;
-	    
+	    electrons->vz[i_el + Next_el] -= M_m/(M_m + m_e)*v_rel.z;
+	    electrons->vr[i_el + Next_el] -= M_m/(M_m + m_e)*v_rel.r;
+	    electrons->vt[i_el + Next_el] -= M_m/(M_m + m_e)*v_rel.t;
+
+	    /*
 	    target_v.z += m_e/(M_m + m_e)*v_rel.z;
 	    target_v.r += m_e/(M_m + m_e)*v_rel.r;
 	    target_v.t += m_e/(M_m + m_e)*v_rel.t;
 	    
-	    /*                
 	     *engcheck -= 0.5*m_e*(SQU(electrons[i_el + Next_el].p.vz) + SQU(electrons[i_el + Next_el].p.vr)+ SQU(electrons[i_el + Next_el].p.vt));
 	     *engcheck -= 0.5*M_m*(SQU(target_v.z) + SQU(target_v.r)+ SQU(target_v.t));
 	     
@@ -854,9 +857,9 @@ void coll_el_all_fake_2D( Particle molecules[], size_t ordcount_m[], double M_m,
 
 ***********************************************************************/
 
-void coll_el_neutrals_2D( Particle  neutrals[], size_t *nn, size_t ordcount_ntrls[], double M_n,
-			  Particle  electrons[], size_t *ne, size_t ordcount_el[],
-			  Particle  ions[], size_t *ni, int nr, int nz, int NZ, Reaction React,
+void coll_el_neutrals_2D( ParticleSpecies* neutrals, double M_n,
+			  ParticleSpecies* electrons,
+			  ParticleSpecies* ions, int nr, int nz, int NZ, Reaction React,
 			  Vec3d *momcheck, double *engcheck ) {
   
   const double m_e =1.;
@@ -880,7 +883,6 @@ void coll_el_neutrals_2D( Particle  neutrals[], size_t *nn, size_t ordcount_ntrl
   int Eind;
   double S_i = 0.;
   
-  size_t inzdlcl = 0;  
   size_t Next_el = 0;
   size_t Next_n  = 0;
   size_t shift_n = 0;
@@ -890,12 +892,12 @@ void coll_el_neutrals_2D( Particle  neutrals[], size_t *nn, size_t ordcount_ntrl
   for (int jr=0; jr<nr; jr++) {
     for (int jz=0; jz<nz; jz++) {
       
-      size_t n_n  = ordcount_ntrls[jr*NZ+jz];
-      size_t n_el = ordcount_el[jr*NZ+jz];
+      size_t n_n  = neutrals->ordcount[jr*NZ+jz];
+      size_t n_el = electrons->ordcount[jr*NZ+jz];
       
       //Play it safe -- resize everything to
       // the maximum num particles in the cell
-      gone_n.resize(MAX(n_n,n_el)); 
+      gone_n.resize(MAX(n_n,n_el));
       sub_n2coll.resize(MAX(n_n,n_el));
       sub_el2coll.resize(MAX(n_n,n_el));
       
@@ -904,11 +906,10 @@ void coll_el_neutrals_2D( Particle  neutrals[], size_t *nn, size_t ordcount_ntrl
 	
 	for (size_t i=0; i<n_n; i++ ) {
 	  gone_n[i]= 0;
-	  Nn_real += neutrals[i + Next_n].p.m;
-	  sub_n2coll[i] = neutrals[i + Next_n].p.m;
+	  Nn_real += neutrals->m[i + Next_n];
+	  sub_n2coll[i] = neutrals->m[i + Next_n];
 	}
 	//  fprintf(stderr,"!!! Node %d CELL %d Nn= %d", Node, j, Nn_real );
-	
 	
 	if ( n_el<Nn_real ) {
 	  size_t N2coll = Nn_real;
@@ -916,24 +917,24 @@ void coll_el_neutrals_2D( Particle  neutrals[], size_t *nn, size_t ordcount_ntrl
 	    size_t k = (size_t)(N2coll*RAND);
 	    if (k == N2coll) k--;   // index of "real particles"
 	    
-	    size_t i_n = 0;             
-	    size_t i_next   = sub_n2coll[i_n];
+	    size_t i_n = 0;
+	    size_t i_next = sub_n2coll[i_n];
 	    
 	    while ( i_next <= k ) {
-	      i_next += sub_n2coll[++i_n];    
+	      i_next += sub_n2coll[++i_n];
 	    }
 	    
-	    --sub_n2coll[i_n];  
+	    --sub_n2coll[i_n];
 	    N2coll--;
 	    
 	    
 	    // relative velocity
-	    v_rel.z = electrons[i_el + Next_el].p.vz - neutrals[i_n + Next_n].p.vz*dti;   
-	    v_rel.r = electrons[i_el + Next_el].p.vr - neutrals[i_n + Next_n].p.vr*dti;  
-	    v_rel.t = electrons[i_el + Next_el].p.vt - neutrals[i_n + Next_n].p.vt*dti;
+	    v_rel.z = electrons->vz[i_el + Next_el] - neutrals->vz[i_n + Next_n]*dti;
+	    v_rel.r = electrons->vr[i_el + Next_el] - neutrals->vr[i_n + Next_n]*dti;
+	    v_rel.t = electrons->vt[i_el + Next_el] - neutrals->vt[i_n + Next_n]*dti;
 	    
 	    // before scattering
-	    W2_0 = SQU(v_rel.z) + SQU(v_rel.r) + SQU(v_rel.t);                
+	    W2_0 = SQU(v_rel.z) + SQU(v_rel.r) + SQU(v_rel.t);
 	    W_0  = sqrt(W2_0);
 	    
 	    // Linear fit for Cross-section
@@ -951,89 +952,85 @@ void coll_el_neutrals_2D( Particle  neutrals[], size_t *nn, size_t ordcount_ntrl
 	    // 1-exp(-n_n*W_0*Si*dt_coll)
 	    if (W2_0 >= E_th && RAND < Nn_real*W_0*S_i/(2*jr+1) )  {// correct Si with 2D volume factor (2j+1) here
 	      
-	      *engcheck += 0.5*m_e*(SQU(electrons[i_el + Next_el].p.vz) + SQU(electrons[i_el + Next_el].p.vr) + SQU(electrons[i_el + Next_el].p.vt));
-	      *engcheck += 0.5*M_n*(SQU(neutrals[i_n + Next_n].p.vz*dti) + SQU(neutrals[i_n + Next_n].p.vr*dti) + SQU(neutrals[i_n + Next_n].p.vt*dti)) - 0.5*m_e*M_n/(m_e+M_n)*E_th;
+	      *engcheck += 0.5*m_e*(SQU(electrons->vz[i_el + Next_el]) + SQU(electrons->vr[i_el + Next_el]) + SQU(electrons->vt[i_el + Next_el]));
+	      *engcheck += 0.5*M_n*(SQU(neutrals->vz[i_n + Next_n]*dti) + SQU(neutrals->vr[i_n + Next_n]*dti) + SQU(neutrals->vt[i_n + Next_n]*dti)) - 0.5*m_e*M_n/(m_e+M_n)*E_th;
 	      
-	      (*momcheck).z += m_e*electrons[i_el + Next_el].p.vz + M_n*neutrals[i_n + Next_n].p.vz*dti;
-	      (*momcheck).r += m_e*electrons[i_el + Next_el].p.vr + M_n*neutrals[i_n + Next_n].p.vr*dti;
-	      (*momcheck).t += m_e*electrons[i_el + Next_el].p.vt + M_n*neutrals[i_n + Next_n].p.vt*dti;
+	      (*momcheck).z += m_e*electrons->vz[i_el + Next_el] + M_n*neutrals->vz[i_n + Next_n]*dti;
+	      (*momcheck).r += m_e*electrons->vr[i_el + Next_el] + M_n*neutrals->vr[i_n + Next_n]*dti;
+	      (*momcheck).t += m_e*electrons->vt[i_el + Next_el] + M_n*neutrals->vt[i_n + Next_n]*dti;
 	      
 	      IW_0 = 1./W_0;
 	      
 	      W2 = W2_0 - E_th;
-	      W  = sqrt(W2);                
+	      W  = sqrt(W2);
 	      
 	      // After energy loss
 	      delta_v_rel.z = v_rel.z*(W*IW_0 -1.);
-	      delta_v_rel.r = v_rel.r*(W*IW_0 -1.);  
+	      delta_v_rel.r = v_rel.r*(W*IW_0 -1.);
 	      delta_v_rel.t = v_rel.t*(W*IW_0 -1.);
 	      
 	      v_rel.z += delta_v_rel.z;
 	      v_rel.r += delta_v_rel.r;
 	      v_rel.t += delta_v_rel.t;
 	      
-	      W  = MAX( W, 1.e-10);                         
+	      W  = MAX( W, 1.e-10);
 	      IW = 1./W;
 	      
-	      v_proj_zr = sqrt( SQU(v_rel.z) + SQU(v_rel.r) );    
-	      v_proj_zr = MAX( v_proj_zr, 1.e-10);              
+	      v_proj_zr = sqrt( SQU(v_rel.z) + SQU(v_rel.r) );
+	      v_proj_zr = MAX( v_proj_zr, 1.e-10);
 	      ivp = 1./v_proj_zr;
 	      
-	      cos_theta = v_rel.t * IW;   
+	      cos_theta = v_rel.t * IW;
 	      sin_theta = v_proj_zr*IW;
-	      cos_beta = v_rel.z*ivp;     
+	      cos_beta = v_rel.z*ivp;
 	      sin_beta = v_rel.r*ivp;
 	      
 	      /* Sampling scattering angles in C.M. system */
 	      // just 4 test!! Use = (2.+E-2.*pow((1+E), RAND))/E instead
-	      cos_phi = 2.*RAND -1. ; 
+	      cos_phi = 2.*RAND -1. ;
 	      sin_phi = sqrt(1. - SQU(cos_phi));
 	      psi  = TWOPI*RAND;
 	      
-	      vt = W*cos_phi;              
+	      vt = W*cos_phi;
 	      vz = W*sin_phi*cos(psi);
 	      vr = W*sin_phi*sin(psi);
 	      
-	      v_rel.z -= vz*cos_beta*cos_theta - vr*sin_beta + vt*cos_beta*sin_theta;  
-	      v_rel.r -= vz*sin_beta*cos_theta + vr*cos_beta + vt*sin_beta*sin_theta;  
+	      v_rel.z -= vz*cos_beta*cos_theta - vr*sin_beta + vt*cos_beta*sin_theta;
+	      v_rel.r -= vz*sin_beta*cos_theta + vr*cos_beta + vt*sin_beta*sin_theta;
 	      v_rel.t -= vt*cos_theta - vz*sin_theta;
 	      
 	      v_rel.z -= delta_v_rel.z;
 	      v_rel.r -= delta_v_rel.r;
 	      v_rel.t -= delta_v_rel.t;
 	      
-	      target_v.z = neutrals[i_n + Next_n].p.vz*dti;
-	      target_v.r = neutrals[i_n + Next_n].p.vr*dti;
-	      target_v.t = neutrals[i_n + Next_n].p.vt*dti;
+	      target_v.z = neutrals->vz[i_n + Next_n]*dti;
+	      target_v.r = neutrals->vr[i_n + Next_n]*dti;
+	      target_v.t = neutrals->vt[i_n + Next_n]*dti;
 	      
-	      electrons[i_el + Next_el].p.vz -= M_n/(M_n + m_e)*v_rel.z;
-	      electrons[i_el + Next_el].p.vr -= M_n/(M_n + m_e)*v_rel.r;
-	      electrons[i_el + Next_el].p.vt -= M_n/(M_n + m_e)*v_rel.t;
+	      electrons->vz[i_el + Next_el] -= M_n/(M_n + m_e)*v_rel.z;
+	      electrons->vr[i_el + Next_el] -= M_n/(M_n + m_e)*v_rel.r;
+	      electrons->vt[i_el + Next_el] -= M_n/(M_n + m_e)*v_rel.t;
 	      
-	      target_v.z += m_e/(M_n + m_e)*v_rel.z; 
-	      target_v.r += m_e/(M_n + m_e)*v_rel.r;    
-	      target_v.t += m_e/(M_n + m_e)*v_rel.t;    
-
-	      if ( ((*ni) + inzdlcl) >= NPART) {
-		printf("Error in coll_el_neutrals_2D: Particle array overflow (ions, case1)\n");
-		exit(1);
-	      }
+	      target_v.z += m_e/(M_n + m_e)*v_rel.z;
+	      target_v.r += m_e/(M_n + m_e)*v_rel.r;
+	      target_v.t += m_e/(M_n + m_e)*v_rel.t;
 
 	      // 2D: add also z-component of particle position
-	      ions[*ni + inzdlcl].p.z = neutrals[i_n + Next_n].p.z;
-	      ions[*ni + inzdlcl].p.r = neutrals[i_n + Next_n].p.r;  
+	      ions->z.push_back( neutrals->z[i_n + Next_n] );
+	      ions->r.push_back( neutrals->r[i_n + Next_n] );
 	      
 	      // scale it back
-	      ions[*ni + inzdlcl].p.vz = target_v.z*dt_ion;
-	      ions[*ni + inzdlcl].p.vr = target_v.r*dt_ion;  
-	      ions[*ni + inzdlcl].p.vt = target_v.t*dt_ion;
-	      ions[*ni + inzdlcl].p.m = 1;             
+	      ions->vz.push_back( target_v.z*dt_ion );
+	      ions->vr.push_back( target_v.r*dt_ion );
+	      ions->vt.push_back( target_v.t*dt_ion );
 	      
-	      *engcheck -= 0.5*(M_n-m_e)*(SQU(ions[*ni + inzdlcl].p.vz*dti) + SQU(ions[*ni + inzdlcl].p.vr*dti) + SQU(ions[*ni + inzdlcl].p.vt*dti));
+	      ions->m.push_back( 1 );
 	      
-	      (*momcheck).z -= (M_n-m_e)*ions[*ni + inzdlcl].p.vz*dti;
-	      (*momcheck).r -= (M_n-m_e)*ions[*ni + inzdlcl].p.vr*dti;
-	      (*momcheck).t -= (M_n-m_e)*ions[*ni + inzdlcl].p.vt*dti;
+	      *engcheck -= 0.5*(M_n-m_e)*(SQU(ions->vz.back()*dti) + SQU(ions->vr.back()*dti) + SQU(ions->vt.back()*dti));
+	      
+	      (*momcheck).z -= (M_n-m_e)*ions->vz.back()*dti;
+	      (*momcheck).r -= (M_n-m_e)*ions->vr.back()*dti;
+	      (*momcheck).t -= (M_n-m_e)*ions->vt.back()*dti;
 	      
 	      
 	      /* electron-neutral inelastic collision with a loss of E_th energy
@@ -1041,81 +1038,79 @@ void coll_el_neutrals_2D( Particle  neutrals[], size_t *nn, size_t ordcount_ntrl
 	       * now we'll do electron-electron elastic collision
 	       */
 	      
-	      v_rel.z = electrons[i_el + Next_el].p.vz -  target_v.z;
-	      v_rel.r = electrons[i_el + Next_el].p.vr -  target_v.r;    
-	      v_rel.t = electrons[i_el + Next_el].p.vt -  target_v.t;
+	      v_rel.z = electrons->vz[i_el + Next_el] -  target_v.z;
+	      v_rel.r = electrons->vr[i_el + Next_el] -  target_v.r;
+	      v_rel.t = electrons->vt[i_el + Next_el] -  target_v.t;
 	      
 	      
 	      W2 = SQU(v_rel.z) + SQU(v_rel.r) + SQU(v_rel.t);
-	      W  = sqrt(W2);                     
-	      W  = MAX( W, 1.e-10);            
+	      W  = sqrt(W2);
+	      W  = MAX( W, 1.e-10);
 	      IW = 1./W;
 	      
-	      v_proj_zr = sqrt( SQU(v_rel.z) + SQU(v_rel.r) );  
-	      v_proj_zr = MAX( v_proj_zr, 0.000001);              
+	      v_proj_zr = sqrt( SQU(v_rel.z) + SQU(v_rel.r) );
+	      v_proj_zr = MAX( v_proj_zr, 0.000001);
 	      ivp       = 1./v_proj_zr;
 	      
-	      cos_theta = v_rel.t * IW;         
+	      cos_theta = v_rel.t * IW;
 	      sin_theta = v_proj_zr*IW;
-	      cos_beta = v_rel.z*ivp;     
+	      cos_beta = v_rel.z*ivp;
 	      sin_beta = v_rel.r*ivp;
 	      
 	      cos_phi = 2.*RAND -1. ;
 	      sin_phi = sqrt(1 - SQU(cos_phi));
 	      psi  = TWOPI*RAND;
 	      
-	      vt = W*cos_phi;           
+	      vt = W*cos_phi;
 	      vz = W*sin_phi*cos(psi);
 	      vr = W*sin_phi*sin(psi);
 	      
-	      v_rel.z -= vz*cos_beta*cos_theta - vr*sin_beta + vt*cos_beta*sin_theta;   
-	      v_rel.r -= vz*sin_beta*cos_theta + vr*cos_beta + vt*sin_beta*sin_theta;   
+	      v_rel.z -= vz*cos_beta*cos_theta - vr*sin_beta + vt*cos_beta*sin_theta;
+	      v_rel.r -= vz*sin_beta*cos_theta + vr*cos_beta + vt*sin_beta*sin_theta;
 	      v_rel.t -= vt*cos_theta - vz*sin_theta;
 	      
 	      // Note inversed sign due inversed delta be4
-	      electrons[i_el + Next_el].p.vz -= 0.5*v_rel.z; 
-	      electrons[i_el + Next_el].p.vr -= 0.5*v_rel.r;          
-	      electrons[i_el + Next_el].p.vt -= 0.5*v_rel.t;
+	      electrons->vz[i_el + Next_el] -= 0.5*v_rel.z;
+	      electrons->vr[i_el + Next_el] -= 0.5*v_rel.r;
+	      electrons->vt[i_el + Next_el] -= 0.5*v_rel.t;
 	      
 	      target_v.z += 0.5*v_rel.z;
 	      target_v.r += 0.5*v_rel.r;
 	      target_v.t += 0.5*v_rel.t;
-
-	      if ( ((*ne) + inzdlcl) >= NPART) {
-		printf("Error in coll_el_neutrals_2D: Particle array overflow (electrons, case1)\n");
-		exit(1);
-	      }	      
 	      
-	      electrons[*ne + inzdlcl].p.z = neutrals[i_n + Next_n].p.z;
-	      electrons[*ne + inzdlcl].p.r = neutrals[i_n + Next_n].p.r;
-	      electrons[*ne + inzdlcl].p.vz = target_v.z;
-	      electrons[*ne + inzdlcl].p.vr = target_v.r;
-	      electrons[*ne + inzdlcl].p.vt = target_v.t;
-	      electrons[*ne + inzdlcl].p.m = 1;      
+	      electrons->z.push_back( neutrals->z[i_n + Next_n] );
+	      electrons->r.push_back( neutrals->r[i_n + Next_n] );
+	      electrons->vz.push_back( target_v.z );
+	      electrons->vr.push_back( target_v.r );
+	      electrons->vt.push_back( target_v.t );
+	      electrons->m.push_back( 1 );
 	      
 	      
-	      *engcheck -= 0.5*m_e*(SQU(electrons[i_el + Next_el].p.vz) + SQU(electrons[i_el + Next_el].p.vr) + SQU(electrons[i_el + Next_el].p.vt));
-	      *engcheck -= 0.5*m_e*(SQU(electrons[*ne + inzdlcl].p.vz) + SQU(electrons[*ne + inzdlcl].p.vr) + SQU(electrons[*ne + inzdlcl].p.vt));
+	      *engcheck -= 0.5*m_e*(SQU(electrons->vz[i_el + Next_el]) + SQU(electrons->vr[i_el + Next_el]) + SQU(electrons->vt[i_el + Next_el]));
+	      *engcheck -= 0.5*m_e*(SQU(electrons->vz.back()) + SQU(electrons->vr.back()) + SQU(electrons->vt.back()));
 	      
-	      (*momcheck).z -= m_e*(electrons[i_el + Next_el].p.vz + electrons[*ne + inzdlcl].p.vz);
-	      (*momcheck).r -= m_e*(electrons[i_el + Next_el].p.vr + electrons[*ne + inzdlcl].p.vr);
-	      (*momcheck).t -= m_e*(electrons[i_el + Next_el].p.vt + electrons[*ne + inzdlcl].p.vt);
-	      
-	      
-	      inzdlcl++;
+	      (*momcheck).z -= m_e*(electrons->vz[i_el + Next_el] + electrons->vz.back());
+	      (*momcheck).r -= m_e*(electrons->vr[i_el + Next_el] + electrons->vr.back());
+	      (*momcheck).t -= m_e*(electrons->vt[i_el + Next_el] + electrons->vt.back());
 	      
 	      
-	      if (! --(neutrals[i_n + Next_n].p.m) ) {
-		gone_n[i_n]= 1;      
+	      if (! --(neutrals->m[i_n + Next_n]) ) {
+		gone_n[i_n]= 1;
 	      }
 	      
 	    }   //  if (W2_0 >= E_th && RAND < n_n*W_0*Si)
 	  }  //for ( i_el = 0; i_el < n_el; i_el++)
           
-          
+	  //Delete/overwrite now-missing neutrals
+	  // (within this cell, possibly into earlier cells
+	  //   -- not good for paralellization!)
 	  for (size_t i = 0; i < n_n; i++) {
-	    if ( gone_n[i])  shift_n++ ;
-	    else neutrals[Next_n + i - shift_n] = neutrals[Next_n + i]; 
+	    if ( gone_n[i] ) {
+	      shift_n++ ;
+	    }
+	    else {
+	      neutrals->CopyParticle(Next_n + i, Next_n + i - shift_n);
+	    }
 	  }
 	  
 	}   // if (n_el < n_n)
@@ -1123,7 +1118,7 @@ void coll_el_neutrals_2D( Particle  neutrals[], size_t *nn, size_t ordcount_ntrl
 	/* Case when n_n < n_el*/
 	else {
 	  size_t N2coll = n_el;
-	  for (size_t i=0; i<n_el; i++ ) {	                
+	  for (size_t i=0; i<n_el; i++ ) {
 	    sub_el2coll[i] = 1; 
 	  }
           
@@ -1131,7 +1126,7 @@ void coll_el_neutrals_2D( Particle  neutrals[], size_t *nn, size_t ordcount_ntrl
 	    for (size_t i_n_sub=0; i_n_sub<sub_n2coll[i_n]; i_n_sub++) {
 	      
 	      size_t k = (size_t)(N2coll*RAND);
-	      if ( k==N2coll ) k--;          
+	      if ( k==N2coll ) k--;
 	      
 	      size_t i_el = 0;
 	      size_t i_next = sub_el2coll[i_el];
@@ -1140,14 +1135,14 @@ void coll_el_neutrals_2D( Particle  neutrals[], size_t *nn, size_t ordcount_ntrl
 		i_next += sub_el2coll[++i_el];
 	      }
 	      
-	      --sub_el2coll[i_el];   
+	      --sub_el2coll[i_el];
 	      N2coll--;
 	      
-	      v_rel.z= electrons[i_el + Next_el].p.vz - neutrals[i_n + Next_n].p.vz*dti;
-	      v_rel.r= electrons[i_el + Next_el].p.vr - neutrals[i_n + Next_n].p.vr*dti;   
-	      v_rel.t= electrons[i_el + Next_el].p.vt - neutrals[i_n + Next_n].p.vt*dti;
+	      v_rel.z = electrons->vz[i_el + Next_el] - neutrals->vz[i_n + Next_n]*dti;
+	      v_rel.r = electrons->vr[i_el + Next_el] - neutrals->vr[i_n + Next_n]*dti;
+	      v_rel.t = electrons->vt[i_el + Next_el] - neutrals->vt[i_n + Next_n]*dti;
 	      
-	      W2_0 = SQU(v_rel.z) + SQU(v_rel.r) + SQU(v_rel.t);  
+	      W2_0 = SQU(v_rel.z) + SQU(v_rel.r) + SQU(v_rel.t);
 	      W_0  = sqrt(W2_0);
 	      
 	      
@@ -1166,87 +1161,82 @@ void coll_el_neutrals_2D( Particle  neutrals[], size_t *nn, size_t ordcount_ntrl
 	      if (W2_0 >= E_th && RAND < n_el*W_0*S_i/(2*jr+1) ) { // correct Si with 2D volume factor (2j+1) here
 		
 		
-		*engcheck += 0.5*m_e*(SQU(electrons[i_el + Next_el].p.vz) + SQU(electrons[i_el + Next_el].p.vr) + SQU(electrons[i_el + Next_el].p.vt));
-		*engcheck += 0.5*M_n*(SQU(neutrals[i_n + Next_n].p.vz*dti) + SQU(neutrals[i_n + Next_n].p.vr*dti) + SQU(neutrals[i_n + Next_n].p.vt*dti)) - 0.5*m_e*M_n/(m_e+M_n)*E_th;
+		*engcheck += 0.5*m_e*(SQU(electrons->vz[i_el + Next_el]) + SQU(electrons->vr[i_el + Next_el]) + SQU(electrons->vt[i_el + Next_el]));
+		*engcheck += 0.5*M_n*(SQU(neutrals->vz[i_n + Next_n]*dti) + SQU(neutrals->vr[i_n + Next_n]*dti) + SQU(neutrals->vt[i_n + Next_n]*dti)) - 0.5*m_e*M_n/(m_e+M_n)*E_th;
 		
-		(*momcheck).z += m_e*electrons[i_el + Next_el].p.vz + M_n*neutrals[i_n + Next_n].p.vz*dti;
-		(*momcheck).r += m_e*electrons[i_el + Next_el].p.vr + M_n*neutrals[i_n + Next_n].p.vr*dti;
-		(*momcheck).t += m_e*electrons[i_el + Next_el].p.vt + M_n*neutrals[i_n + Next_n].p.vt*dti;
+		(*momcheck).z += m_e*electrons->vz[i_el + Next_el] + M_n*neutrals->vz[i_n + Next_n]*dti;
+		(*momcheck).r += m_e*electrons->vr[i_el + Next_el] + M_n*neutrals->vr[i_n + Next_n]*dti;
+		(*momcheck).t += m_e*electrons->vt[i_el + Next_el] + M_n*neutrals->vt[i_n + Next_n]*dti;
 		
 		IW_0 = 1./W_0;
 		
 		W2 = W2_0 - E_th;
-		W  = sqrt(W2);                
+		W  = sqrt(W2);
 		  
 		// After energy loss
 		delta_v_rel.z = v_rel.z*(W*IW_0 -1.);
-		delta_v_rel.r = v_rel.r*(W*IW_0 -1.);       
+		delta_v_rel.r = v_rel.r*(W*IW_0 -1.);
 		delta_v_rel.t = v_rel.t*(W*IW_0 -1.);
 		
 		v_rel.z += delta_v_rel.z;
 		v_rel.r += delta_v_rel.r;
 		v_rel.t += delta_v_rel.t;
 		
-		W  = MAX( W, 1.e-10);   
+		W  = MAX( W, 1.e-10);
 		IW = 1./W;
 		
 		
-		v_proj_zr = sqrt( SQU(v_rel.z) + SQU(v_rel.r) );    
-		v_proj_zr = MAX( v_proj_zr, 1.e-10);              
+		v_proj_zr = sqrt( SQU(v_rel.z) + SQU(v_rel.r) );
+		v_proj_zr = MAX( v_proj_zr, 1.e-10);
 		ivp       = 1./v_proj_zr;
 		
-		cos_theta = v_rel.t * IW;             
+		cos_theta = v_rel.t * IW;
 		sin_theta = v_proj_zr*IW;
-		cos_beta = v_rel.z*ivp;         
+		cos_beta = v_rel.z*ivp;
 		sin_beta = v_rel.r*ivp;
 		
 		/* Sampling scattering angles in C.M. system */
 		// just 4 test!! Use = (2.+E-2.*pow((1+E), RAND))/E instead
-		cos_phi = 2.*RAND -1. ; 
+		cos_phi = 2.*RAND -1. ;
 		sin_phi = sqrt(1. - SQU(cos_phi));
 		psi  = TWOPI*RAND;
 		
-		vt = W*cos_phi;              
+		vt = W*cos_phi;
 		vz = W*sin_phi*cos(psi);
 		vr = W*sin_phi*sin(psi);
 		
-		v_rel.z -= vz*cos_beta*cos_theta - vr*sin_beta + vt*cos_beta*sin_theta; 
-		v_rel.r -= vz*sin_beta*cos_theta + vr*cos_beta + vt*sin_beta*sin_theta;  
+		v_rel.z -= vz*cos_beta*cos_theta - vr*sin_beta + vt*cos_beta*sin_theta;
+		v_rel.r -= vz*sin_beta*cos_theta + vr*cos_beta + vt*sin_beta*sin_theta;
 		v_rel.t -= vt*cos_theta - vz*sin_theta;
 		
 		v_rel.z -= delta_v_rel.z;
 		v_rel.r -= delta_v_rel.r;
 		v_rel.t -= delta_v_rel.t;
 		
-		target_v.z = neutrals[i_n + Next_n].p.vz*dti;
-		target_v.r = neutrals[i_n + Next_n].p.vr*dti;
-		target_v.t = neutrals[i_n + Next_n].p.vt*dti;
+		target_v.z = neutrals->vz[i_n + Next_n]*dti;
+		target_v.r = neutrals->vr[i_n + Next_n]*dti;
+		target_v.t = neutrals->vt[i_n + Next_n]*dti;
 		
-		electrons[i_el + Next_el].p.vz -= M_n/(M_n + m_e)*v_rel.z;
-		electrons[i_el + Next_el].p.vr -= M_n/(M_n + m_e)*v_rel.r;
-		electrons[i_el + Next_el].p.vt -= M_n/(M_n + m_e)*v_rel.t;
+		electrons->vz[i_el + Next_el] -= M_n/(M_n + m_e)*v_rel.z;
+		electrons->vr[i_el + Next_el] -= M_n/(M_n + m_e)*v_rel.r;
+		electrons->vt[i_el + Next_el] -= M_n/(M_n + m_e)*v_rel.t;
 		
-		target_v.z += m_e/(M_n + m_e)*v_rel.z;  
-		target_v.r += m_e/(M_n + m_e)*v_rel.r;    
-		target_v.t += m_e/(M_n + m_e)*v_rel.t;    
+		target_v.z += m_e/(M_n + m_e)*v_rel.z;
+		target_v.r += m_e/(M_n + m_e)*v_rel.r;
+		target_v.t += m_e/(M_n + m_e)*v_rel.t;
 		
-		if ( ((*ni) + inzdlcl) >= NPART) {
-		  printf("Error in coll_el_neutrals_2D: Particle array overflow (ions, case2)\n");
-		  exit(1);
-		}
+		ions->z.push_back( neutrals->z[i_n + Next_n] );
+		ions->r.push_back( neutrals->r[i_n + Next_n] );
+		ions->vz.push_back( target_v.z*dt_ion );
+		ions->vr.push_back( target_v.r*dt_ion );
+		ions->vt.push_back( target_v.t*dt_ion );
+		ions->m.push_back( 1 );
 		
-		ions[*ni + inzdlcl].p.z = neutrals[i_n + Next_n].p.z;
-		ions[*ni + inzdlcl].p.r = neutrals[i_n + Next_n].p.r; 
-		ions[*ni + inzdlcl].p.vz = target_v.z*dt_ion;
-		ions[*ni + inzdlcl].p.vr = target_v.r*dt_ion; 
-		ions[*ni + inzdlcl].p.vt = target_v.t*dt_ion;
-		ions[*ni + inzdlcl].p.m = 1;                             
+		*engcheck -= 0.5*(M_n-m_e)*(SQU(ions->vz.back()*dti) + SQU(ions->vr.back()*dti) + SQU(ions->vt.back()*dti));
 		
-		*engcheck -= 0.5*(M_n-m_e)*(SQU(ions[*ni + inzdlcl].p.vz*dti) + SQU(ions[*ni + inzdlcl].p.vr*dti) + SQU(ions[*ni + inzdlcl].p.vt*dti));
-		
-		(*momcheck).z -= (M_n-m_e)*ions[*ni + inzdlcl].p.vz*dti;
-		(*momcheck).r -= (M_n-m_e)*ions[*ni + inzdlcl].p.vr*dti;
-		(*momcheck).t -= (M_n-m_e)*ions[*ni + inzdlcl].p.vt*dti;
+		(*momcheck).z -= (M_n-m_e)*ions->vz.back()*dti;
+		(*momcheck).r -= (M_n-m_e)*ions->vr.back()*dti;
+		(*momcheck).t -= (M_n-m_e)*ions->vt.back()*dti;
 		
 		/*
 		 * electron-neutral inelastic collision with a loss of E_th energy
@@ -1254,94 +1244,94 @@ void coll_el_neutrals_2D( Particle  neutrals[], size_t *nn, size_t ordcount_ntrl
 		 * now we'll do electron-electron elastic collission
 		 */
 		
-		v_rel.z= electrons[i_el + Next_el].p.vz -  target_v.z;
-		v_rel.r= electrons[i_el + Next_el].p.vr -  target_v.r; 
-		v_rel.t= electrons[i_el + Next_el].p.vt -  target_v.t;
+		v_rel.z = electrons->vz[i_el + Next_el] - target_v.z;
+		v_rel.r = electrons->vr[i_el + Next_el] - target_v.r;
+		v_rel.t = electrons->vt[i_el + Next_el] - target_v.t;
 		
 		W2 = SQU(v_rel.z) + SQU(v_rel.r) + SQU(v_rel.t);
-		W  = sqrt(W2);                      
-		W  = MAX( W, 1.e-10);             
+		W  = sqrt(W2);
+		W  = MAX( W, 1.e-10);
 		IW = 1./W;
 		
-		v_proj_zr = sqrt( SQU(v_rel.z) + SQU(v_rel.r) );  
-		v_proj_zr = MAX( v_proj_zr, 0.000001);              
+		v_proj_zr = sqrt( SQU(v_rel.z) + SQU(v_rel.r) );
+		v_proj_zr = MAX( v_proj_zr, 0.000001);
 		ivp       = 1./v_proj_zr;
 		
-		cos_theta = v_rel.t * IW;    
+		cos_theta = v_rel.t * IW;
 		sin_theta = v_proj_zr*IW;
-		cos_beta = v_rel.z*ivp;       
+		cos_beta = v_rel.z*ivp;
 		sin_beta = v_rel.r*ivp;
 		
 		cos_phi = 2.*RAND -1. ;
 		sin_phi = sqrt(1 - SQU(cos_phi));
 		psi  = TWOPI*RAND;
 		
-		vt = W*cos_phi;             
+		vt = W*cos_phi;
 		vz = W*sin_phi*cos(psi);
 		vr = W*sin_phi*sin(psi);
 		
-		v_rel.z -= vz*cos_beta*cos_theta - vr*sin_beta + vt*cos_beta*sin_theta; 
-		v_rel.r -= vz*sin_beta*cos_theta + vr*cos_beta + vt*sin_beta*sin_theta;  
+		v_rel.z -= vz*cos_beta*cos_theta - vr*sin_beta + vt*cos_beta*sin_theta;
+		v_rel.r -= vz*sin_beta*cos_theta + vr*cos_beta + vt*sin_beta*sin_theta;
 		v_rel.t -= vt*cos_theta - vz*sin_theta;
 		
-		electrons[i_el + Next_el].p.vz -= 0.5*v_rel.z;
-		electrons[i_el + Next_el].p.vr -= 0.5*v_rel.r;  
-		electrons[i_el + Next_el].p.vt -= 0.5*v_rel.t;
+		electrons->vz[i_el + Next_el] -= 0.5*v_rel.z;
+		electrons->vr[i_el + Next_el] -= 0.5*v_rel.r;
+		electrons->vt[i_el + Next_el] -= 0.5*v_rel.t;
 		
 		target_v.z += 0.5*v_rel.z;
 		target_v.r += 0.5*v_rel.r;
 		target_v.t += 0.5*v_rel.t;
-
-		if ( ((*ne) + inzdlcl) >= NPART) {
-		  printf("Error in coll_el_neutrals_2D: Particle array overflow (electrons, case2)\n");
-		  exit(1);
-		}		
 		
-		electrons[*ne + inzdlcl].p.z = neutrals[i_n + Next_n].p.z;
-		electrons[*ne + inzdlcl].p.r = neutrals[i_n + Next_n].p.r;
-		electrons[*ne + inzdlcl].p.vz = target_v.z;
-		electrons[*ne + inzdlcl].p.vr = target_v.r;
-		electrons[*ne + inzdlcl].p.vt = target_v.t;
-		electrons[*ne + inzdlcl].p.m  = 1;
+		electrons->z.push_back( neutrals->z[i_n + Next_n] );
+		electrons->r.push_back( neutrals->r[i_n + Next_n] );
+		electrons->vz.push_back( target_v.z );
+		electrons->vr.push_back( target_v.r );
+		electrons->vt.push_back( target_v.t );
+		electrons->m.push_back( 1 );
 		
 		
-		*engcheck -= 0.5*m_e*(SQU(electrons[i_el + Next_el].p.vz) + SQU(electrons[i_el + Next_el].p.vr) + SQU(electrons[i_el + Next_el].p.vt));
-		*engcheck -= 0.5*m_e*(SQU(electrons[*ne + inzdlcl].p.vz) + SQU(electrons[*ne + inzdlcl].p.vr) + SQU(electrons[*ne + inzdlcl].p.vt));
+		*engcheck -= 0.5*m_e*(SQU(electrons->vz[i_el + Next_el]) + SQU(electrons->vr[i_el + Next_el]) + SQU(electrons->vt[i_el + Next_el]));
+		*engcheck -= 0.5*m_e*(SQU(electrons->vz.back()) + SQU(electrons->vr.back()) + SQU(electrons->vt.back()));
 		
-		(*momcheck).z -= m_e*(electrons[i_el + Next_el].p.vz + electrons[*ne + inzdlcl].p.vz);
-		(*momcheck).r -= m_e*(electrons[i_el + Next_el].p.vr + electrons[*ne + inzdlcl].p.vr);
-		(*momcheck).t -= m_e*(electrons[i_el + Next_el].p.vt + electrons[*ne + inzdlcl].p.vt);
+		(*momcheck).z -= m_e*(electrons->vz[i_el + Next_el] + electrons->vz.back());
+		(*momcheck).r -= m_e*(electrons->vr[i_el + Next_el] + electrons->vr.back());
+		(*momcheck).t -= m_e*(electrons->vt[i_el + Next_el] + electrons->vt.back());
 		
 		
-		inzdlcl++;
-		if (! --neutrals[i_n + Next_n].p.m ) {
-		  gone_n[i_n]= 1; 
+		if (! --neutrals->m[i_n + Next_n] ) {
+		  gone_n[i_n]= 1;
 		}
 		
 	      }   //  if (W2_0 >= E_th && RAND < n_n*W_0*Si)
 	    }  //for ( i_n_sub = 0; i_n_sub < sub_n2coll[i_n]; i_n_sub++)
 	  
-	  
+	  //Delete/overwrite now-missing neutrals
+	  // (within this cell, possibly into earlier cells
+	  //   -- not good for paralellization!)
 	  for (size_t i=0; i<n_n; i++ ) {
-	    if ( gone_n[i] )  shift_n++ ;
-	    else neutrals[Next_n + i - shift_n] = neutrals[Next_n + i]; 
+	    if ( gone_n[i] )  {
+	      shift_n++ ;
+	    }
+	    else {
+	      neutrals->CopyParticle(Next_n + i,Next_n + i - shift_n);
+	    }
 	  }
 	  
 	}  // else if n_el < n_n
       }  //if ( n_n && n_el )
       else {
+	//No particles in this cell; just shift the neutrals along with losses in previous cells
 	for (size_t i=0; i<n_n; i++ ) {
-	  neutrals[Next_n + i - shift_n] = neutrals[Next_n + i];
+	  neutrals->CopyParticle(Next_n + i, Next_n + i - shift_n);
 	}
       }
       
       Next_el += n_el;
       Next_n += n_n;
-    }    
+    }
   }  //for (j=0; j < Ngrid;  j++)
-  
-  *nn -= shift_n;
-  *ne += inzdlcl;  
-  *ni += inzdlcl;  
+
+  //Delete the last shift_n particles from the neutrals
+  neutrals->ResizeDeleteBy(shift_n);
   
 }

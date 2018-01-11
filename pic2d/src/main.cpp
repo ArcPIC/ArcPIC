@@ -504,11 +504,11 @@ int main () {
     if (ncoll_el>0 && nsteps/ncoll_el*ncoll_el == nsteps) {
       // e-e Coulomb collisions
       electrons->Order2D();
-      coll_el_knm_2D(elec, e_order, nr, nz, NZ, 1., 0, &mcheck, &echeck, ncoll_el);
+      coll_el_knm_2D(electrons, nr, nz, NZ, 1., 0, &mcheck, &echeck, ncoll_el);
       
       // i-i Coulomb collisions
       ionSpecies[1]->Order2D(); //TODO: All species!
-      coll_el_knm_2D(ions + NPART, i_order + NG, nr, nz, NZ, M_ions[1], 1, &mcheck, &echeck, ncoll_el);
+      coll_el_knm_2D(ionSpecies[1], nr, nz, NZ, M_ions[1], 1, &mcheck, &echeck, ncoll_el);
     }  
     
     // Other collisions
@@ -521,21 +521,21 @@ int main () {
       neutralSpecies[0]->Order2D(); //TODO: All species!
       
       //elastic Cu+ Cu collisions
-      coll_ion_neutral_noSP_2D( ions + Lastion*NPART, i_order + Lastion*NG, M_ions[Lastion], 
-				ions + NPART, i_order + NG, M_ions[1], 
-				nr, nz, NZ, React_Cup_Cu_el, &mcheck, &echeck );  
+      coll_ion_neutral_noSP_2D( neutralSpecies[0], M_ions[Lastion],
+				ionSpecies[1], M_ions[1],
+				nr, nz, NZ, React_Cup_Cu_el, &mcheck, &echeck );
       
       //elastic Cu Cu collisions
-      coll_n_n_2D( ions + Lastion*NPART, i_order + Lastion*NG, nr, nz, NZ, React_Cu_Cu, &mcheck, &echeck ); 
+      coll_n_n_2D( neutralSpecies[0], nr, nz, NZ, React_Cu_Cu, &mcheck, &echeck );
       
-      //elastic el Cu collisions 
-      coll_el_all_fake_2D( ions + Lastion*NPART, i_order + Lastion*NG, M_ions[Lastion], 
-			   elec, e_order, nr, nz, NZ, React_Cu_el ); 
+      //elastic el Cu collisions
+      coll_el_all_fake_2D( neutralSpecies[0], M_ions[Lastion],
+			   electrons, nr, nz, NZ, React_Cu_el );
       
-      // e + Cu = Cu+ + 2e 
-      coll_el_neutrals_2D( ions + Lastion*NPART, nr_i+Lastion, i_order + Lastion*NG, M_ions[Lastion], 
-			   elec, &nr_e, e_order, ions + NPART, nr_i+1, 
-			   nr, nz, NZ, React_Cu_ion, &mcheck, &echeck );  
+      // e + Cu = Cu+ + 2e
+      coll_el_neutrals_2D( neutralSpecies[0], M_ions[Lastion],
+			   electrons, ionSpecies[1],
+			   nr, nz, NZ, React_Cu_ion, &mcheck, &echeck );
     }
     
     

@@ -49,9 +49,35 @@ class ParticleSpecies {
   const size_t GetN() const {
     return z.size();
   };
-  const int ExpandBy(size_t n_expand);
+  //Change the ammount of storage allocated
+  const int ExpandBy(const size_t n_expand) {
+    size_t N = GetN();
+    this->ReserveSpace( N + n_expand );
+    return GetN();
+  }
+  void ReserveSpace(const size_t n) {
+    z.reserve(n);
+    r.reserve(n);
+    vz.reserve(n);
+    vr.reserve(n);
+    vt.reserve(n);
+    m.reserve(n);
+  }
 
-  void ReserveSpace(size_t n);
+  //Copy a particle from position i->j,
+  // overwriting the data in position j.
+  void CopyParticle(const size_t i, const size_t j) {
+    z[j]  = z[i];
+    r[j]  = r[i];
+    vz[j] = vz[i];
+    vr[j] = vr[i];
+    vt[j] = vt[i];
+    m[j]  = m[i];
+  }
+  //Resize the particle arrays to something smaller,
+  // deleting the extra particles
+  void ResizeDelete(const size_t newSize);
+  void ResizeDeleteBy(const size_t nDelete);
   
   // Name of the particle species, used for printing, tables, etc.
   const std::string name;
