@@ -22,43 +22,32 @@
 
 #include  <stdio.h>
 
+#include "checkbounds.h"
 
+void checkbounds_2D( ParticleSpecies* pa, double rmin, double rmax, double zmin, double zmax ) {
 
-void checkbounds_2D( Particle pa[], size_t np, double rmin, double rmax, double zmin, double zmax )
-{
-
-
-  for (size_t n=0; n<np; n++)
-    {
-
-      if ( pa[n].p.r >= rmax )
-	{ 
-	  printf("Erroneous data: n=%zu  r=%g  rmax=%g\n", n, pa[n].p.r, rmax);
-	  pa[n].p.r = rmax - 1.e-10;
-	}
-
-      else if ( pa[n].p.r < rmin )
-	{ 						
-	  printf("Erroneous data: n=%zu  r=%g  rmin=%g\n", n, pa[n].p.r, rmin);
-	  pa[n].p.r = rmin + 1.e-10;
-	}
-
-
-      if ( pa[n].p.z >= zmax )
-	{ 
-	  printf("Erroneous data: n=%zu  z=%g  zmax=%g\n", n, pa[n].p.z, zmax);
-	  pa[n].p.z = zmax - 1.e-10;
-	}
-
-      else if ( pa[n].p.z < zmin )
-	{ 						
-	  printf("Erroneous data: n=%zu  z=%g  zmin=%g\n", n, pa[n].p.z, zmin);
-	  pa[n].p.z = zmin + 1.e-10;
-	}
-       
+  for (size_t n=0; n<pa->GetN(); n++) {
+    
+    if ( pa->r[n] >= rmax ) {
+      printf("Erroneous data: n=%zu  r=%g  rmax=%g\n", n, pa->r[n], rmax);
+      pa->r[n] = rmax - 1.e-10;
     }
-
+    else if ( pa->r[n] < rmin ) {
+      printf("Erroneous data: n=%zu  r=%g  rmin=%g\n", n, pa->r[n], rmin);
+      pa->r[n] = rmin + 1.e-10;
+    }
+    
+    if ( pa->z[n] >= zmax ) {
+      printf("Erroneous data: n=%zu  z=%g  zmax=%g\n", n, pa->z[n], zmax);
+      pa->z[n] = zmax - 1.e-10;
+    }
+    else if ( pa->z[n] < zmin ) {
+      printf("Erroneous data: n=%zu  z=%g  zmin=%g\n", n, pa->z[n], zmin);
+      pa->z[n] = zmin + 1.e-10;
+    }
+    
+  }
+  
   fflush(stdout);
-
 }
-         
+

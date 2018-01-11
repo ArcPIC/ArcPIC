@@ -403,10 +403,13 @@ int main () {
     timeIndex = fopen("out/timeIndex.dat", "a");
     mainStats = fopen("mainStats.dat", "a");
     
-    // Check data read in:
-    checkbounds_2D( elec, nr_e, Rmin, Rmax, Zmin, Zmax );
-    for (int sort = 0; sort < NSpecies; sort++) {
-      checkbounds_2D( ions + sort*NPART, nr_i[sort], Rmin, Rmax, Zmin, Zmax ); 
+    // Check the data read in:
+    checkbounds_2D( electrons, Rmin, Rmax, Zmin, Zmax );
+    for (auto ion : ionSpecies) {
+      checkbounds_2D( ion, Rmin, Rmax, Zmin, Zmax );
+    }
+    for (auto neutral : neutralSpecies) {
+      checkbounds_2D( neutral, Rmin, Rmax, Zmin, Zmax );
     }
     
     // Compute L and U matrices

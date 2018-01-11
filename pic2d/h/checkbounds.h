@@ -18,5 +18,11 @@
 
 ***********************************************************************/
 
-void checkbounds_2D( Particle pa[], size_t np, double rmin, double rmax, double zmin, double zmax );
+#ifndef CHECKBOUNDS_H
+#define CHECKBOUNDS_H
 
+#include "ParticleSpecies.h"
+
+void checkbounds_2D( ParticleSpecies* pa, double rmin, double rmax, double zmin, double zmax );
+
+#endif
