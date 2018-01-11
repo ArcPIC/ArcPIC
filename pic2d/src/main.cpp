@@ -488,9 +488,9 @@ int main () {
       if( nsteps >= nav_start ) {
 	// neutral density, only for outputting
 	neutralSpecies[0]->UpdateDensityMap( Vcell );
-
-	aver_moments_2D( mom_ion + NG, n_aver_ion, ions + NPART, nr_i[1], nr, nz, NZ );
-	aver_moments_2D( mom_ion + Lastion*NG, n_aver_ion, ions + Lastion*NPART, nr_i[Lastion], nr, nz, NZ ); // should be _SN()
+	//TODO: All species
+	aver_moments_2D( mom_ion + NG, n_aver_ion, ionSpecies[1], nr, nz, NZ );
+	aver_moments_2D( mom_ion + Lastion*NG, n_aver_ion, neutralSpecies[0], nr, nz, NZ ); // should be _SN()
 	average_2D( ionSpecies[1]->densMap, n_i_av + NG, NR, NZ, n_aver_ion ); // NEW: 25.8.2010
 	average_2D( neutralSpecies[0]->densMap, n_i_av + Lastion*NG, NR, NZ, n_aver_ion ); // NEW: 25.8.2010
 	
@@ -606,7 +606,7 @@ int main () {
 	vel_dst_along_2D( vdf_nz, vdf_nr, vdf_nabs, ions + Lastion*NPART, nr_i[Lastion], nr, nz, dvt, n_aver );  
       }
       
-      aver_moments_2D( mom_el, n_aver, elec, nr_e, nr, nz, NZ );
+      aver_moments_2D( mom_el, n_aver, electrons, nr, nz, NZ );
       average_2D( phi,      phi_av, NR, NZ, n_aver );
       average_2D( electrons->densMap,      n_e_av, NR, NZ, n_aver ); // NEW: 25.8.2010
       average_2D( E_grid_z, E_av_z, NR, NZ, n_aver ); // E-field output

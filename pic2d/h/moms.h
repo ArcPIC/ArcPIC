@@ -24,7 +24,7 @@
 #include "ParticleSpecies.h"
 
 void aver_moments_2D( Moments mom[], int n_av,
-		      Particle pa[], size_t np,
+		      ParticleSpecies* pa,
 		      int nr, int nz, int NZ );
 
 void aver_diagn_2D( const double dens[], double dens_av[],

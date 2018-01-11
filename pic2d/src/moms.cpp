@@ -26,7 +26,7 @@
 #include <cstddef>
 
 void aver_moments_2D( Moments mom[], int n_av,
-		      Particle pa[], size_t np,
+		      ParticleSpecies* pa,
 		      int nr, int nz, int NZ ) {
   
   if (n_av == 0) {
@@ -39,13 +39,13 @@ void aver_moments_2D( Moments mom[], int n_av,
     }
   }
   
-  for (size_t n=0; n<np; n++) {
-    int j = (int)pa[n].p.r;
-    int k = (int)pa[n].p.z;
+  for (size_t n=0; n<pa->GetN(); n++) {
+    int j = (int)pa->r[n];
+    int k = (int)pa->z[n];
     
-    double vz = pa[n].p.vz;
-    double vr = pa[n].p.vr;
-    double vt = pa[n].p.vt;
+    double vz = pa->vz[n];
+    double vr = pa->vr[n];
+    double vt = pa->vt[n];
     mom[j*NZ+k].uz += vz;
     mom[j*NZ+k].ur += vr;
     mom[j*NZ+k].ut += vt;
