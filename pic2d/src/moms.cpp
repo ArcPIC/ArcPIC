@@ -21,6 +21,8 @@
 #include  "pic.h"
 #include  "mydef.h"
 
+#include "moms.h"
+
 #include <cstddef>
 
 void aver_moments_2D( Moments mom[], int n_av,
@@ -60,8 +62,8 @@ void aver_moments_2D( Moments mom[], int n_av,
 }
 
 void aver_diagn_2D( const double dens[], double dens_av[],
-		    Particle pa[], double temp_av[], double np_av[],
-		    size_t np, int n_av, int nr, int nz, int NR, int NZ ) {
+		    ParticleSpecies* pa, double temp_av[], double np_av[],
+		    int n_av, int nr, int nz, int NR, int NZ ) {
   
   if (n_av == 0) {
     for (int j=0; j<nr; j++) {
@@ -86,15 +88,11 @@ void aver_diagn_2D( const double dens[], double dens_av[],
   }
 
 
-  for (size_t n=0; n<np; n++) {
-    int j = (int)pa[n].p.r;
-    int k = (int)pa[n].p.z;
-
-    double vz = pa[n].p.vz;
-    double vr = pa[n].p.vr;
-    double vt = pa[n].p.vt;
+  for (size_t n=0; n<pa->GetN(); n++) {
+    int j = (int)pa->r[n];
+    int k = (int)pa->z[n];
     
-    temp_av[j*NZ+k] += SQU(vz) + SQU(vr) + SQU(vt);
+    temp_av[j*NZ+k] += SQU(pa->vz[n]) + SQU(pa->vr[n]) + SQU(pa->vt[n]);
     np_av[j*NZ+k]++;
   }
 }

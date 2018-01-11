@@ -572,11 +572,11 @@ int main () {
     step_time = omp_get_wtime();
 
     if (nsteps >= diagn_start) {
-      aver_diagn_2D( electrons->densMap, diagn_dens, elec, diagn_Te, diagn_ne, nr_e, n_aver_diagn, nr, nz, NR, NZ );
+      aver_diagn_2D( electrons->densMap, diagn_dens, electrons, diagn_Te, diagn_ne, n_aver_diagn, nr, nz, NR, NZ );
       n_aver_diagn++;
       
       if (nsteps == diagn_start+nav_time) {
-	diagn_av_stability( diagn_dens, diagn_Te, diagn_ne, n_aver_diagn, -1., v_te, nr, nz, 
+	diagn_av_stability( diagn_dens, diagn_Te, diagn_ne, n_aver_diagn, -1., v_te, nr, nz,
 			    NR, NZ, Omega_pe, dr, dz, nsteps, &check_stab, ferr );
 	if (check_stab == 1) {
 	  //printf("*** ERROR: stability violated. Stopping *** \n");
