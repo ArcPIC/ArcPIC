@@ -21,6 +21,7 @@
 
 #include  <stdio.h>
 #include <iostream>
+#include <iomanip>
 #include  <math.h>
 #include  <sys/stat.h>
 #include  <time.h>
@@ -285,10 +286,26 @@ int main () {
 		&En_e, En_i+1, En_i+Lastion, &En_p, &En_tot,
 		1./M_ions[1], 1./M_ions[2], phi, NR, NZ, Omega_pe, dz );
     printf( "...... Initial energy .................... \n" );
-    printf( "e- ......: ne = %10zu En_e = %-9.5f \n",  nr_e, En_e );
-    for (int sort = 0; sort < NSpecies; sort++) {
-      printf( "%s......: np = %10zu En_p = %-9.5f \n", Names[sort], nr_i[sort], En_i[sort]);
+
+    std::cout   << std::setw(8) << std::setfill('.') << std::left << electrons->name
+		<< std::right   << std::setfill(' ')
+		<< " : np = " << std::setw(10) << electrons->GetN()
+		<< ", En = "  << std::setw(10) << En_e << std::endl;
+    for (auto ion : ionSpecies) {
+      size_t sort=1; // TODO
+      std::cout   << std::setw(8) << std::setfill('.') << std::left << ion->name
+		  << std::right   << std::setfill(' ')
+		  << " : np = " << std::setw(10) << ion->GetN()
+		  << ", En = "  << std::setw(10) << En_i[sort] << std::endl;
     }
+    for (auto neutral : neutralSpecies) {
+      size_t sort=2; // TODO
+      std::cout   << std::setw(8) << std::setfill('.') << std::left << neutral->name
+		  << std::right   << std::setfill(' ')
+		  << " : np = " << std::setw(10) << neutral->GetN()
+		  << ", En = "  << std::setw(10) << En_i[sort] << std::endl;
+    }
+    
     printf( "Pot. en..:               En_pot = %-9.5f \n",  En_p );
     printf( "...... Total: En_tot = %-9.6f ........ \n", En_tot);
     printf( "\n");
@@ -694,11 +711,27 @@ int main () {
 	kin_pot_en( electrons, ionSpecies[1], neutralSpecies[0],
 		    &En_e, En_i+1, En_i+Lastion, &En_p, &En_tot, 
 		    1./M_ions[1], 1./M_ions[2], phi, NR, NZ, Omega_pe, dz );
-	printf( "...... Energy balance .................... \n" );  
-	printf( "e- ......: ne = %10zu En_e = %-9.5f \n",  nr_e, En_e );
-	for (int sort = 0; sort < NSpecies; sort++) {
-	  printf( "%s......: np = %10zu En_p = %-9.5f \n", Names[sort], nr_i[sort], En_i[sort]);           
+	printf( "...... Energy balance .................... \n" );
+
+	std::cout   << std::setw(8) << std::setfill('.') << std::left << electrons->name
+		    << std::right   << std::setfill(' ')
+		    << " : np = " << std::setw(10) << electrons->GetN()
+		    << ", En = "  << std::setw(10) << En_e << std::endl;
+	for (auto ion : ionSpecies) {
+	  size_t sort=1; // TODO
+	  std::cout   << std::setw(8) << std::setfill('.') << std::left << ion->name
+		      << std::right   << std::setfill(' ')
+		      << " : np = " << std::setw(10) << ion->GetN()
+		      << ", En = "  << std::setw(10) << En_i[sort] << std::endl;
 	}
+	for (auto neutral : neutralSpecies) {
+	  size_t sort=2; // TODO
+	  std::cout   << std::setw(8) << std::setfill('.') << std::left << neutral->name
+		      << std::right   << std::setfill(' ')
+		      << " : np = " << std::setw(10) << neutral->GetN()
+		      << ", En = "  << std::setw(10) << En_i[sort] << std::endl;
+	}
+	
 	printf( "Pot. en..:               En_pot = %-9.5f \n",  En_p );
 	printf( "...... Total: En_tot = %-9.6f ........ \n", En_tot );
 	printf( "\n" );
