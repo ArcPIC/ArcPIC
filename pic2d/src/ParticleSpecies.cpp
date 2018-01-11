@@ -7,8 +7,8 @@
 
 ParticleSpecies::ParticleSpecies(size_t nr, size_t nz, std::string name, double m_over_me, double q) :
   nr(nr), nz(nz), name(name), m_over_me(m_over_me), q(q) {
-  ordcount = new size_t[nr*nz];
-  temP = new std::vector<size_t>[nr*nz];
+  ordcount = new size_t[(nr+1)*(nz+1)];
+  temP = new std::vector<size_t>[(nr+1)*(nz+1)];
   densMap = new double[(nr+1)*(nz+1)];
   this->ZeroDensityMap();
 }
