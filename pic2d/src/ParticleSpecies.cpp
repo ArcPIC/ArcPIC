@@ -35,7 +35,7 @@ void ParticleSpecies::ReserveSpace(size_t n){
   m.reserve(n);
 }
 
-void ParticleSpecies::order_2D() {
+void ParticleSpecies::Order2D() {
   // Zero ordcount
   for (size_t j=0; j<nr; j++) {
     for (size_t k=0; k<nz; k++){

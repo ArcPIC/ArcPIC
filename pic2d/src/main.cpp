@@ -59,7 +59,6 @@
 #include  "outputz.h"
 #include  "engy.h"
 #include  "colls.h"
-#include  "order.h"
 #include  "input.h"
 #include  "vdf.h"
 #include  "backup.h"
@@ -504,20 +503,22 @@ int main () {
     // Coulomb collisions
     if (ncoll_el>0 && nsteps/ncoll_el*ncoll_el == nsteps) {
       // e-e Coulomb collisions
-      order_2D(elec, nr_e, e_order, nr, nz, NZ);
+      electrons->Order2D();
       coll_el_knm_2D(elec, e_order, nr, nz, NZ, 1., 0, &mcheck, &echeck, ncoll_el);
       
       // i-i Coulomb collisions
-      order_2D(ions + NPART, nr_i[1], i_order + NG, nr, nz, NZ);
+      ionSpecies[1]->Order2D(); //TODO: All species!
       coll_el_knm_2D(ions + NPART, i_order + NG, nr, nz, NZ, M_ions[1], 1, &mcheck, &echeck, ncoll_el);
     }  
     
-    // Other collisions		
+    // Other collisions
     if(ncoll_ion > 0 && nsteps/ncoll_ion*ncoll_ion == nsteps ) {
       
-      order_2D(elec, nr_e, e_order, nr, nz, NZ);                 //TODO: This is often not needed!
-      order_2D(ions + NPART, nr_i[1], i_order + NG, nr, nz, NZ); //TODO: This is often not needed!
-      order_2D(ions + Lastion*NPART, nr_i[Lastion], i_order + Lastion*NG, nr, nz, NZ);   
+      //TODO: This is often not needed!
+      electrons->Order2D();
+      //TODO: This is often not needed!
+      ionSpecies[1]->Order2D(); //TODO: All species!
+      neutralSpecies[0]->Order2D(); //TODO: All species!
       
       //elastic Cu+ Cu collisions
       coll_ion_neutral_noSP_2D( ions + Lastion*NPART, i_order + Lastion*NG, M_ions[Lastion], 

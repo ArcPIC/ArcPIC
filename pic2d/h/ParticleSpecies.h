@@ -62,7 +62,7 @@ class ParticleSpecies {
   const double q;
   
   //Order the particle arrays by cell
-  void order_2D();
+  void Order2D();
 
   //Update the density map
   void UpdateDensityMap( double V_cell[] );
