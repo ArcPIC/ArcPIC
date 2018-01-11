@@ -168,9 +168,6 @@ int main () {
   printf("*** Starting up 2D Arc-PIC code, date:  *** %s\n", ctime(&now_is) );  
   
   //********INITIALISING...********//
-  Names[0] =  "H+ ";
-  Names[1] =  "Cu+";
-  Names[2] =  "Cu ";
   
   // STARTING NEW RUN
   if ( CONTINUATION == 0 ) {

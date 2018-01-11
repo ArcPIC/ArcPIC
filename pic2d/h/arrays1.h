@@ -24,7 +24,6 @@
 // Note: The arrays are allocated in src/my_mem.cpp
 XTRN Particle *temp;
 
-XTRN const char *Names[NSpecies];   // Name of ions
 XTRN double q_ions[NSpecies];       // Charge of ions
 XTRN double M_ions[NSpecies];       // Mass of ions
 XTRN double cs_ions[NSpecies];      // Sound velocity
