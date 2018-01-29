@@ -272,19 +272,19 @@ void ArcBounds::timestep(unsigned int nstep, bool isOutputTimestep) {
 }
 
 // ******** Implementation of ArcRemover ******************
-void ArcRemover::remove_e(Particle pa[], size_t &np) {
-  remover(pa, np, removed_e, current_e, -1, removedElectrons);
+void ArcRemover::remove_e(ParticleSpecies* pa) {
+  remover(pa, removed_e, current_e, -1, removedElectrons);
 }
 
-void ArcRemover::remove_i(Particle pa[], size_t &np, unsigned int sort) {
-  remover(pa, np, removed_i[sort], current_i[sort], 1, removedIons);
+void ArcRemover::remove_i(ParticleSpecies* pa, unsigned int sort) {
+  remover(pa, removed_i[sort], current_i[sort], 1, removedIons);
 }
 
-void ArcRemover::remove_n(Particle pa[], size_t &np) {
-  remover(pa, np, removed_n, current_n, 0, removedNeutrals);
+void ArcRemover::remove_n(ParticleSpecies* pa) {
+  remover(pa, removed_n, current_n, 0, removedNeutrals);
 }
 
-void ArcRemover::remover(Particle pa[], size_t &np,
+void ArcRemover::remover(ParticleSpecies* pa,
 			 int removed[],
 			 int current[],
 			 int chargeSign,
@@ -292,36 +292,43 @@ void ArcRemover::remover(Particle pa[], size_t &np,
   int jr;
   size_t n_lost = 0;
   
-  for (size_t n=0; n<np; n++ ) {
-    if ( pa[n].p.r >= rmax ) {
+  for (size_t n=0; n<pa->GetN(); n++ ) {
+    if ( pa->r[n] >= rmax ) {
       removed[2]++;
-      removedVector.push_back(pa[n]);
+      removedVector.push_back(pa->GetOneParticle(n));
       n_lost++;
-      continue; 
+      continue;
     }
-    else if ( pa[n].p.z >= zmax ) {
-      removed[1]++;     
-      jr = int (pa[n].p.r);
+    else if ( pa->z[n] >= zmax ) {
+      removed[1]++;
+      jr = int (pa->r[n]);
       current[1] += 2*jr+1;
       current_anode[jr] -= chargeSign;
-      removedVector.push_back(pa[n]);
+      removedVector.push_back(pa->GetOneParticle(n));
       n_lost++;
-      continue; 
+      continue;
     }
-    else if ( pa[n].p.z < zmin ) {
+    else if ( pa->z[n] < zmin ) {
       removed[0]++;
-      jr = int (pa[n].p.r);
+      jr = int (pa->r[n]);
       current[0] += 2*jr+1;
       current_cathode[jr] += chargeSign;
-      removedVector.push_back(pa[n]);
+      removedVector.push_back(pa->GetOneParticle(n));
       n_lost++;
-      continue; 
+      continue;
     }
-    //Implicit else: keep this particle
-    pa[n-n_lost].p = pa[n].p;
+    else {
+      //Implicit else: keep this particle
+      // (Only need to move particles if something has been lost)
+      if (n_lost > 0) {
+	pa->CopyParticle(n,n-n_lost);
+      }
+    }
   }
-  
-  np -= n_lost;
+  //Delete the final n_lost particles
+  if (n_lost > 0 ){
+    pa->ResizeDelete(n_lost);
+  }
 }
 
 // ******** Implementation of ArcDummy ******************
@@ -334,23 +341,23 @@ ArcDummy::ArcDummy(std::vector<char*>& options) {
   }
 }
 
-void ArcDummy::remove_e(Particle pa[], size_t &np) {
+void ArcDummy::remove_e(ParticleSpecies* pa) {
   cout << "remove_e" << endl;
 }
-void ArcDummy::remove_i(Particle pa[], size_t &np, unsigned int sort) {
+void ArcDummy::remove_i(ParticleSpecies* pa, unsigned int sort) {
   cout << "remove_i, sort=" << sort << endl;
 }
-void ArcDummy::remove_n(Particle pa[], size_t &np) {
+void ArcDummy::remove_n(ParticleSpecies* pa) {
   cout << "remove_n" << endl;
 }
 
-void ArcDummy::inject_e(Particle pa[], size_t &np, double const Ez[]) {
+void ArcDummy::inject_e(ParticleSpecies* pa, double const Ez[]) {
   cout << "inject_e" << endl;
 }
-void ArcDummy::inject_i(Particle pa[], size_t &np, double const Ez[], unsigned int sort) {
+void ArcDummy::inject_i(ParticleSpecies* pa, double const Ez[], unsigned int sort) {
   cout << "inject_i, sort=" << sort << endl;
 }
-void ArcDummy::inject_n(Particle pa[], size_t &np, double const Ez[]) {
+void ArcDummy::inject_n(ParticleSpecies* pa, double const Ez[]) {
   cout << "inject_n" << endl;
 }
 
@@ -376,39 +383,38 @@ void ArcSimple::print_par() const {
   printf( " - file_timestep_hist   %u \n", this->file_timestep_hist );
 }
 
-void ArcSimple::inject_e(Particle pa[], size_t &np, double const Ez[]) {
-  injector(pa,np,ne_inject);
+void ArcSimple::inject_e(ParticleSpecies* pa, double const Ez[]) {
+  injector(pa,ne_inject);
   injected_e[0] += ne_inject;
   current_e [0] += ne_inject; //All injected in cell (0,0)
   current_cathode[0] += ne_inject;
 }
-void ArcSimple::inject_i(Particle pa[], size_t &np, double const Ez[], unsigned int sort) {
+void ArcSimple::inject_i(ParticleSpecies* pa, double const Ez[], unsigned int sort) {
   if ( sort != 1) return; //Only make Cu
-  injector(pa,np,ni_inject);
+  injector(pa,ni_inject);
   injected_i[1][0] += ni_inject;
   current_i [1][0] += ni_inject; //All injected in cell (0,0)
   current_cathode[0] -= ni_inject;
 }
-void ArcSimple::inject_n(Particle pa[], size_t &np, double const Ez[]) {
-  injector(pa,np,nn_inject);
+void ArcSimple::inject_n(ParticleSpecies* pa, double const Ez[]) {
+  injector(pa,nn_inject);
   injected_n[0] += nn_inject;
 }
 
-void ArcSimple::injector(Particle pa[], size_t &np, unsigned int n_inject) {
+void ArcSimple::injector(ParticleSpecies* pa, unsigned int n_inject) {
   //Insert particles with zero velocity randomly into first cell
-  if (np + n_inject >= NPART ) {
-    cout << "Error in ArcSimple::injector(): Particle overflow" << endl;
-    exit(1);
-  }
 
-  for (unsigned int i = 0; i < n_inject; i++) {
-    pa[np+i].p.r = RAND*dr;
-    pa[np+i].p.z = RAND*dz;
-    
-    pa[np+i].p.vr = pa[np+i].p.vt = pa[np+i].p.vz = 0.0;
-    pa[np+i].p.m = 1;
-  }
+  pa->ExpandBy(n_inject);
   
-  np += n_inject;
+  for (unsigned int i = 0; i < n_inject; i++) {
+    pa->r.push_back( RAND*dr );
+    pa->z.push_back( RAND*dz );
+    
+    pa->vr.push_back( 0.0 );
+    pa->vt.push_back( 0.0 );
+    pa->vz.push_back( 0.0 );
+    
+    pa->m.push_back( 1 );;
+  }
 }
 

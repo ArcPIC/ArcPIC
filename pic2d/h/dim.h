@@ -18,7 +18,6 @@
 
 ***********************************************************************/
 
-#define  NPART    2000000
 #define  Lastion  2         // last ion with q != 0
 #define  NSpecies 3         // non-electron species
 

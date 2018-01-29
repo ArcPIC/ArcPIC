@@ -121,13 +121,13 @@ FlexFN_twoComp_origNeutrals::~FlexFN_twoComp_origNeutrals() {
 }
 
 
-void FlexFN_twoComp_origNeutrals::inject_e(Particle pa[], size_t &np, double const Ez[]) {
+void FlexFN_twoComp_origNeutrals::inject_e(ParticleSpecies* pa, double const Ez[]) {
   //Fowler-nordheim two-component injection
   for (unsigned int i = 0; i < nr+1; i++) FN_current[i] = 0;
   for (unsigned int i = 0; i < 2; i++) {
     calcFN_current(Ez,FN_alpha[i],FN_beta[i],FN_current);
   }
-  injectFN(pa, np, FN_current, Ez);
+  injectFN(pa, FN_current, Ez);
   for (unsigned int i = 0; i < nr+1; i++) FN_current_sum[i] += FN_current[i];
 
   //SEY at cathode
@@ -136,44 +136,40 @@ void FlexFN_twoComp_origNeutrals::inject_e(Particle pa[], size_t &np, double con
   // SEY: inject with incident r-coordinates, empty SEY variables!
   size_t totY = 0;
   for (size_t k=0; k < sput_cathode_SEY.size(); k++ ) {
+
+    pa->ExpandBy( sput_cathode_SEY[k].Y );
     for (int i=0; i < sput_cathode_SEY[k].Y; i++ ) {
-      if ( ( np + totY ) >= NPART ) {
-	printf("Error in FlexFN_twoComp_origNeutrals::inject_e(): Particle array overflow (SEY)\n");
-	exit(1);
-      }
-      
+
+      // Gaussian scheme
       do { r1 = sqrt(-2.*log(RAND+1.e-20)); }
       while( r1 > 5. );
-      
-      // Gaussian scheme
       r2 = RAND * TWOPI;
-      pa[np+totY].p.vr = r1*cos(r2)*v_inj_e;
-      pa[np+totY].p.vt = r1*sin(r2)*v_inj_e;
+      pa->vr.push_back( r1*cos(r2)*v_inj_e );
+      pa->vt.push_back( r1*sin(r2)*v_inj_e );
       
       // Gaussian scheme
-      do { r1 = sqrt(-2.*log(RAND+1.e-20)); } 
+      do { r1 = sqrt(-2.*log(RAND+1.e-20)); }
       while( r1 > 5. );
-      pa[np+totY].p.vz = r1*v_inj_e; 
+      pa->vz.push_back( r1*v_inj_e );
       
-      pa[np+totY].p.z = zmin + pa[np+totY].p.vz;
-      pa[np+totY].p.r = sput_cathode_SEY[k].r + pa[np+totY].p.vr;
-      if ( pa[np+totY].p.r < 0 ) pa[np+totY].p.r = 1.e-20;
-      else if ( pa[np+totY].p.r > nr) pa[np+totY].p.r = 2*nr - pa[np+totY].p.r;
+      pa->z.push_back( zmin + pa->vz.back() );
+      pa->r.push_back( sput_cathode_SEY[k].r + pa->vr.back() );
+      if ( pa->r.back() < 0 )      pa->r.back() = 1.e-20;
+      else if ( pa->r.back() > nr) pa->r.back() = 2*nr - pa->r.back();
 
-      pa[np+totY].p.m = 1;
+      pa->m.push_back( 1 );
       
-      current_e[0] += 2*( int(pa[np+totY].p.r) ) + 1;
+      current_e[0] += 2*( int(pa->r.back()) ) + 1;
 
       totY++;
     }
   }
-  np += totY;
+  
   injected_e[0] += totY;
   sput_cathode_SEY.clear();
 }
 
-void FlexFN_twoComp_origNeutrals::inject_n(Particle pa[], size_t &np,
-					   double const Ez[]) {
+void FlexFN_twoComp_origNeutrals::inject_n(ParticleSpecies* pa, double const Ez[]) {
 
   double v_inj_i = vt_ions[2];
 
@@ -186,11 +182,8 @@ void FlexFN_twoComp_origNeutrals::inject_n(Particle pa[], size_t &np,
     tmp -= n2inject_evap;
     if ( RAND <= tmp ) n2inject_evap++;
     FN_current_sum[i] = 0.0;
-    
-    if ( ( np + n2inject_evap ) >= NPART) {
-      printf("Error in FlexFN_twoComp_origNeutrals::inject_n(): Particle array overflow ( evaporation in cell %zu )\n", i);
-      exit(1);
-    }
+
+    pa->ExpandBy(n2inject_evap);
     
     //Inject the particles: Uniform distribution over the cell
     for ( size_t k=0; k<n2inject_evap; k++ ) {
@@ -198,81 +191,79 @@ void FlexFN_twoComp_origNeutrals::inject_n(Particle pa[], size_t &np,
       // Gaussian scheme
       do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
       r2 = RAND * TWOPI;
-      pa[np+k].p.vr = r1*cos(r2)*v_inj_i; // do not suppress
-      pa[np+k].p.vt = r1*sin(r2)*v_inj_i; // do not suppress
+      pa->vr.push_back( r1*cos(r2)*v_inj_i ); // do not suppress
+      pa->vt.push_back( r1*sin(r2)*v_inj_i ); // do not suppress
       // Gaussian scheme
       do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
-      pa[np+k].p.vz = r1*v_inj_i;
+      pa->vz.push_back( r1*v_inj_i );
       
       // uniform random position on annulus
       double a = i > 0  ? (i-0.5) : 0.0;
       double b = i < nr ? (i+0.5) : nr;
-      pa[np+k].p.r = sqrt((b*b-a*a)*RAND+a*a);
-      pa[np+k].p.z = zmin;
+      pa->r.push_back( sqrt((b*b-a*a)*RAND+a*a) );
+      pa->z.push_back( zmin );
       
       //Fractional timestep push (euler method, no acceleration)
       double Rp = RAND; //1-R; how (fractionally) far into the timestep
                         // are we at z=0?
-      pa[np+k].p.r  += Rp*n2inj_step*pa[np+k].p.vr;
-      pa[np+k].p.z  += Rp*n2inj_step*pa[np+k].p.vz;
+      pa->r.back()  += Rp*n2inj_step*pa->vr.back();
+      pa->z.back()  += Rp*n2inj_step*pa->vz.back();
       
-      if ( pa[np+k].p.r < 0 ) pa[np+k].p.r = -pa[np+k].p.r; //Reflect on axis
-      else if ( pa[np+k].p.r > nr) pa[np+k].p.r = 2*nr - pa[np+k].p.r;
+      if ( pa->r.back() < 0 )      pa->r.back() = -pa->r.back(); //Reflect on axis
+      else if ( pa->r.back() > nr) pa->r.back() = 2*nr - pa->r.back();
 
-      pa[np+k].p.m = 1; //SN;    
+      pa->m.push_back( 1 ); //SN;
     }
-    np += n2inject_evap;
+    
     injected_n[0] += n2inject_evap;
   }
   
   // Cathode, sputtering
-  inject_sput(pa, np, sput_cathode, true, v_inj_i);
+  inject_sput(pa, sput_cathode, true, v_inj_i);
   // Anode, sputtering only
-  inject_sput(pa, np, sput_anode, false, v_inj_i);
+  inject_sput(pa, sput_anode, false, v_inj_i);
 }
-void FlexFN_twoComp_origNeutrals::inject_sput(Particle pa[], size_t &np, std::vector<Sput> &sput, bool isCathode, double v_inj) {
+void FlexFN_twoComp_origNeutrals::inject_sput(ParticleSpecies* pa, std::vector<Sput> &sput, bool isCathode, double v_inj) {
   
   double r1, r2;
 
   size_t m = sput.size();
   size_t tot = 0;
   for ( size_t k=0; k<m; k++ ) {
+
+    pa->ExpandBy( sput[k].Y );
     for ( int i=0; i<sput[k].Y; i++ ) {
-      if ( ( np + tot ) >= NPART) {
-	printf("Error in FlexFN_twoComp_origNeutrals::inject_n(): Particle array overflow (sputtering)\n");
-	exit(1);
-      }
-      
-      // Gaussian scheme      
-      do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
-      r2 = RAND * TWOPI;
-      pa[np+tot].p.vr = r1*cos(r2)*v_inj;
-      pa[np+tot].p.vt = r1*sin(r2)*v_inj; 
       
       // Gaussian scheme
       do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
-      pa[np+tot].p.vz = isCathode ? r1*v_inj : -r1*v_inj;
+      r2 = RAND * TWOPI;
+      pa->vr.push_back( r1*cos(r2)*v_inj );
+      pa->vt.push_back( r1*sin(r2)*v_inj );
       
-      pa[np+tot].p.z = (isCathode ? zmin : zmax) + pa[np+tot].p.vz;
-      pa[np+tot].p.r = sput[k].r + pa[np+tot].p.vr; 
+      // Gaussian scheme
+      do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
+      pa->vz.push_back( isCathode ? r1*v_inj : -r1*v_inj );
       
-      if ( pa[np+tot].p.r < 0 ) pa[np+tot].p.r = 1.e-20;
-      else if ( pa[np+tot].p.r > nr) pa[np+tot].p.r = 2*nr - pa[np+tot].p.r;
+      pa->z.push_back( (isCathode ? zmin : zmax) + pa->vz.back() );
+      pa->r.push_back( sput[k].r + pa->vr.back() );
+      
+      if ( pa->r.back() < 0 )      pa->r.back() = 1.e-20;
+      else if ( pa->r.back() > nr) pa->r.back() = 2*nr - pa->r.back();
 
-      pa[np+tot].p.m = 1; //SN;
+      pa->m.push_back( 1 ); //SN;
       
       // Sum up total yield for outputting
       tot++;
     }
   }
-  np += tot;
+  
   injected_n[isCathode ? 0 : 1] += tot;
   sput.clear();
 }
-void FlexFN_twoComp_origNeutrals::remove_i(Particle pa[], size_t &np, unsigned int sort) {
+void FlexFN_twoComp_origNeutrals::remove_i(ParticleSpecies* pa, unsigned int sort) {
   if(sort != 1){
-    if (np != 0) {
-      printf("Error detected in FlexFN_twoComp_origNeutrals::remove_i(): %zu particles of sort=%u\n", np,sort);
+    if (pa->GetN() != 0) {
+      printf("Error detected in FlexFN_twoComp_origNeutrals::remove_i(): %zu particles of sort=%u\n", pa->GetN(),sort);
       exit(1);
     }
     return;
@@ -298,22 +289,22 @@ void FlexFN_twoComp_origNeutrals::remove_i(Particle pa[], size_t &np, unsigned i
   int SEY_i = int ( SEY );
   double SEY_f = SEY - SEY_i;
   
-  for (size_t n=0; n<np; n++ ) {
+  for (size_t n=0; n<pa->GetN(); n++ ) {
     //"Infinity"
-    if ( pa[n].p.r >= rmax ) {
+    if ( pa->r[n] >= rmax ) {
       removed_i[sort][2]++;
-      removedIons.push_back(pa[n]);
+      removedIons.push_back(pa->GetOneParticle(n));
       n_lost++;
-      continue; 
+      continue;
     }
     //Cathode
-    else if ( pa[n].p.z < zmin ) {
+    else if ( pa->z[n] < zmin ) {
       removed_i[sort][0]++;
-      current_i[sort][0] += 2*(int(pa[n].p.r))+1;
-      current_cathode[ int(pa[n].p.r) ] += 1;
-      removedIons.push_back(pa[n]);
+      current_i[sort][0] += 2*(int(pa->r[n]))+1;
+      current_cathode[ int(pa->r[n]) ] += 1;
+      removedIons.push_back(pa->GetOneParticle(n));
       
-      Sput newSput = calc_sput(pa[n], cs_ions[sort], current);
+      Sput newSput = calc_sput(pa->GetOneParticle(n), cs_ions[sort], current);
       if ( newSput.Y != 0 ) {
 	sput_cathode_temp.push_back(newSput);
 	Ycat_sum += newSput.Y;
@@ -322,40 +313,57 @@ void FlexFN_twoComp_origNeutrals::remove_i(Particle pa[], size_t &np, unsigned i
       // SEY = 0.5 = constant, only from ions hitting the cathode
       // SEY with registering r-coordinates
       // Set reasonable threshold for incident ion energy (e.g. 100 eV)
-      if ( (SQU(pa[n].p.vz) + SQU(pa[n].p.vr) + SQU(pa[n].p.vt))*T_ref/(2*SQU(cs_ions[sort])) > 100 ) {
+      if ( (SQU(pa->vz[n]) + SQU(pa->vr[n]) + SQU(pa->vt[n]))*T_ref/(2*SQU(cs_ions[sort])) > 100 ) {
 	if ( RAND <= SEY_f ) {
 	  Sput foo;
-	  foo.r = pa[n].p.r;
+	  foo.r = pa->r[n];
 	  foo.Y = SEY_i+1;
 	  sput_cathode_SEY.push_back(foo);
 	}
 	else if ( SEY_i > 0 ) {
 	  Sput foo;
-	  foo.r = pa[n].p.r;
+	  foo.r = pa->r[n];
 	  foo.Y = SEY_i;
 	  sput_cathode_SEY.push_back(foo);
 	}
       }
       n_lost++;
-      continue; 
+      continue;
     }
     //Anode
-    else if ( pa[n].p.z >= zmax ) {	
+    else if ( pa->z[n] >= zmax ) {
       removed_i[sort][1]++;
-      current_i[sort][1] += 2*(int(pa[n].p.r))+1;
-      current_anode[ int(pa[n].p.r) ] -= 1;
-      removedIons.push_back(pa[n]);      
+      current_i[sort][1] += 2*(int(pa->r[n]))+1;
+      current_anode[ int(pa->r[n]) ] -= 1;
+      removedIons.push_back(pa->GetOneParticle(n));
       
-      Sput newSput = calc_sput(pa[n], cs_ions[sort], NULL);
+      Sput newSput = calc_sput(pa->GetOneParticle(n), cs_ions[sort], NULL);
       if ( newSput.Y != 0 ) sput_anode.push_back(newSput);
       
       n_lost++;
-      continue; 
+      continue;
     }
     //Implicit else: keep this particle
-    pa[n-n_lost].p = pa[n].p;
+    if (n_lost > 0) {
+      //Only need to move particles if something has been lost
+      pa->z[n-n_lost] = pa->z[n];
+      pa->r[n-n_lost] = pa->r[n];
+      pa->vz[n-n_lost] = pa->vz[n];
+      pa->vr[n-n_lost] = pa->vr[n];
+      pa->vt[n-n_lost] = pa->vt[n];
+      pa->m[n-n_lost] = pa->m[n];
+    }
   }
-  np -= n_lost; 
+  //Delete the final n_lost particles
+  if (n_lost > 0 ){
+    size_t np = pa->GetN();
+    pa->z.resize(np-n_lost);
+    pa->r.resize(np-n_lost);
+    pa->vz.resize(np-n_lost);
+    pa->vr.resize(np-n_lost);
+    pa->vt.resize(np-n_lost);
+    pa->m.resize(np-n_lost);
+  }
   
   // Enhanced yield?
   bool check_enh = false;
@@ -401,48 +409,65 @@ void FlexFN_twoComp_origNeutrals::remove_i(Particle pa[], size_t &np, unsigned i
     fflush(stdout);
   }
 }
-void FlexFN_twoComp_origNeutrals::remove_n(Particle pa[], size_t &np){
+void FlexFN_twoComp_origNeutrals::remove_n(ParticleSpecies* pa){
   size_t n_lost = 0; 
   
-  for (size_t n=0; n<np; n++ ) {
+  for (size_t n=0; n<pa->GetN(); n++ ) {
     //"Infinity"
-    if ( pa[n].p.r >= rmax ) {
-      removedNeutrals.push_back(pa[n]);
+    if ( pa->r[n] >= rmax ) {
+      removedNeutrals.push_back(pa->GetOneParticle(n));
       removed_n[2]++;
       n_lost++;
-      continue; 
+      continue;
     }
     //Cathode
-    else if ( pa[n].p.z < zmin ) {
+    else if ( pa->z[n] < zmin ) {
       removed_n[0]++;
-      current_n[0] += 2*(int(pa[n].p.r))+1;
-      removedNeutrals.push_back(pa[n]);      
+      current_n[0] += 2*(int(pa->r[n]))+1;
+      removedNeutrals.push_back(pa->GetOneParticle(n));
       
-      Sput newSput = calc_sput(pa[n], cs_ions[NSpecies-1], NULL);
+      Sput newSput = calc_sput(pa->GetOneParticle(n), cs_ions[NSpecies-1], NULL);
       if ( newSput.Y != 0 ) sput_cathode.push_back(newSput);
 
-      n_lost++; 
-      continue; 
+      n_lost++;
+      continue;
     }
     //Anode
-    else if ( pa[n].p.z >= zmax ) {
+    else if ( pa->z[n] >= zmax ) {
       removed_n[1]++;
-      current_n[1] += 2*(int(pa[n].p.r))+1;
-      removedNeutrals.push_back(pa[n]);
+      current_n[1] += 2*(int(pa->r[n]))+1;
+      removedNeutrals.push_back(pa->GetOneParticle(n));
       
-      Sput newSput = calc_sput(pa[n], cs_ions[NSpecies-1], NULL);
+      Sput newSput = calc_sput(pa->GetOneParticle(n), cs_ions[NSpecies-1], NULL);
       if ( newSput.Y != 0 ) sput_anode.push_back(newSput);
 
-      n_lost++; 
-      continue; 
+      n_lost++;
+      continue;
     }
     //Implicit else: keep this particle
-    pa[n-n_lost].p = pa[n].p; 
+    if (n_lost > 0) {
+      //Only need to move particles if something has been lost
+      pa->z[n-n_lost] = pa->z[n];
+      pa->r[n-n_lost] = pa->r[n];
+      pa->vz[n-n_lost] = pa->vz[n];
+      pa->vr[n-n_lost] = pa->vr[n];
+      pa->vt[n-n_lost] = pa->vt[n];
+      pa->m[n-n_lost] = pa->m[n];
+    }
   }
-  np -= n_lost;  
+  //Delete the final n_lost particles
+  if (n_lost > 0 ){
+    size_t np = pa->GetN();
+    pa->z.resize(np-n_lost);
+    pa->r.resize(np-n_lost);
+    pa->vz.resize(np-n_lost);
+    pa->vr.resize(np-n_lost);
+    pa->vt.resize(np-n_lost);
+    pa->m.resize(np-n_lost);
+  }
 }
 
-Sput FlexFN_twoComp_origNeutrals::calc_sput(const Particle& pa,
+Sput FlexFN_twoComp_origNeutrals::calc_sput(const Particle pa,
 					     const double cs,
 					     double* current_enhancedY) {
   double nrg = SQU(pa.p.vz) + SQU(pa.p.vr) + SQU(pa.p.vt);

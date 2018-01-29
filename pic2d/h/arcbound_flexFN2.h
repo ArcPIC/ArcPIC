@@ -31,7 +31,7 @@ class FlexFN2 : public ArcRemover {
  public:
   //Inject electron superparticles into a ring between r1 and r2 [dz]
   // with a setable alpha and beta, using the same injection algorithm as FlexFN.
-  void injectFNring(Particle pa[], size_t &np,
+  void injectFNring(ParticleSpecies* pa,
 		    double alpha, double beta, double const Ez[],
 		    double r1, double r2);
 
@@ -46,14 +46,13 @@ class FlexFN2_ring : public FlexFN2 {
 
   virtual void print_par() const;
 
-  virtual void inject_e(Particle pa[], size_t &np, double const Ez[]);
-  virtual void inject_i(Particle pa[], size_t &np, double const Ez[],
-			unsigned int sort) {}; //NOP
-  virtual void inject_n(Particle pa[], size_t &np, double const Ez[]) {}; //NOP
+  virtual void inject_e(ParticleSpecies* pa, double const Ez[]);
+  virtual void inject_i(ParticleSpecies* pa, double const Ez[], unsigned int sort) {}; //NOP
+  virtual void inject_n(ParticleSpecies* pa, double const Ez[]) {}; //NOP
 
   //Save and restore backup data
   virtual void backup(FILE* file) {};
-  virtual void restoreBackup(FILE* file) {};  
+  virtual void restoreBackup(FILE* file) {};
 
   virtual const char* getName() const { return "FlexFN2_ring"; };
  private:

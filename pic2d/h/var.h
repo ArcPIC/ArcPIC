@@ -61,8 +61,6 @@ XTRN int diagn_start,
   NR, NZ, //Number of grids (nr+=1)
   nsteps, nstepsmax, nstepsmin;
 
-//Array indices/used-lengths
-XTRN size_t nr_e;
 
 XTRN int CONTINUATION,
   MAGNETIC,

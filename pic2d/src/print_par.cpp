@@ -125,11 +125,6 @@ void print_parameters_2D( void ) {
     printf( "   (DPhi/Dr=0 in r=nr aka infty, alternative implementation)\n");
 
   printf( "\n" );
-  printf( "\n" );
-
-  printf( "Array allocation parameters: \n" );
-  printf( " NPART = %i  \n", NPART );
-  printf( "\n" );
   printf( "_______________________________________________________________\n" );
   printf( " \n");
   fflush(stdout);

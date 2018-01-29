@@ -14,7 +14,7 @@
   Developers: Helga Timko, Kyrre Sjobak
 
   pic.h:
-  Definition of structres
+  Definition of data structures
 
 ***********************************************************************/
 

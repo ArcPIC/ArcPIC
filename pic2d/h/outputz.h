@@ -18,6 +18,8 @@
 
 ***********************************************************************/
 
+#include "ParticleSpecies.h"
+
 void out_fv_along_2D( double fvz[], double fvr[], double fvabs[], int nr, int nz,
 		      const char *dat1, const char *dat2, const char *dat3 );
 void out_fv_along_2D_h5( double fvz[], double fvr[], double fvabs[], int nr, int nz,
@@ -61,10 +63,10 @@ void out_temps_2D_h5( Moments  mom[], double u0, double fnorm, int nr, int nz, i
 		      const char* const tablename1, const char* const tablename2, const char* const tablename3, H5::Group& group_temp );
 
 
-void out_coords_2D( Particle pa[], size_t np, int fnorm,
+void out_coords_2D( ParticleSpecies* pa, int fnorm,
 		    double omega_pe, double dz,
 		    const char *dat );
-void out_coords_2D_h5( Particle pa[], size_t np, int fnorm,
+void out_coords_2D_h5( ParticleSpecies* pa, int fnorm,
 		       double omega_pe, double dz,
 		       const char* const tablename, H5::Group& group_coords );
 

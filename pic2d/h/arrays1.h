@@ -21,13 +21,9 @@
 #ifndef ARRAYS1_H
 #define ARRAYS1_H
 
-XTRN Particle *elec;
-XTRN Particle *ions;
+// Note: The arrays are allocated in src/my_mem.cpp
 XTRN Particle *temp;
 
-XTRN const char *Names[NSpecies];   // Name of ions
-XTRN size_t nr_i[NSpecies];         // Nr of ions
-XTRN double q_ions[NSpecies];       // Charge of ions
 XTRN double M_ions[NSpecies];       // Mass of ions
 XTRN double cs_ions[NSpecies];      // Sound velocity
 XTRN double vt_ions[NSpecies];      // Thermal velocity
@@ -37,7 +33,7 @@ XTRN Moments *mom_el, *mom_ion;
 XTRN double* Vcell;
 
 // Densities
-XTRN double *n_e, *n_i, *n_e_av, *n_i_av;
+XTRN double *n_e_av, *n_i_av;
 
 // EM-fields
 XTRN double *phi, *phi_av;

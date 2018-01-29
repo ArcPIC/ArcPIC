@@ -121,10 +121,11 @@ void ArcOriginal::re_init(unsigned int nr, double zmin, double zmax, double rmax
   ArcOriginal::init(nr, zmin, zmax, rmax); //ArcBounds::re_init just calls init()
 }
 
-void ArcOriginal::remove_i(Particle pa[], size_t &np, unsigned int sort) {
+void ArcOriginal::remove_i(ParticleSpecies* pa, unsigned int sort) {
+  //Only works for Cu+ ions
   if(sort != 1){
-    if (np != 0) {
-      printf("Error detected in ArcOriginal::remove_i(): %zu particles of sort=%u\n", np,sort);
+    if (pa->GetN() != 0) {
+      printf("Error detected in ArcOriginal::remove_i(): %zu particles of sort=%u\n", pa->GetN(),sort);
       exit(1);
     }
     return;
@@ -150,22 +151,22 @@ void ArcOriginal::remove_i(Particle pa[], size_t &np, unsigned int sort) {
   int SEY_i = int ( SEY );
   double SEY_f = SEY - SEY_i;
   
-  for (size_t n=0; n<np; n++ ) {
+  for (size_t n=0; n<pa->GetN(); n++ ) {
     //"Infinity"
-    if ( pa[n].p.r >= rmax ) {
+    if ( pa->r[n] >= rmax ) {
       removed_i[sort][2]++;
-      removedIons.push_back(pa[n]);
+      removedIons.push_back(pa->GetOneParticle(n));
       n_lost++;
-      continue; 
+      continue;
     }
     //Cathode
-    else if ( pa[n].p.z < zmin ) {
+    else if ( pa->z[n] < zmin ) {
       removed_i[sort][0]++;
-      current_i[sort][0] += 2*(int(pa[n].p.r))+1;
-      current_cathode[ int(pa[n].p.r) ] += 1;
-      removedIons.push_back(pa[n]);
+      current_i[sort][0] += 2*(int(pa->r[n]))+1;
+      current_cathode[ int(pa->r[n]) ] += 1;
+      removedIons.push_back(pa->GetOneParticle(n));
 
-      Sput newSput = calc_sput(pa[n], cs_ions[sort], current);
+      Sput newSput = calc_sput(pa->GetOneParticle(n), cs_ions[sort], current);
       if ( newSput.Y != 0 ) {
 	sput_cathode_temp.push_back(newSput);
 	Ycat_sum += newSput.Y;
@@ -174,16 +175,16 @@ void ArcOriginal::remove_i(Particle pa[], size_t &np, unsigned int sort) {
       // SEY = 0.5 = constant, only from ions hitting the cathode
       // SEY with registering r-coordinates
       // Set reasonable threshold for incident ion energy (e.g. 100 eV)
-      if ( (SQU(pa[n].p.vz) + SQU(pa[n].p.vr) + SQU(pa[n].p.vt))*T_ref/(2*SQU(cs_ions[sort])) > 100 ) {
+      if ( (SQU(pa->vz[n]) + SQU(pa->vr[n]) + SQU(pa->vt[n]))*T_ref/(2*SQU(cs_ions[sort])) > 100 ) {
 	if ( RAND <= SEY_f ) {
 	  Sput foo;
-	  foo.r = pa[n].p.r;
+	  foo.r = pa->r[n];
 	  foo.Y = SEY_i+1;
 	  sput_cathode_SEY.push_back(foo);
 	}
 	else if ( SEY_i > 0 ) {
 	  Sput foo;
-	  foo.r = pa[n].p.r;
+	  foo.r = pa->r[n];
 	  foo.Y = SEY_i;
 	  sput_cathode_SEY.push_back(foo);
 	}
@@ -192,22 +193,28 @@ void ArcOriginal::remove_i(Particle pa[], size_t &np, unsigned int sort) {
       continue; 
     }
     //Anode
-    else if ( pa[n].p.z >= zmax ) {	
+    else if ( pa->z[n] >= zmax ) {
       removed_i[sort][1]++;
-      current_i[sort][1] += 2*(int(pa[n].p.r))+1;
-      current_anode[ int(pa[n].p.r) ] -= 1;      
-      removedIons.push_back(pa[n]);
+      current_i[sort][1] += 2*(int(pa->r[n]))+1;
+      current_anode[ int(pa->r[n]) ] -= 1;
+      removedIons.push_back(pa->GetOneParticle(n));
       
-      Sput newSput = calc_sput(pa[n], cs_ions[sort], NULL);
+      Sput newSput = calc_sput(pa->GetOneParticle(n), cs_ions[sort], NULL);
       if ( newSput.Y != 0 ) sput_anode.push_back(newSput);
       
       n_lost++;
       continue; 
     }
     //Implicit else: keep this particle
-    pa[n-n_lost].p = pa[n].p;
+    // (Only need to move particles if something has been lost)
+    if (n_lost > 0) {
+      pa->CopyParticle(n,n-n_lost);
+    }
   }
-  np -= n_lost; 
+  //Delete the final n_lost particles
+  if (n_lost > 0 ){
+    pa->ResizeDelete(n_lost);
+  }
   
   // Enhanced yield?
   bool check_enh = false;
@@ -250,48 +257,54 @@ void ArcOriginal::remove_i(Particle pa[], size_t &np, unsigned int sort) {
 
   sput_cathode_temp.clear();
 }
-void ArcOriginal::remove_n(Particle pa[], size_t &np){
+void ArcOriginal::remove_n(ParticleSpecies* pa){
   size_t n_lost = 0; 
   
-  for (size_t n=0; n<np; n++ ) {
+  for (size_t n=0; n<pa->GetN(); n++ ) {
     //"Infinity"
-    if ( pa[n].p.r >= rmax ) {
+    if ( pa->r[n] >= rmax ) {
       removed_n[2]++;
-      removedNeutrals.push_back(pa[n]);
+      removedNeutrals.push_back(pa->GetOneParticle(n));
       n_lost++;
       continue; 
     }
     //Cathode
-    else if ( pa[n].p.z < zmin ) {
+    else if ( pa->z[n] < zmin ) {
       removed_n[0]++;
-      current_n[0] += 2*(int(pa[n].p.r))+1;
-      removedNeutrals.push_back(pa[n]);      
+      current_n[0] += 2*(int(pa->r[n]))+1;
+      removedNeutrals.push_back(pa->GetOneParticle(n));
 
-      Sput newSput = calc_sput(pa[n], cs_ions[NSpecies-1], NULL);
+      Sput newSput = calc_sput(pa->GetOneParticle(n), cs_ions[NSpecies-1], NULL);
       if ( newSput.Y != 0 ) sput_cathode.push_back(newSput);
 
       n_lost++; 
       continue; 
     }
     //Anode
-    else if ( pa[n].p.z >= zmax ) {
+    else if ( pa->z[n] >= zmax ) {
       removed_n[1]++;
-      current_n[1] += 2*(int(pa[n].p.r))+1;
-      removedNeutrals.push_back(pa[n]);
+      current_n[1] += 2*(int(pa->r[n]))+1;
+      removedNeutrals.push_back(pa->GetOneParticle(n));
 
-      Sput newSput = calc_sput(pa[n], cs_ions[NSpecies-1], NULL);
+      Sput newSput = calc_sput(pa->GetOneParticle(n), cs_ions[NSpecies-1], NULL);
       if ( newSput.Y != 0 ) sput_anode.push_back(newSput);
 
-      n_lost++; 
-      continue; 
+      n_lost++;
+      continue;
     }
     //Implicit else: keep this particle
-    pa[n-n_lost].p = pa[n].p; 
+    // (Only need to move particles if something has been lost)
+    if (n_lost > 0) {
+      pa->CopyParticle(n,n-n_lost);
+    }
   }
-  np -= n_lost;  
+  //Delete the final n_lost particles
+  if (n_lost > 0 ){
+    pa->ResizeDelete(n_lost);
+  }
 }
 
-Sput ArcOriginal::calc_sput(const Particle& pa, const double cs, double* current_enhancedY) {
+Sput ArcOriginal::calc_sput(const Particle pa, const double cs, double* current_enhancedY) {
   double nrg = SQU(pa.p.vz) + SQU(pa.p.vr) + SQU(pa.p.vt);
   nrg *= T_ref/(2*SQU(cs));
   if ( nrg > 23.383 ) { //in eV
@@ -332,7 +345,7 @@ Sput ArcOriginal::calc_sput(const Particle& pa, const double cs, double* current
   return ret;
 }
 
-void ArcOriginal::inject_e(Particle pa[], size_t &np, double const Ez[]) {
+void ArcOriginal::inject_e(ParticleSpecies* pa, double const Ez[]) {
   //Field (dimless & GV/m inl. beta) and emitted currents(tip & flat)
   double field, Eloc, j;
   double jFN[nr];
@@ -390,39 +403,36 @@ void ArcOriginal::inject_e(Particle pa[], size_t &np, double const Ez[]) {
   // SEY: inject with incident r-coordinates, empty SEY variables!
   size_t totY = 0;
   for (size_t k=0; k < sput_cathode_SEY.size(); k++ ) {
+    
+    pa->ExpandBy( sput_cathode_SEY[k].Y );
     for (int i=0; i < sput_cathode_SEY[k].Y; i++ ) {
-      if ( ( np + totY ) >= NPART ) {
-	printf("Error in ArcOriginal::inject_e(): Particle array overflow (SEY)\n");
-	exit(1);
-      }
       
       do { r1 = sqrt(-2.*log(RAND+1.e-20)); }
       while( r1 > 5. );
       
       // Gaussian scheme
       r2 = RAND * TWOPI;
-      pa[np+totY].p.vr = r1*cos(r2)*v_inj_e;
-      pa[np+totY].p.vt = r1*sin(r2)*v_inj_e;
+      pa->vr.push_back( r1*cos(r2)*v_inj_e );
+      pa->vt.push_back( r1*sin(r2)*v_inj_e );
       
       // Gaussian scheme
       do { r1 = sqrt(-2.*log(RAND+1.e-20)); } 
       while( r1 > 5. );
-      pa[np+totY].p.vz = r1*v_inj_e; 
+      pa->vz.push_back( r1*v_inj_e );
       
-      pa[np+totY].p.z = zmin + pa[np+totY].p.vz;
-      pa[np+totY].p.r = sput_cathode_SEY[k].r + pa[np+totY].p.vr;
-      if ( pa[np+totY].p.r < 0 ) pa[np+totY].p.r = 1.e-20;
-      else if (pa[np+totY].p.r > nr) pa[np+totY].p.r = 2*nr - pa[np+totY].p.r;
+      pa->z.push_back( zmin + pa->vz.back() );
+      pa->r.push_back( sput_cathode_SEY[k].r + pa->vr.back() );
+      if ( pa->r.back() < 0 )      pa->r.back() = 1.e-20;
+      else if ( pa->r.back() > nr) pa->r.back() = 2*nr - pa->r.back();
 
-      pa[np+totY].p.m = 1;
+      pa->m.push_back( 1 );
       
-      current_e[0] += 2*( int(pa[np+totY].p.r) ) + 1;
-      current_cathode[ int(pa[np+totY].p.r) ] += 1;
+      current_e[0] += 2*( int(pa->r.back()) ) + 1;
+      current_cathode[ int(pa->r.back()) ] += 1;
 
       totY++;
     }
   }
-  np += totY;
   injected_e[0] += totY;
   sput_cathode_SEY.clear();
 
@@ -433,59 +443,55 @@ void ArcOriginal::inject_e(Particle pa[], size_t &np, double const Ez[]) {
   j -= tmp;
   if ( RAND <= j ) tmp++;
   
-  if ( ( np + tmp ) >= NPART) {
-    printf("Error in ArcOriginal::inject_e(): Particle array overflow (FN at field emitter)\n");
-    exit(1);
-  }
-  
-  for  (size_t k=0; k<tmp; k++ ) {     
+  pa->ExpandBy(tmp);
+  for  (size_t k=0; k<tmp; k++ ) {
     if (fracInjectStep) {
       //Velocity
       do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
       r2 = RAND * TWOPI;
-      pa[np+k].p.vr = r1*cos(r2)*v_inj_e;
-      pa[np+k].p.vt = r1*sin(r2)*v_inj_e;
+      pa->vr.push_back( r1*cos(r2)*v_inj_e );
+      pa->vt.push_back( r1*sin(r2)*v_inj_e );
       do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
-      pa[np+k].p.vz = r1*v_inj_e;
+      pa->vz.push_back( r1*v_inj_e );
       
       //Position
       // uniform random position on disc
-      pa[np+k].p.r = Remission*sqrt(RAND);
-      pa[np+k].p.z = zmin;
+      pa->r.push_back( Remission*sqrt(RAND) );
+      pa->z.push_back( zmin );
       
       //Fractional timestep push (euler method)
       double Rp = RAND; //1-R; how (fractionally) far into the timestep
                         // are we at z=0?
-      pa[np+k].p.r  += Rp*e2inj_step*pa[np+k].p.vr;
-      pa[np+k].p.z  += Rp*e2inj_step*pa[np+k].p.vz;
+      pa->r.back() += Rp*e2inj_step*pa->vr.back();
+      pa->z.back() += Rp*e2inj_step*pa->vz.back();
       //No magnetic field, E = Ez on surface
-      pa[np+k].p.vz -= (Rp*e2inj_step-0.5)*2*Ez[0];
+      pa->vz.back() -= (Rp*e2inj_step-0.5)*2*Ez[0];
       
-      if ( pa[np+k].p.r < 0 ) pa[np+k].p.r = -pa[np+k].p.r; //Reflect on axis
-      else if (pa[np+k].p.r > nr) pa[np+k].p.r = 2*nr - pa[np+k].p.r;
+      if ( pa->r.back() < 0 )     pa->r.back() = -pa->r.back(); //Reflect on axis
+      else if (pa->r.back() > nr) pa->r.back() = 2*nr - pa->r.back();
     }
     else {
       // Gaussian scheme
       do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
       r2 = RAND * TWOPI;
-      pa[np+k].p.vr = r1*cos(r2)*v_inj_e;
-      pa[np+k].p.vt = r1*sin(r2)*v_inj_e;
+      pa->vr.push_back( r1*cos(r2)*v_inj_e );
+      pa->vt.push_back( r1*sin(r2)*v_inj_e );
       
       // Gaussian scheme
       do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
-      pa[np+k].p.vz = r1*v_inj_e; 
+      pa->vz.push_back( r1*v_inj_e );
       
-      pa[np+k].p.z = zmin + pa[np+k].p.vz;
-      pa[np+k].p.r = Remission * sqrt(RAND) + pa[np+k].p.vr;
+      pa->z.push_back( zmin + pa->vz.back() );
+      pa->r.push_back( Remission * sqrt(RAND) + pa->vr.back() );
       
-      if ( pa[np+k].p.r < 0 ) pa[np+k].p.r = 1.e-20;
-      else if (pa[np+k].p.r > nr) pa[np+k].p.r = 2*nr - pa[np+k].p.r;
+      if ( pa->r.back() < 0 )     pa->r.back() = 1.e-20;
+      else if (pa->r.back() > nr) pa->r.back() = 2*nr - pa->r.back();
     }
-    pa[np+k].p.m = 1;
-    current_e[0] += 2*( int(pa[np+k].p.r) ) + 1;
-    current_cathode[ int(pa[np+k].p.r) ] += 1;
+    pa->m.push_back( 1 );
+    
+    current_e[0] += 2*( int(pa->r.back()) ) + 1;
+    current_cathode[ int(pa->r.back()) ] += 1;
   }
-  np += tmp;
 
   injected_e[0] += tmp;  
   emitted       += tmp;
@@ -499,74 +505,70 @@ void ArcOriginal::inject_e(Particle pa[], size_t &np, double const Ez[]) {
       jFN[jj] -= tmp;
       if ( RAND <= jFN[jj] ) tmp++;
       
-      if ( ( np + tmp ) >= NPART) {
-	printf("Error in ArcOriginal::inject_e(): Particle array overflow (FN outside field emitter)\n");
-	exit(1);
-      }
-      
+      pa->ExpandBy(tmp);
       for  (size_t k=0; k<tmp; k++ ) { 
 	if (fracInjectStep) {
 	  //Velocity
 	  do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
 	  r2 = RAND * TWOPI;
-	  pa[np+k].p.vr = r1*cos(r2)*v_inj_e;
-	  pa[np+k].p.vt = r1*sin(r2)*v_inj_e;
+	  pa->vr.push_back( r1*cos(r2)*v_inj_e );
+	  pa->vt.push_back( r1*sin(r2)*v_inj_e );
 	  do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
-	  pa[np+k].p.vz = r1*v_inj_e;
+	  pa->vz.push_back( r1*v_inj_e );
 	  
 	  //Position
 	  if ( Remission <= jj )
-	    pa[np+k].p.r = jj + RAND;
+	    pa->r.push_back( jj + RAND );
 	  else if ( (Remission > jj) && (Remission < jj+1) )
-	    pa[np+k].p.r = Remission + (jj + 1 - Remission) * RAND;
+	    pa->r.push_back( Remission + (jj + 1 - Remission) * RAND );
 
-	  pa[np+k].p.z = zmin;
+	  pa->z.push_back( zmin );
 	  
 	  //Fractional timestep push (euler method)
 	  double Rp = RAND; //1-R; how (fractionally) far into the timestep
 	  // are we at z=0?
-	  pa[np+k].p.r  += Rp*e2inj_step*pa[np+k].p.vr;
-	  pa[np+k].p.z  += Rp*e2inj_step*pa[np+k].p.vz;
+	  pa->r.back()  += Rp*e2inj_step*pa->vr.back();
+	  pa->z.back()  += Rp*e2inj_step*pa->vz.back();
 	  //No magnetic field, E = Ez on surface
-	  pa[np+k].p.vz -= (Rp*e2inj_step-0.5)*2*Ez[(jj+1)*NZ];
+	  pa->vz.back() -= (Rp*e2inj_step-0.5)*2*Ez[(jj+1)*NZ];
 	  
-	  if ( pa[np+k].p.r < 0 ) pa[np+k].p.r = -pa[np+k].p.r; //Reflect on axis
-	  else if (pa[np+k].p.r > nr) pa[np+k].p.r = 2*nr - pa[np+k].p.r;
+	  if ( pa->r.back() < 0 ) pa->r.back() = -pa->r.back(); //Reflect on axis
+	  else if (pa->r.back() > nr) pa->r.back() = 2*nr - pa->r.back();
 
 	}
 	else {	
 	  // Gaussian scheme
 	  do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
 	  r2 = RAND * TWOPI;
-	  pa[np+k].p.vr = r1*cos(r2)*v_inj_e; 
-	  pa[np+k].p.vt = r1*sin(r2)*v_inj_e; 
+	  pa->vr.push_back( r1*cos(r2)*v_inj_e );
+	  pa->vt.push_back( r1*sin(r2)*v_inj_e );
 	  
 	  // Gaussian scheme	
 	  do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
-	  pa[np+k].p.vz = r1*v_inj_e;
+	  pa->vz.push_back( r1*v_inj_e );
 	  
-	  pa[np+k].p.z = zmin + pa[np+k].p.vz;
+	  pa->z.push_back( zmin + pa->vz.back() );
 	  if ( Remission <= jj )
-	    pa[np+k].p.r = jj + RAND + pa[np+k].p.vr;
+	    pa->r.push_back( jj + RAND + pa->vr.back() );
 	  else if ( (Remission > jj) && (Remission < jj+1) )
-	    pa[np+k].p.r = Remission + (jj + 1 - Remission) * RAND + pa[np+k].p.vr;
+	    pa->r.push_back( Remission + (jj + 1 - Remission) * RAND + pa->vr.back() );
 	  
-	  if ( pa[np+k].p.r < 0 ) pa[np+k].p.r = 1.e-20;
-	  else if (pa[np+k].p.r > nr) pa[np+k].p.r = 2*nr - pa[np+k].p.r;
+	  if ( pa->r.back() < 0 )     pa->r.back() = 1.e-20;
+	  else if (pa->r.back() > nr) pa->r.back() = 2*nr - pa->r.back();
 	}
-	pa[np+k].p.m = 1;
-	current_e[0] += 2*( int(pa[np+k].p.r) ) + 1;
-	current_cathode[ int(pa[np+k].p.r) ] += 1;
+	pa->m.push_back( 1 );
+	
+	current_e[0] += 2*( int(pa->r.back()) ) + 1;
+	current_cathode[ int(pa->r.back()) ] += 1;
       }
-      np += tmp;
 
       injected_e[0] += tmp;
-#warning Every FN electron counts for evaporation, but only injecting Cu close to tip
+#warning Every FN electron counts for evaporation, but we are only injecting Cu close to tip
       emitted += tmp;
     }
   } 
 }
-void ArcOriginal::inject_n(Particle pa[], size_t &np, double const Ez[]) {
+void ArcOriginal::inject_n(ParticleSpecies* pa, double const Ez[]) {
   // evaporation of neutrals
   double tmp = r_Cu_e * emitted;
   int n2inject_evap = int ( tmp );
@@ -577,75 +579,70 @@ void ArcOriginal::inject_n(Particle pa[], size_t &np, double const Ez[]) {
   // Cathode, neutral evaporation
   double r1, r2;
   size_t m = n2inject_evap;
-  if ( ( np + m ) >= NPART) {
-    printf("Error in ArcOriginal::inject_n(): Particle array overflow (evaporation)\n");
-    exit(1);
-  }
+  pa->ExpandBy(m);
   for ( size_t k=0; k<m; k++ ) {
     // Gaussian scheme
     do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
     r2 = RAND * TWOPI;
-    pa[np+k].p.vr = r1*cos(r2)*v_inj_i; // do not suppress
-    pa[np+k].p.vt = r1*sin(r2)*v_inj_i; // do not suppress
+    pa->vr.push_back( r1*cos(r2)*v_inj_i ); // do not suppress
+    pa->vt.push_back( r1*sin(r2)*v_inj_i ); // do not suppress
     
     // Gaussian scheme
     do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
-    pa[np+k].p.vz = r1*v_inj_i;
+    pa->vz.push_back( r1*v_inj_i );
     
-    pa[np+k].p.z = zmin + pa[np+k].p.vz;
-    pa[np+k].p.r = Remission * sqrt(RAND) + pa[np+k].p.vr;
+    pa->z.push_back( zmin + pa->vz.back() );
+    pa->r.push_back( Remission * sqrt(RAND) + pa->vr.back() );
     
-    if ( pa[np+k].p.r < 0 ) pa[np+k].p.r = 1.e-20;
-    else if (pa[np+k].p.r > nr) pa[np+k].p.r = 2*nr - pa[np+k].p.r;
+    if ( pa->r.back() < 0 )     pa->r.back() = 1.e-20;
+    else if (pa->r.back() > nr) pa->r.back() = 2*nr - pa->r.back();
 
-    pa[np+k].p.m = 1; //SN;
+    pa->m.push_back( 1 ); //SN;
     
   }
-  np += m;
+  
   erosion += n2inject_evap; //Erosion only due to neutral evap
   injected_n[0] += n2inject_evap;
   
   // Cathode, sputtering
-  inject_sput(pa, np, sput_cathode, true);
+  inject_sput(pa, sput_cathode, true);
   // Anode, sputtering only
-  inject_sput(pa, np, sput_anode, false);
+  inject_sput(pa, sput_anode, false);
 }
-void ArcOriginal::inject_sput(Particle pa[], size_t &np, std::vector<Sput> &sput, bool isCathode) {
+void ArcOriginal::inject_sput(ParticleSpecies* pa, std::vector<Sput> &sput, bool isCathode) {
   
   double r1, r2;
 
   size_t m = sput.size();
   size_t tot = 0;
   for ( size_t k=0; k<m; k++ ) {
+    
+    pa->ExpandBy(sput[k].Y);
     for ( int i=0; i<sput[k].Y; i++ ) {
-      if ( ( np + tot ) >= NPART) {
-	printf("Error in ArcOriginal::inject_n(): Particle array overflow (sputtering)\n");
-	exit(1);
-      }
       
       // Gaussian scheme      
       do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
       r2 = RAND * TWOPI;
-      pa[np+tot].p.vr = r1*cos(r2)*v_inj_i;
-      pa[np+tot].p.vt = r1*sin(r2)*v_inj_i; 
+      pa->vr.push_back( r1*cos(r2)*v_inj_i );
+      pa->vt.push_back( r1*sin(r2)*v_inj_i );
       
       // Gaussian scheme
       do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
-      pa[np+tot].p.vz = isCathode ? r1*v_inj_i : -r1*v_inj_i;
+      pa->vz.push_back( isCathode ? r1*v_inj_i : -r1*v_inj_i );
       
-      pa[np+tot].p.z = (isCathode ? zmin : zmax) + pa[np+tot].p.vz;
-      pa[np+tot].p.r = sput[k].r + pa[np+tot].p.vr; 
+      pa->z.push_back( (isCathode ? zmin : zmax) + pa->vz.back() );
+      pa->r.push_back( sput[k].r + pa->vr.back() );
       
-      if ( pa[np+tot].p.r < 0 ) pa[np+tot].p.r = 1.e-20;
-      else if (pa[np+tot].p.r > nr) pa[np+tot].p.r = 2*nr - pa[np+tot].p.r;
+      if ( pa->r.back() < 0 )     pa->r.back() = 1.e-20;
+      else if (pa->r.back() > nr) pa->r.back() = 2*nr - pa->r.back();
 
-      pa[np+tot].p.m = 1; //SN;
+      pa->m.push_back( 1 ); //SN;
       
       // Sum up total yield for outputting
       tot++;
     }
   }
-  np += tot;
+  
   injected_n[isCathode ? 0 : 1] += tot;
   sput.clear();
 }

@@ -31,18 +31,6 @@
 
 void allocate_arrays( int nr, int nz, int** perm_c, int** perm_r, double** rhs ) {
   
-  // Allocate particle arrays
-  try {
-    elec =  new Particle[NPART];
-    ions =  new Particle[NSpecies*NPART];
-  }
-  catch (const std::bad_alloc&) {
-    printf("Error in allocate_arrays():\n");
-    printf("Could not allocate the requested memory for particle arrays\n");
-    printf("Most likely, NPART is too high.\n");
-    exit(1);
-  }
-
   //Only allocate VDF arrays if they are needed
   if ( OUT_VDF == 0 ) {
     vdf_ez   = new double[Nvdst*(nr+1)/2*(nz+1)/2];
@@ -74,8 +62,6 @@ void allocate_arrays( int nr, int nz, int** perm_c, int** perm_r, double** rhs )
   Vcell = new double[(nr+1)];
 
   // Densities
-  n_e = new double[(nr+1)*(nz+1)];
-  n_i = new double[NSpecies*(nr+1)*(nz+1)];
   n_e_av = new double[(nr+1)*(nz+1)];
   n_i_av = new double[NSpecies*(nr+1)*(nz+1)];
 
@@ -127,9 +113,6 @@ void allocate_arrays( int nr, int nz, int** perm_c, int** perm_r, double** rhs )
 
 
 void delete_arrays( int** perm_c, int** perm_r, double** rhs ) {
-  
-  delete[] elec;
-  delete[] ions;
   
   SUPERLU_FREE (*perm_r);
   SUPERLU_FREE (*perm_c);

@@ -15,7 +15,7 @@
 
   initialParticles.cpp:
   Pre-fill the system with some particles
-   (neutral background gas etc.)  
+   (neutral background gas etc.)
 
 ***********************************************************************/
 
@@ -160,45 +160,43 @@ void UniformRestricted::print_par() {
   printf( " - N_sp            %g \n",         this->N_sp );
   printf( " - num_inject      %zu \n",        num_inject );
 }
-void UniformRestricted::inject_e(Particle pa[], size_t &np) {
+void UniformRestricted::inject_e(ParticleSpecies* pa) {
   double vInj = sqrt(Tinj/T_ref)*v_te;
-  if (doInject_e) injector(pa,np, vInj);
+  if (doInject_e) injector(pa, vInj);
 }
-void UniformRestricted::inject_n(Particle pa[], size_t &np) {
+void UniformRestricted::inject_n(ParticleSpecies* pa) {
+  if ( pa->charge != 0. ) {
+    printf ( "Error in UniformRestricted::inject_n(): Species '%s' is not a neutral!", pa->name );
+    exit(1);
+  }
+
   double vInj = dt_ion * sqrt(1/M_ions[Lastion]) * sqrt(Tinj/T_ref)*v_te;
-  if (doInject_n) injector(pa,np, vInj);
+  if (doInject_n) injector(pa, vInj);
 }
-void UniformRestricted::inject_i(Particle pa[], size_t &np, unsigned int sort) {
-  if ( sort != 1) return; //Only inject Cu
-  if ( q_ions[sort] == 0. ) {
-    printf ( "Error in UniformRestricted::inject_i(): sort %u is not an ion!", sort );
+void UniformRestricted::inject_i(ParticleSpecies* pa) {
+  if ( pa->charge == 0. ) {
+    printf ( "Error in UniformRestricted::inject_i(): Species '%s' is not an ion!", pa->name );
     exit(1);
   }
   
-  double vInj = dt_ion * sqrt(1/M_ions[sort]) * sqrt(Tinj/T_ref)*v_te;
-  if (doInject_i) injector(pa,np, vInj);
+  double vInj = dt_ion * sqrt(1/pa->mass) * sqrt(Tinj/T_ref)*v_te;
+  if (doInject_i) injector(pa, vInj);
 }
 
-void UniformRestricted::injector(Particle pa[], size_t &np, double vInj) {
-  //Sanity check
-  if ((np + num_inject) > NPART) {
-    printf("Error in UniformRestricted::injector: Particle array overflow\n");
-    printf("np=%zu, num_inject=%zu\n", np, num_inject);
-    exit(1);
-  }
+void UniformRestricted::injector(ParticleSpecies* pa, double vInj) {
+    pa->ReserveSpace(num_inject);
   
   for (size_t i = 0; i < num_inject; i++) {
     //Position: Uniform within requested area (swept into volume)
-    pa[i+np].p.z = minZ + (maxZ-minZ)*RAND;
-    pa[i+np].p.r = sqrt((maxR*maxR-minR*minR)*RAND + minR*minR);
+    pa->z.push_back( minZ + (maxZ-minZ)*RAND );
+    pa->r.push_back( sqrt((maxR*maxR-minR*minR)*RAND + minR*minR) );
     
     //Velocity: Inject thermal gas
-    pa[i+np].p.vz = GausRandom(0, vInj);
-    pa[i+np].p.vr = GausRandom(0, vInj);
-    pa[i+np].p.vt = GausRandom(0, vInj);
+    pa->vz.push_back( GausRandom(0, vInj) );
+    pa->vr.push_back( GausRandom(0, vInj) );
+    pa->vt.push_back( GausRandom(0, vInj) );
     
     //Stuff
-    pa[i+np].p.m = 1;
+    pa->m.push_back( 1 );
   }
-  np += num_inject;
 }

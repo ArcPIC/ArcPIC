@@ -18,7 +18,12 @@
 
 ***********************************************************************/
 
-void vel_dst_along_2D( double* fvz, double* fvr, double* fvabs, Particle pa[], 
-		       size_t np, int nr, int nz, double dvt, int n_av );
+#ifndef VDF_H
+#define VDF_H
 
+#include "ParticleSpecies.h"
 
+void vel_dst_along_2D( double* fvz, double* fvr, double* fvabs, ParticleSpecies* pa,
+		       int nr, int nz, double dvt, int n_av );
+
+#endif

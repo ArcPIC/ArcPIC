@@ -27,9 +27,11 @@
 #include "pic.h"
 #include "dim.h"
 
+#include "ParticleSpecies.h"
+
 #include <cstdlib>
 
-double inducedCharge_cathode(Particle pa[], size_t np, size_t ordcount[]);
-double inducedCharge_anode(Particle pa[], size_t np, size_t ordcount[]);
+double inducedCharge_cathode(ParticleSpecies* pa);
+double inducedCharge_anode(ParticleSpecies* pa);
 
 #endif

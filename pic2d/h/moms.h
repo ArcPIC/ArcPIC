@@ -18,16 +18,22 @@
 
 ***********************************************************************/
 
+#ifndef MOMS_H
+#define MOMS_H
+
+#include "ParticleSpecies.h"
+
 void aver_moments_2D( Moments mom[], int n_av,
-		      Particle pa[], size_t np,
+		      ParticleSpecies* pa,
 		      int nr, int nz, int NZ );
 
 void aver_diagn_2D( const double dens[], double dens_av[],
-		    Particle pa[], double temp_av[], double np_av[],
-		    size_t np, int n_av, int nr, int nz, int NR, int NZ );
+		    ParticleSpecies* pa, double temp_av[], double np_av[],
+		    int n_av, int nr, int nz, int NR, int NZ );
 
 void aver_moments_SN_2D( Moments mom[], int n_av,
 			 Particle pa[], size_t np,
 			 int nr, int nz, int NZ );
 
 
+#endif

@@ -18,15 +18,17 @@
 
 ***********************************************************************/
 
-void  push_2D( Particle pa[], const double Eg_r[], const double Eg_z[], 
-	       size_t np, int NZ );
+#include "ParticleSpecies.h"
 
-void  push_magnetic_onlyBz_2D( Particle pa[], const double Eg_r[], const double Eg_z[],
-			       const double Bz, double factor, size_t np, int NZ );
+void  push_2D( ParticleSpecies* pa, const double Eg_r[], const double Eg_z[],
+	       int NZ );
 
-void  push_magnetic_2D( Particle pa[], const double Eg_r[], const double Eg_z[], 
-			const double Bextz, const double Bextt, double factor, size_t np, int NZ );
+void  push_magnetic_onlyBz_2D( ParticleSpecies* pa, const double Eg_r[], const double Eg_z[],
+			       const double Bz, double factor, int NZ );
 
-void  push_neutrals_2D( Particle pa[], size_t np );
+void  push_magnetic_2D( ParticleSpecies* pa, const double Eg_r[], const double Eg_z[],
+			const double Bextz, const double Bextt, double factor, int NZ );
+
+void  push_neutrals_2D( ParticleSpecies* pa );
 
 

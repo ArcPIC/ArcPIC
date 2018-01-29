@@ -42,7 +42,9 @@ void save_data( const char *fdata ) {
   //fprintf(file,"%19.11e %19.11e %19.11e %19.11e %19.11e %19.11e\n", n_ref, T_ref, Ndb, dz, dr, Omega_pe);
   fprintf(file,"%19.11e %19.11e %19.11e %19.11e %19.11e\n", n_ref, T_ref, dz, dr, Omega_pe); // possibility to re-start with different Ndb
   fprintf(file,"%19.11e %19.11e %19.11e %19.11e\n", Rmin, Rmax, Zmin, Zmax);
+  /* FIXME
   fprintf(file,"%11d %11d %11d %11d %11zu\n", nr, NR, nz, NZ, nr_e);
+  */
   fprintf(file,"%11d %11d %11d %11d %11d %11d %19.11e\n",
 	  nsteps, nstepsmax, dt_ion, dt_diagn, ncoll_el, ncoll_ion, Ampl);
   fprintf(file,"%11d %11d %11d\n",
@@ -58,11 +60,13 @@ void save_data( const char *fdata ) {
   
   circuit->backup(file);
   
-  // ION ARRAYS	
+  // ION ARRAYS
+  /* FIXME
   for(int sort=0; sort < NSpecies; sort++) {
     fprintf(file,"%11zu %23.15e %23.15e %23.15e %23.15e\n",
 	    nr_i[sort], q_ions[sort], M_ions[sort], cs_ions[sort], vt_ions[sort]);
   }
+  */
   
   // VCELL
   for (int i=0; i<NR; i++) {
@@ -70,6 +74,7 @@ void save_data( const char *fdata ) {
   }
   
   // PARTICLES
+  /* FIXME
   for(size_t i=0; i < nr_e; i++) {
     fprintf(file,"%23.15e %23.15e %23.15e %23.15e %23.15e %5d %3d\n",
 	    elec[i].p.z, elec[i].p.r, elec[i].p.vz,
@@ -84,6 +89,7 @@ void save_data( const char *fdata ) {
 	      ion_sort[i].p.vr, ion_sort[i].p.vt, ion_sort[i].p.m, sort);
     }
   }
+  */
   
   // E_GRID TO START FROM PUSHER
   for(int i=0; i < NR*NZ; i++) {
@@ -112,7 +118,9 @@ void read_data( const char *fdata ) {
   //fscanf(file,"%19lg %19lg %19lg %19lg %19lg %19lg", &n_ref, &T_ref, &Ndb, &dz, &dr, &Omega_pe);
   fscanf(file,"%19lg %19lg %19lg %19lg %19lg", &n_ref, &T_ref, &dz, &dr, &Omega_pe); // possibility to re-start with different Ndb
   fscanf(file,"%19lg %19lg %19lg %19lg", &Rmin, &Rmax, &Zmin, &Zmax);
+  /* FIXME
   fscanf(file,"%11d %11d %11d %11d %zu", &nr, &NR, &nz, &NZ, &nr_e);
+  */
   fscanf(file,"%11d %11d %11d %11d %11d %11d %19lg",
 	 &nsteps, &nstepsmax, &dt_ion, &dt_diagn, &ncoll_el, &ncoll_ion, &Ampl);
   fscanf(file,"%11d %11d %11d", &e2inj_step, &n2inj_step, &i2inj_step);
@@ -127,18 +135,20 @@ void read_data( const char *fdata ) {
   
   circuit->restoreBackup(file);
   
-  // ION ARRAYS	
+  // ION ARRAYS
+  /* FIXME
   for (int sort=0; sort < NSpecies; sort++) {
     fscanf(file,"%zu %23lg %23lg %23lg %23lg",
 	   nr_i+sort, q_ions+sort, M_ions+sort, cs_ions+sort, vt_ions+sort);
   }
-  
+  */
   // VCELL
   for (int i=0; i<NR; i++){
     fscanf(file,"%19lg",&(Vcell[i]));
   }
   
   // PARTICLES
+  /* FIXME
   for(size_t i=0; i < nr_e; i++) {
     fscanf(file,"%23lg %23lg %23lg %23lg %23lg %5d %3d",
 	   &(elec[i].p.z), &(elec[i].p.r), &(elec[i].p.vz),
@@ -152,7 +162,7 @@ void read_data( const char *fdata ) {
 	     &(ion_sort[i].p.vr), &(ion_sort[i].p.vt), &(ion_sort[i].p.m), &dummy );
     }
   }
-  
+  */
   
   // E_GRID TO START FROM PUSHER
   for(int i=0; i < NR*NZ; i++) {

@@ -31,6 +31,7 @@
 #include "dim.h"
 #include "pic.h"
 #include "mydef.h"
+#include "outputz.h"
 
 /***************************
  Outputting routines
@@ -479,23 +480,23 @@ void out_temps_2D_h5( Moments  mom[], double u0, double fnorm, int nr, int nz, i
   }
 }
 
-void out_coords_2D( Particle pa[], size_t np, int fnorm,
+void out_coords_2D( ParticleSpecies* pa, int fnorm,
 		    double omega_pe, double dz, const char *dat ) {
   FILE *file;
   double vnorm = dz/omega_pe/fnorm;
   
   file = fopen(dat, "w");
   
-  for (size_t i=0; i<np; i++)  {
-    fprintf(file, "% .5e % .5e % .5e % .5e % .5e \n", pa[i].p.z*dz, pa[i].p.r*dz,
-	    pa[i].p.vz*vnorm, pa[i].p.vr*vnorm, pa[i].p.vt*vnorm);
+  for (size_t i=0; i < pa->GetN(); i++)  {
+    fprintf(file, "% .5e % .5e % .5e % .5e % .5e \n", (pa->z[i])*dz, (pa->r[i])*dz,
+	    (pa->vz[i])*vnorm, (pa->vr[i])*vnorm, (pa->vt[i])*vnorm);
   }
   
   fclose(file);
   
 }
 
-void out_coords_2D_h5( Particle pa[], size_t np, int fnorm,
+void out_coords_2D_h5( ParticleSpecies* pa, int fnorm,
 		       double omega_pe, double dz,
 		       const char* const tablename, H5::Group& group_coords ) {
   
@@ -504,11 +505,11 @@ void out_coords_2D_h5( Particle pa[], size_t np, int fnorm,
   //std::cout << "out_coords_2D_h5 tablename="<<tablename<<std::endl;
   
   // HDF5 is internally row-major (i.e. C convention)
-  hsize_t dims_file[2] = {np,5};
+  hsize_t dims_file[2] = {pa->GetN(),5};
   H5::DataSpace dataspace_file(2, dims_file);
   H5::DataSet dataset = group_coords.createDataSet(tablename, H5::PredType::NATIVE_DOUBLE, dataspace_file);
 
-  if (np==0) {
+  if (pa->GetN()==0) {
     //Don't try to write to an empty dataset
     return;
   }
@@ -520,8 +521,8 @@ void out_coords_2D_h5( Particle pa[], size_t np, int fnorm,
   const hsize_t offset_memInFile[] = {0,0};
   dataspace_file.selectHyperslab(H5S_SELECT_SET, dims_mem, offset_memInFile);
 
-  for (ssize_t i=0; i<np; i++)  {
-    double databuffer[] = { pa[i].p.z*dz, pa[i].p.r*dz, pa[i].p.vz*vnorm, pa[i].p.vr*vnorm, pa[i].p.vt*vnorm};
+  for (ssize_t i=0; i<pa->GetN(); i++)  {
+    double databuffer[] = { (pa->z[i])*dz, (pa->r[i])*dz, (pa->vz[i])*vnorm, (pa->vr[i])*vnorm, (pa->vt[i])*vnorm};
     
     const hssize_t offset_memInFile_shift[] = {i,0};
     dataspace_file.offsetSimple(offset_memInFile_shift);
@@ -530,7 +531,7 @@ void out_coords_2D_h5( Particle pa[], size_t np, int fnorm,
 }
 
 // Create the HDF5 file for the current ouput timestep
-H5::H5File* createH5File_timestep(const int nsteps, std::string basename = "output"){
+H5::H5File* createH5File_timestep(const int nsteps, std::string basename){
   
   std::ostringstream timestep_string;
   timestep_string << std::setw(8) << std::setfill('0') << nsteps;
