@@ -26,7 +26,7 @@ if(GSL_FOUND)
   target_include_directories(ArcPIC PUBLIC ${GSL_INCLUDE_DIRS})
   target_link_libraries(ArcPIC ${GSL_LIBRARIES})
 else(GSL_FOUND)
-  message("ERROR: OpenMP could not be found.")
+  message("ERROR: LibGSL could not be found.")
 endif(GSL_FOUND)
 
 #Use HDF5 for the heavy IO
