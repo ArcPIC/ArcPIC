@@ -490,44 +490,45 @@ int main () {
 
     } //END IF ION STEP
 
-    // V. MCC COLLISIONS
+    // V. MCC COLLISIONS (IF NOT DISABLED)
+    if (NOCOLL == 1) {
+      // Coulomb collisions
+      if (ncoll_el>0 && nsteps/ncoll_el*ncoll_el == nsteps) {
+        // e-e Coulomb collisions
+        electrons->Order2D();
+        coll_el_knm_2D(electrons, nr, nz, NZ, 0, &mcheck, &echeck, ncoll_el);
 
-    // Coulomb collisions
-    if (ncoll_el>0 && nsteps/ncoll_el*ncoll_el == nsteps) {
-      // e-e Coulomb collisions
-      electrons->Order2D();
-      coll_el_knm_2D(electrons, nr, nz, NZ, 0, &mcheck, &echeck, ncoll_el);
+        // i-i Coulomb collisions
+        ionSpecies[1]->Order2D(); //TODO: All species!
+        coll_el_knm_2D(ionSpecies[1], nr, nz, NZ, 1, &mcheck, &echeck, ncoll_el);
+      }
 
-      // i-i Coulomb collisions
-      ionSpecies[1]->Order2D(); //TODO: All species!
-      coll_el_knm_2D(ionSpecies[1], nr, nz, NZ, 1, &mcheck, &echeck, ncoll_el);
-    }
+      // Other collisions
+      if(ncoll_ion > 0 && nsteps/ncoll_ion*ncoll_ion == nsteps ) {
 
-    // Other collisions
-    if(ncoll_ion > 0 && nsteps/ncoll_ion*ncoll_ion == nsteps ) {
+        //TODO: This is often not needed!
+        electrons->Order2D();
+        //TODO: This is often not needed!
+        ionSpecies[1]->Order2D(); //TODO: All species!
+        neutralSpecies[0]->Order2D(); //TODO: All species!
 
-      //TODO: This is often not needed!
-      electrons->Order2D();
-      //TODO: This is often not needed!
-      ionSpecies[1]->Order2D(); //TODO: All species!
-      neutralSpecies[0]->Order2D(); //TODO: All species!
+        //elastic Cu+ Cu collisions
+        coll_ion_neutral_noSP_2D( neutralSpecies[0],
+                                  ionSpecies[1],
+                                  nr, nz, NZ, React_Cup_Cu_el, &mcheck, &echeck );
 
-      //elastic Cu+ Cu collisions
-      coll_ion_neutral_noSP_2D( neutralSpecies[0],
-                                ionSpecies[1],
-                                nr, nz, NZ, React_Cup_Cu_el, &mcheck, &echeck );
+        //elastic Cu Cu collisions
+        coll_n_n_2D( neutralSpecies[0], nr, nz, NZ, React_Cu_Cu, &mcheck, &echeck );
 
-      //elastic Cu Cu collisions
-      coll_n_n_2D( neutralSpecies[0], nr, nz, NZ, React_Cu_Cu, &mcheck, &echeck );
+        //elastic el Cu collisions
+        coll_el_all_fake_2D( neutralSpecies[0],
+                             electrons, nr, nz, NZ, React_Cu_el );
 
-      //elastic el Cu collisions
-      coll_el_all_fake_2D( neutralSpecies[0],
-                           electrons, nr, nz, NZ, React_Cu_el );
-
-      // e + Cu = Cu+ + 2e
-      coll_el_neutrals_2D( neutralSpecies[0],
-                           electrons, ionSpecies[1],
-                           nr, nz, NZ, React_Cu_ion, &mcheck, &echeck );
+        // e + Cu = Cu+ + 2e
+        coll_el_neutrals_2D( neutralSpecies[0],
+                             electrons, ionSpecies[1],
+                             nr, nz, NZ, React_Cu_ion, &mcheck, &echeck );
+      }
     }
 
     // VI. UPDATE POTENTIAL

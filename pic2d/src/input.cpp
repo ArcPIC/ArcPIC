@@ -156,6 +156,9 @@ void input( void ) {
 
   fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%d", &BINARY_OUTPUT);
+
+  fscanf(in_file,"%*[^:]%*[:]");
+  fscanf(in_file,"%d", &NOCOLL);
   
   // MISCELLANEOUS
   fscanf(in_file,"%*[^:]%*[:]"); 

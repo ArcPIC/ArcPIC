@@ -202,16 +202,17 @@ Tinj          : 300     Injection temperature [eV]
 * OPTIONS *
 (0=yes 1=no)
 
-Outputting particle coordinates:	0
-Outputting electric field:		0
-Outputting VDF:				1
-Magnetic field on:			1
+Outputting particle coordinates: 0
+Outputting electric field:		 0
+Outputting VDF:                  1
+Magnetic field on:               1
 
 (0 = new run, otherwise use nr of previous run + 1)
-Continue from which run:		0
+Continue from which run:         0
 
-Use binary (HDF5) output files:         0
+Use binary (HDF5) output files:  0
 
+Disable collissions:             1
 
 * MISCELLANEOUS *
 
