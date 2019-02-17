@@ -195,7 +195,7 @@ char* readInputSection (FILE* in_file, vector<char*>& options_ret, bool acceptNo
   fgets(foo,NAME_MAXLEN,in_file);
   if (foo[NAME_MAXLEN-1] != '\0') {
     cout << "Error in readInputSection(): Ran out of space in foo (pos1)." 
-	 << " Check whitespace in input.txt!" << endl;
+         << " Check whitespace in input.txt!" << endl;
     exit(1);
   }
 

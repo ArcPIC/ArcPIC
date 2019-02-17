@@ -16,37 +16,36 @@
 
 * SCALING PARAMETERS *
 
-Reference density in 1/cm3:		16.0e18
-Reference temperature in eV:		2900.
-Particles in a Debye cube Ndb:		1500.
+Reference density in 1/cm3:             16.0e18
+Reference temperature in eV:            2900.
+Particles in a Debye cube Ndb:          1500.
 
-Number of cells nr, nz:			480 120
-Grid size dz in Debyes:			.5
-Timestep dt in Omega_pe-s:		.2
-
+Number of cells nr, nz:                 480 120
+Grid size dz in Debyes:                 .5
+Timestep dt in Omega_pe-s:              .2
 
 * TIMESTEPS *
 
-Ion timestep dt_ion in dt-s:		5
-Collision timestep ncoll_el in dt:	5
-Collision timestep ncoll_ion in dt:	5
-Stability diagnostics in dt:		1000
+Ion timestep dt_ion in dt-s:            5
+Collision timestep ncoll_el in dt:      5
+Collision timestep ncoll_ion in dt:     5
+Stability diagnostics in dt:            1000
 
-Simulation time in O_pe-s:		3000000
-Outputting time dt_out in O_pe-s:	1000.
-Start of averaging in O_pe-s:		1.
-Duration of averaging in O_pe-s:	1.
+Simulation time in O_pe-s:              3000000
+Outputting time dt_out in O_pe-s:       1000.
+Start of averaging in O_pe-s:           1.
+Duration of averaging in O_pe-s:        1.
 
 
 * FIELDS, PARTICLES AND BOUNDARY CONDITIONS *
 
-External dimensionless B_z field:	0.
-External dimensionless B_t field:	0.
+External dimensionless B_z field:       0.
+External dimensionless B_t field:       0.
 
 - Injection timesteps -
-Injection timestep in dt, electrons:	1
-Injection timestep in dt, neutrals:	5
-Injection timestep in dt, ions:		10
+Injection timestep in dt, electrons:    1
+Injection timestep in dt, neutrals:     5
+Injection timestep in dt, ions:         10
 
 * Particle boundary parameters *
 ArcBoundName: ArcOriginalNewHS
@@ -203,7 +202,7 @@ Tinj          : 300     Injection temperature [eV]
 (0=yes 1=no)
 
 Outputting particle coordinates: 0
-Outputting electric field:		 0
+Outputting electric field:       0
 Outputting VDF:                  1
 Magnetic field on:               1
 
@@ -216,19 +215,17 @@ Disable collissions:             1
 
 * MISCELLANEOUS *
 
-Ti_over_Te:				.005
-mi_over_me:				1836.15
-Seed for random number generator:	1234
-Field boundary condition BC:            4
-Number of CPUs to use:                  2
+Ti_over_Te:                       .005
+mi_over_me:                       1836.15
+Seed for random number generator: 1234
+Field boundary condition BC:      4
+Number of CPUs to use:            2
 
 
 *** INFO: ***
 
-In case of re-start, only Ndb, dt_out, 
-Remission, Remission_theor,and CONTINUATION 
+In case of re-start, only Ndb, dt_out,
+Remission, Remission_theor,and CONTINUATION
 are active. Remember to update the no. of run.
 
-
 ***********************************************
-
