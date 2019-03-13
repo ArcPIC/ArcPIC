@@ -1,7 +1,7 @@
 /**********************************************************************
 
   2D3V PIC-MCC CODE '2D Arc-PIC'
-  
+
   Copyright 2010-2015 CERN and Helsinki Institute of Physics.
   This software is distributed under the terms of the
   GNU General Public License version 3 (GPL Version 3),
@@ -12,7 +12,7 @@
 
   Project website: http://arcpic.web.cern.ch/
   Developers: Helga Timko, Kyrre Sjobak
-  
+
   arcbounds.cpp:
   Defines the common services and default function implementations
   for ArcBounds classes. These classes implement surface physics models,
@@ -58,7 +58,7 @@ ArcBounds* ArcBounds::LoadArcBounds(FILE* in_file) {
   char* arcBoundsType = readInputSection(in_file, options);
 
   ArcBounds* ret = NULL;
-  
+
   if (! strncmp(arcBoundsType, "ArcDummy", NAME_MAXLEN) ) {
     ret = new ArcDummy(options);
   }
@@ -101,11 +101,18 @@ ArcBounds* ArcBounds::LoadArcBounds(FILE* in_file) {
     delete[] options[i];
   }
   options.clear();
-  
+
   return ret;
 }
 
-ArcBounds::ArcBounds() : file_timestep(1), file_timestep_hist(0), ofile_arcboundsDat(NULL), ofile_currentHist_cathode(NULL), ofile_currentHist_anode(NULL), ofile_removedParticles_electrons(NULL), ofile_removedParticles_ions(NULL), ofile_removedParticles_neutrals(NULL) {
+ArcBounds::ArcBounds() : file_timestep(1),
+                         file_timestep_hist(0),
+                         ofile_arcboundsDat(NULL),
+                         ofile_currentHist_cathode(NULL),
+                         ofile_currentHist_anode(NULL),
+                         ofile_removedParticles_electrons(NULL),
+                         ofile_removedParticles_ions(NULL),
+                         ofile_removedParticles_neutrals(NULL) {
   resetCountingArrays();
 }
 ArcBounds::~ArcBounds() {
@@ -142,7 +149,7 @@ void ArcBounds::writeFile_arcboundsDat(unsigned int nstep) {
     fprintf(ofile_arcboundsDat, "## timestep injected_e[0,1] injected_i[0,...,%u][0,1] injected_n[0,1] removed_e[0,1,2] removed_i[0,...%u][0,1,2] removed_n[0,1,2] current_e[0,1] current_i[0,..%u][0,1] current_n[0,1]\n", NSpecies-2, NSpecies-2, NSpecies-2);
     fflush(ofile_arcboundsDat);
   }
-  
+
   if ( nstep % file_timestep == 0) {
     fprintf(ofile_arcboundsDat, "%10d %6d %6d ", nstep, injected_e[0], injected_e[1]);
     for (size_t i = 0; i < NSpecies-1; i++) {
@@ -153,14 +160,14 @@ void ArcBounds::writeFile_arcboundsDat(unsigned int nstep) {
       fprintf(ofile_arcboundsDat, "%6d %6d %6d ", removed_i[i][0], removed_i[i][1], removed_i[i][2]);
     }
     fprintf(ofile_arcboundsDat, "%6d %6d %6d %6d %6d ", removed_n[0], removed_n[1], removed_n[2],
-	    current_e[0], current_e[1]);
+            current_e[0], current_e[1]);
     for (size_t i = 0; i < NSpecies-1; i++) {
       fprintf(ofile_arcboundsDat, "%6d %6d ", current_i[i][0], current_i[i][1]);
     }
     fprintf(ofile_arcboundsDat, "%6d %6d \n ", current_n[0], current_n[1]);
-    
+
     fflush(ofile_arcboundsDat);
-    
+
     resetCountingArrays();
   }
 }
@@ -184,10 +191,10 @@ void ArcBounds::writeFile_currentHistos(unsigned int nstep, bool isOutputTimeste
     if (nstep % file_timestep_hist != 0) return;
   }
 
-  //Write for the cathode  
+  //Write for the cathode
   if (ofile_currentHist_cathode == NULL) {
     ofile_currentHist_cathode = fopen("out/jhist_cathode.dat", "w");
-    
+
     fprintf(ofile_currentHist_cathode, "## ArcBounds : %s ##\n", this->getName());
     fprintf(ofile_currentHist_cathode, "## Cathode, nr=%u, rmax=%g ## \n", this->nr, this->rmax);
     fprintf(ofile_currentHist_cathode, "## timestep I[0] I[1] I[2] ... I[nr-1] [num. superparticles / output step, pos. dir = 'electrons anode->cathode']\n");
@@ -204,7 +211,7 @@ void ArcBounds::writeFile_currentHistos(unsigned int nstep, bool isOutputTimeste
   //Write for the anode
   if (ofile_currentHist_anode == NULL) {
     ofile_currentHist_anode = fopen("out/jhist_anode.dat", "w");
-    
+
     fprintf(ofile_currentHist_anode, "## ArcBounds : %s ##\n", this->getName());
     fprintf(ofile_currentHist_anode, "## Anode, nr=%u, rmax=%g ## \n", this->nr, this->rmax);
     fprintf(ofile_currentHist_anode, "## timestep I[0] I[1] I[2] ... I[nr-1] [num. superparticles / output step, pos. dir = 'electrons anode->cathode']\n");
@@ -217,7 +224,7 @@ void ArcBounds::writeFile_currentHistos(unsigned int nstep, bool isOutputTimeste
   }
   fprintf(ofile_currentHist_anode, "\n");
   fflush(ofile_currentHist_anode);
-  
+
 }
 
 void ArcBounds::writeFile_removedParticles(unsigned int nstep) {
@@ -229,7 +236,7 @@ void ArcBounds::writeFile_removedParticles(unsigned int nstep) {
     ofile_removedParticles_neutrals  = fopen("out/removed_n.dat", "w");
     fprintf(ofile_removedParticles_neutrals, "## timestep z r vz vr vt\n");
   }
-  
+
   for (size_t i = 0; i < removedElectrons.size(); i++) {
     PhasespaceVar& p = removedElectrons[i].p;
     fprintf(ofile_removedParticles_electrons, "%10d %.5e %.5e %.5e %.5e %.5e\n", nstep, p.z, p.r, p.vz, p.vr, p.vt);
@@ -285,13 +292,13 @@ void ArcRemover::remove_n(ParticleSpecies* pa) {
 }
 
 void ArcRemover::remover(ParticleSpecies* pa,
-			 int removed[],
-			 int current[],
-			 int chargeSign,
-			 std::vector<Particle>& removedVector) {
+                         int removed[],
+                         int current[],
+                         int chargeSign,
+                         std::vector<Particle>& removedVector) {
   int jr;
   size_t n_lost = 0;
-  
+
   for (size_t n=0; n<pa->GetN(); n++ ) {
     if ( pa->r[n] >= rmax ) {
       removed[2]++;
@@ -321,7 +328,7 @@ void ArcRemover::remover(ParticleSpecies* pa,
       //Implicit else: keep this particle
       // (Only need to move particles if something has been lost)
       if (n_lost > 0) {
-	pa->CopyParticle(n,n-n_lost);
+        pa->CopyParticle(n,n-n_lost);
       }
     }
   }
@@ -336,7 +343,7 @@ ArcDummy::ArcDummy(std::vector<char*>& options) {
   cout << "In ArcDummy constructor" << endl;
   if (options.size() != 0) {
     cout << "Error in ArcDummy(): Expected 0 options, got "
-	 << options.size() << endl;
+         << options.size() << endl;
     exit(1);
   }
 }
@@ -365,7 +372,7 @@ void ArcDummy::inject_n(ParticleSpecies* pa, double const Ez[]) {
 ArcSimple::ArcSimple(vector<char*>& options) {
   if (options.size() != 5) {
     cout << "Error in ArcSimple(): Expected 5 options, got "
-	 << options.size() << endl;
+         << options.size() << endl;
     exit(1);
   }
 
@@ -405,16 +412,15 @@ void ArcSimple::injector(ParticleSpecies* pa, unsigned int n_inject) {
   //Insert particles with zero velocity randomly into first cell
 
   pa->ExpandBy(n_inject);
-  
+
   for (unsigned int i = 0; i < n_inject; i++) {
     pa->r.push_back( RAND*dr );
     pa->z.push_back( RAND*dz );
-    
+
     pa->vr.push_back( 0.0 );
     pa->vt.push_back( 0.0 );
     pa->vz.push_back( 0.0 );
-    
+
     pa->m.push_back( 1 );;
   }
 }
-
