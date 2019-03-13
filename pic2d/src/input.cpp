@@ -59,75 +59,75 @@ void input( void ) {
       exit(1);
     }
   }
-  
+
   in_file = fopen("input.txt","r");
 
   //SCALING PARAMETERS
-  fscanf(in_file,"%*[^:]%*[:]"); 
+  fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%lg", &n_ref);
-  
-  fscanf(in_file,"%*[^:]%*[:]"); 
+
+  fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%lg", &T_ref);
-  
-  fscanf(in_file,"%*[^:]%*[:]"); 
+
+  fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%lg", &Ndb);
-  
-  
+
+
   fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%d %d", &nr, &nz);
-  
-  fscanf(in_file,"%*[^:]%*[:]"); 
+
+  fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%lg", &dz);
-  
-  fscanf(in_file,"%*[^:]%*[:]"); 
+
+  fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%lg", &Omega_pe);
-  
-  
+
+
   // TIMESTEPS
-  fscanf(in_file,"%*[^:]%*[:]"); 
+  fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%d", &dt_ion);
-  
-  fscanf(in_file,"%*[^:]%*[:]"); 
+
+  fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%d", &ncoll_el);
-  
-  fscanf(in_file,"%*[^:]%*[:]"); 
+
+  fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%d", &ncoll_ion);
-  
-  fscanf(in_file,"%*[^:]%*[:]"); 
+
+  fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%d", &dt_diagn);
-  
-  
-  fscanf(in_file,"%*[^:]%*[:]"); 
+
+
+  fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%d", &nstepsmax);
-  
-  fscanf(in_file,"%*[^:]%*[:]"); 
+
+  fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%lg", &dt_out);
-  
+
   fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%lg", &av_start );
-  
-  fscanf(in_file,"%*[^:]%*[:]"); 
+
+  fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%lg", &av_time );
-  
-  
+
+
   // FIELDS, PARTILCES AND BOUNDARY CONDITIONS
 
   fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%lg", &Bz_ext);
-  
+
   fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%lg", &Bt_ext);
-  
+
   //Injection timesteps
-  fscanf(in_file,"%*[^:]%*[:]"); 
+  fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%d", &e2inj_step);
 
-  fscanf(in_file,"%*[^:]%*[:]"); 
+  fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%d", &n2inj_step);
-  
-  fscanf(in_file,"%*[^:]%*[:]"); 
+
+  fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%d", &i2inj_step);
-  
+
   //New-style particle boundary conditions
   pbounds = ArcBounds::LoadArcBounds(in_file);
 
@@ -138,20 +138,20 @@ void input( void ) {
   iParts = InitialParticles::LoadInitialParticles(in_file);
 
   // OPTIONS
-  fscanf(in_file,"%*[^:]%*[:]"); 
+  fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%d", &OUT_COORD);
-  
-  fscanf(in_file,"%*[^:]%*[:]"); 
+
+  fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%d", &OUT_EFIELD);
-  
-  fscanf(in_file,"%*[^:]%*[:]"); 
+
+  fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%d", &OUT_VDF);
-  
-  
-  fscanf(in_file,"%*[^:]%*[:]"); 
+
+
+  fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%d", &MAGNETIC);
-  
-  fscanf(in_file,"%*[^:]%*[:]"); 
+
+  fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%d", &CONTINUATION);
 
   fscanf(in_file,"%*[^:]%*[:]");
@@ -159,25 +159,25 @@ void input( void ) {
 
   fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%d", &NOCOLL);
-  
+
   // MISCELLANEOUS
-  fscanf(in_file,"%*[^:]%*[:]"); 
+  fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%lg", &Ti_over_Te);
-  
-  fscanf(in_file,"%*[^:]%*[:]"); 
+
+  fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%lg", &mi_over_me);
-  
+
   fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%lu", &RNGbaseSeed);
-  
+
   fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%i", &BC);
-  
+
   fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%i", &numParaThreads);
-  
+
   fclose (in_file);
-  
+
 }
 
 
@@ -185,7 +185,7 @@ char* readInputSection (FILE* in_file, vector<char*>& options_ret, bool acceptNo
   char wantName [NAME_MAXLEN];
   char* retName = NULL;
   vector<char*> options;
-  
+
   fscanf(in_file, "%*[^:]%*[:]");
   fscanf(in_file, "%sNAME_MAXLEN", wantName);
   //Move the file pointer past the '\n'
@@ -194,7 +194,7 @@ char* readInputSection (FILE* in_file, vector<char*>& options_ret, bool acceptNo
   memset(foo, '\0', NAME_MAXLEN);
   fgets(foo,NAME_MAXLEN,in_file);
   if (foo[NAME_MAXLEN-1] != '\0') {
-    cout << "Error in readInputSection(): Ran out of space in foo (pos1)." 
+    cout << "Error in readInputSection(): Ran out of space in foo (pos1)."
          << " Check whitespace in input.txt!" << endl;
     exit(1);
   }
@@ -209,22 +209,22 @@ char* readInputSection (FILE* in_file, vector<char*>& options_ret, bool acceptNo
       cout << "Error in readInputSection: Infinite loop in parser." << endl;
       exit(1);
     }
-    
+
     //Find the right section
     char thisName [NAME_MAXLEN];
     memset(foo, '\0', NAME_MAXLEN);
     fgets(foo, NAME_MAXLEN,in_file);
     if (foo[NAME_MAXLEN-1] != '\0') {
       cout << "Error in readInputSection(): Ran out of space in foo (pos2)."
-	   << " Check input.txt!" << endl;
+           << " Check input.txt!" << endl;
       exit(1);
     }
     sscanf(foo, "*** %sNAME_MAXLEN", thisName);
 
-    cout << "thisName='" << thisName << "'\n";    
+    cout << "thisName='" << thisName << "'\n";
 
     if ( ! strncmp(thisName, "END", NAME_MAXLEN) ) break;
-    
+
     //Loop over options for thisName
     while(true) {
       //Get the next line
@@ -232,9 +232,9 @@ char* readInputSection (FILE* in_file, vector<char*>& options_ret, bool acceptNo
       memset(line, '\0', LINE_MAXLEN);
       fgets(line, LINE_MAXLEN, in_file);
       if ( line[LINE_MAXLEN-1] != '\0') {
-	cout << "Error in readInputSection(): Ran out of space in line. "
-	     << " Check input.txt!" << endl;
-	exit(1);
+        cout << "Error in readInputSection(): Ran out of space in line. "
+             << " Check input.txt!" << endl;
+        exit(1);
       }
       //printf("Got line '%s'\n", line); //DEBUG
 
@@ -244,37 +244,37 @@ char* readInputSection (FILE* in_file, vector<char*>& options_ret, bool acceptNo
       //Collect the line
       options.push_back(line);
     }
-    
+
     //Got the right section!
     if ( ! strncmp( thisName, wantName, NAME_MAXLEN ) ) {
       cout << "In readInputSection(), got name = '" << wantName << "'" << endl;
       cout << "Got options:" << endl;
       for (size_t i = 0; i < options.size(); i++) {
-	cout << "\t[" << i << "]:" << options[i]; //endl not needed, already \n at end of lines
+        cout << "\t[" << i << "]:" << options[i]; //endl not needed, already \n at end of lines
       }
-      
+
       if (retName != NULL) {
-	cout << "Error in readInputSection: Found the wanted name twice in input.txt!" << endl;
-	exit(1);
+        cout << "Error in readInputSection: Found the wanted name twice in input.txt!" << endl;
+        exit(1);
       }
-      
+
       //Don't return immediatly, need to parse the rest of the sections
       retName = new char[NAME_MAXLEN];
       strncpy(retName, wantName, NAME_MAXLEN);
       for (size_t i = 0; i < options.size(); i++) {
-	char* line_ret = new char[LINE_MAXLEN];
-	strncpy(line_ret, options[i], LINE_MAXLEN);
-	options_ret.push_back(line_ret);
+        char* line_ret = new char[LINE_MAXLEN];
+        strncpy(line_ret, options[i], LINE_MAXLEN);
+        options_ret.push_back(line_ret);
       }
     }
-    
+
     //Wrong section, clear the options array before next iteration
     for (size_t i = 0; i < options.size(); i++) {
       delete[] options[i];
     }
     options.clear();
   }
-  
+
   if (retName != NULL) {
     //Implicitly also return options_ret
     return retName;
