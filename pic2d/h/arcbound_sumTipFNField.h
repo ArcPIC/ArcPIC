@@ -33,13 +33,12 @@ class SumTipFNField : public ArcRemover {
   SumTipFNField(std::vector<char*>& options);
   virtual ~SumTipFNField();
   virtual void print_par() const;
-  
+
   //Inject particles
   virtual void inject_e(ParticleSpecies* pa, double const Ez[]);
   virtual void inject_i(ParticleSpecies* pa, double const Ez[], unsigned int sort) {}; // NOP
   virtual void inject_n(ParticleSpecies* pa, double const Ez[]) {}; // NOP
 
-  
   //Save and restore backup data
   virtual void backup(FILE* file) {}; //NOP
   virtual void restoreBackup(FILE* file) {}; //NOP
@@ -53,7 +52,7 @@ class SumTipFNField : public ArcRemover {
   double field_direct;
   double field_direct_particlesOnly;
   size_t tip_emitted;
-  
+
  private:
   double beta_tip;
   double Remission, Remission_theor;

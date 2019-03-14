@@ -13,7 +13,7 @@
   Project website: http://arcpic.web.cern.ch/
   Developers: Helga Timko, Kyrre Sjobak
 
-  arcbounds_flexFN_origNeutrals.cpp:  
+  arcbounds_flexFN_origNeutrals.cpp:
   Particle boundary conditions,
   Fowler-Nordheim where beta and alpha are functions of the r-coordinate,
   with sputtering and evaporation similar to Helga's thesis.
@@ -49,7 +49,7 @@ FlexFN_twoComp_origNeutrals::FlexFN_twoComp_origNeutrals(std::vector<char*>& opt
   sscanf(options[4], "%*[^:]%*[:] %u",  &(this->idx1));
   sscanf(options[5], "%*[^:]%*[:] %lg", &(this->SEY));
   sscanf(options[6], "%*[^:]%*[:] %lg", &(this->r_Cu_e));
-  
+
   char foo;
   sscanf(options[7],  "%*[^:]%*[:] %c",  &(foo));
   if      (foo == 'y') this->doHeatspike = true;
@@ -75,7 +75,7 @@ void FlexFN_twoComp_origNeutrals::print_par() const {
 
 void FlexFN_twoComp_origNeutrals::init(unsigned int nr, double zmin, double zmax, double rmax) {
   ArcBounds::init(nr,zmin,zmax,rmax);
-  
+
   FN_alpha    = new double*[2];
   FN_alpha[0] = new double[nr+1];
   FN_alpha[1] = new double[nr+1];
@@ -98,7 +98,7 @@ void FlexFN_twoComp_origNeutrals::init(unsigned int nr, double zmin, double zmax
   }
 
   FN_current = new double[nr+1];
-  
+
   FN_current_sum = new double[nr+1];
   for (unsigned int i = 0; i < nr+1; i++) FN_current_sum[i] = 0.0;
 
@@ -116,7 +116,7 @@ FlexFN_twoComp_origNeutrals::~FlexFN_twoComp_origNeutrals() {
   delete[] FN_beta;
 
   delete[] FN_current;
-  
+
   delete[] FN_current_sum;
 }
 
@@ -146,25 +146,25 @@ void FlexFN_twoComp_origNeutrals::inject_e(ParticleSpecies* pa, double const Ez[
       r2 = RAND * TWOPI;
       pa->vr.push_back( r1*cos(r2)*v_inj_e );
       pa->vt.push_back( r1*sin(r2)*v_inj_e );
-      
+
       // Gaussian scheme
       do { r1 = sqrt(-2.*log(RAND+1.e-20)); }
       while( r1 > 5. );
       pa->vz.push_back( r1*v_inj_e );
-      
+
       pa->z.push_back( zmin + pa->vz.back() );
       pa->r.push_back( sput_cathode_SEY[k].r + pa->vr.back() );
       if ( pa->r.back() < 0 )      pa->r.back() = 1.e-20;
       else if ( pa->r.back() > nr) pa->r.back() = 2*nr - pa->r.back();
 
       pa->m.push_back( 1 );
-      
+
       current_e[0] += 2*( int(pa->r.back()) ) + 1;
 
       totY++;
     }
   }
-  
+
   injected_e[0] += totY;
   sput_cathode_SEY.clear();
 }
@@ -184,7 +184,7 @@ void FlexFN_twoComp_origNeutrals::inject_n(ParticleSpecies* pa, double const Ez[
     FN_current_sum[i] = 0.0;
 
     pa->ExpandBy(n2inject_evap);
-    
+
     //Inject the particles: Uniform distribution over the cell
     for ( size_t k=0; k<n2inject_evap; k++ ) {
       // Velocity:
@@ -196,35 +196,35 @@ void FlexFN_twoComp_origNeutrals::inject_n(ParticleSpecies* pa, double const Ez[
       // Gaussian scheme
       do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
       pa->vz.push_back( r1*v_inj_i );
-      
+
       // uniform random position on annulus
       double a = i > 0  ? (i-0.5) : 0.0;
       double b = i < nr ? (i+0.5) : nr;
       pa->r.push_back( sqrt((b*b-a*a)*RAND+a*a) );
       pa->z.push_back( zmin );
-      
+
       //Fractional timestep push (euler method, no acceleration)
       double Rp = RAND; //1-R; how (fractionally) far into the timestep
                         // are we at z=0?
       pa->r.back()  += Rp*n2inj_step*pa->vr.back();
       pa->z.back()  += Rp*n2inj_step*pa->vz.back();
-      
+
       if ( pa->r.back() < 0 )      pa->r.back() = -pa->r.back(); //Reflect on axis
       else if ( pa->r.back() > nr) pa->r.back() = 2*nr - pa->r.back();
 
       pa->m.push_back( 1 ); //SN;
     }
-    
+
     injected_n[0] += n2inject_evap;
   }
-  
+
   // Cathode, sputtering
   inject_sput(pa, sput_cathode, true, v_inj_i);
   // Anode, sputtering only
   inject_sput(pa, sput_anode, false, v_inj_i);
 }
 void FlexFN_twoComp_origNeutrals::inject_sput(ParticleSpecies* pa, std::vector<Sput> &sput, bool isCathode, double v_inj) {
-  
+
   double r1, r2;
 
   size_t m = sput.size();
@@ -233,30 +233,30 @@ void FlexFN_twoComp_origNeutrals::inject_sput(ParticleSpecies* pa, std::vector<S
 
     pa->ExpandBy( sput[k].Y );
     for ( int i=0; i<sput[k].Y; i++ ) {
-      
+
       // Gaussian scheme
       do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
       r2 = RAND * TWOPI;
       pa->vr.push_back( r1*cos(r2)*v_inj );
       pa->vt.push_back( r1*sin(r2)*v_inj );
-      
+
       // Gaussian scheme
       do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
       pa->vz.push_back( isCathode ? r1*v_inj : -r1*v_inj );
-      
+
       pa->z.push_back( (isCathode ? zmin : zmax) + pa->vz.back() );
       pa->r.push_back( sput[k].r + pa->vr.back() );
-      
+
       if ( pa->r.back() < 0 )      pa->r.back() = 1.e-20;
       else if ( pa->r.back() > nr) pa->r.back() = 2*nr - pa->r.back();
 
       pa->m.push_back( 1 ); //SN;
-      
+
       // Sum up total yield for outputting
       tot++;
     }
   }
-  
+
   injected_n[isCathode ? 0 : 1] += tot;
   sput.clear();
 }
@@ -268,15 +268,15 @@ void FlexFN_twoComp_origNeutrals::remove_i(ParticleSpecies* pa, unsigned int sor
     }
     return;
   }
-  
+
   size_t n_lost = 0;
 
   // check threshold of sputtering yield, only for ions, only at the cathode
   // threshold = 1e7 A/cm^2
-  double threshold = 1.e7*(Ndb*dt_ion*Omega_pe) / 
-    (6.7193e-12*n_ref*sqrt(T_ref));  
+  double threshold = 1.e7*(Ndb*dt_ion*Omega_pe) /
+    (6.7193e-12*n_ref*sqrt(T_ref));
   double current [nr];
-  for (unsigned int i=0; i<nr; i++ ) current[i] = 0.;  
+  for (unsigned int i=0; i<nr; i++ ) current[i] = 0.;
 
   //Store sputtering particles here, use different formulaes
   // to determine how much is actually sputtered depending on threshold
@@ -288,7 +288,7 @@ void FlexFN_twoComp_origNeutrals::remove_i(ParticleSpecies* pa, unsigned int sor
   // SEY integer and fractional part
   int SEY_i = int ( SEY );
   double SEY_f = SEY - SEY_i;
-  
+
   for (size_t n=0; n<pa->GetN(); n++ ) {
     //"Infinity"
     if ( pa->r[n] >= rmax ) {
@@ -303,29 +303,29 @@ void FlexFN_twoComp_origNeutrals::remove_i(ParticleSpecies* pa, unsigned int sor
       current_i[sort][0] += 2*(int(pa->r[n]))+1;
       current_cathode[ int(pa->r[n]) ] += 1;
       removedIons.push_back(pa->GetOneParticle(n));
-      
+
       Sput newSput = calc_sput(pa->GetOneParticle(n), cs_ions[sort], current);
       if ( newSput.Y != 0 ) {
-	sput_cathode_temp.push_back(newSput);
-	Ycat_sum += newSput.Y;
+        sput_cathode_temp.push_back(newSput);
+        Ycat_sum += newSput.Y;
       }
 
       // SEY = 0.5 = constant, only from ions hitting the cathode
       // SEY with registering r-coordinates
       // Set reasonable threshold for incident ion energy (e.g. 100 eV)
       if ( (SQU(pa->vz[n]) + SQU(pa->vr[n]) + SQU(pa->vt[n]))*T_ref/(2*SQU(cs_ions[sort])) > 100 ) {
-	if ( RAND <= SEY_f ) {
-	  Sput foo;
-	  foo.r = pa->r[n];
-	  foo.Y = SEY_i+1;
-	  sput_cathode_SEY.push_back(foo);
-	}
-	else if ( SEY_i > 0 ) {
-	  Sput foo;
-	  foo.r = pa->r[n];
-	  foo.Y = SEY_i;
-	  sput_cathode_SEY.push_back(foo);
-	}
+        if ( RAND <= SEY_f ) {
+          Sput foo;
+          foo.r = pa->r[n];
+          foo.Y = SEY_i+1;
+          sput_cathode_SEY.push_back(foo);
+        }
+        else if ( SEY_i > 0 ) {
+          Sput foo;
+          foo.r = pa->r[n];
+          foo.Y = SEY_i;
+          sput_cathode_SEY.push_back(foo);
+        }
       }
       n_lost++;
       continue;
@@ -336,10 +336,10 @@ void FlexFN_twoComp_origNeutrals::remove_i(ParticleSpecies* pa, unsigned int sor
       current_i[sort][1] += 2*(int(pa->r[n]))+1;
       current_anode[ int(pa->r[n]) ] -= 1;
       removedIons.push_back(pa->GetOneParticle(n));
-      
+
       Sput newSput = calc_sput(pa->GetOneParticle(n), cs_ions[sort], NULL);
       if ( newSput.Y != 0 ) sput_anode.push_back(newSput);
-      
+
       n_lost++;
       continue;
     }
@@ -364,20 +364,20 @@ void FlexFN_twoComp_origNeutrals::remove_i(ParticleSpecies* pa, unsigned int sor
     pa->vt.resize(np-n_lost);
     pa->m.resize(np-n_lost);
   }
-  
+
   // Enhanced yield?
   bool check_enh = false;
   double r, sigma(1e6*nr); //Crash if sigma not initialized
   for (unsigned int i=0; i<nr; i++ ) {
     // Rescale current with area of cell / area Ldb^2
     current[i] /= PI * (2*i + 1) * SQU(dr);
-    
+
     if ( current[i] >= threshold ) {
       check_enh = true;
       sigma = i+1;
     }
   }
-  
+
   if ( check_enh == false  or doHeatspike == false) {
     // Yamamura-Tawara fitting for Cu -> Cu
     for (size_t j=0; j<sput_cathode_temp.size(); j++ ) {
@@ -386,7 +386,7 @@ void FlexFN_twoComp_origNeutrals::remove_i(ParticleSpecies* pa, unsigned int sor
   }
   else if ( check_enh == true ) {
     // Enhanced yield from MD
-    // Generate Gaussian distribution for r-coord's 
+    // Generate Gaussian distribution for r-coord's
 #warning "Strange model - always generate 1000 Cu's?"
     for (int j=0; j<1000; j++ ) { // 1000/SN
       do { r = sigma * sqrt(-2.*log(RAND+1.e-20)); } while ( r >= nr );
@@ -395,12 +395,12 @@ void FlexFN_twoComp_origNeutrals::remove_i(ParticleSpecies* pa, unsigned int sor
       foo.Y = 1;
       sput_cathode.push_back(foo);
     }
-    
+
     // Print control message
     if ( Ycat_sum > 1000 ) { // 1000/SN
       printf("*** UNDERESTIMATED *** Yamamura sputtering yield Ycat_sum ( %d ) > enhanced sputtering yield ( %d )! \n", Ycat_sum, 1000 );
       fflush( stdout );
-    }  
+    }
   }
   sput_cathode_temp.clear();
 
@@ -410,8 +410,8 @@ void FlexFN_twoComp_origNeutrals::remove_i(ParticleSpecies* pa, unsigned int sor
   }
 }
 void FlexFN_twoComp_origNeutrals::remove_n(ParticleSpecies* pa){
-  size_t n_lost = 0; 
-  
+  size_t n_lost = 0;
+
   for (size_t n=0; n<pa->GetN(); n++ ) {
     //"Infinity"
     if ( pa->r[n] >= rmax ) {
@@ -425,7 +425,7 @@ void FlexFN_twoComp_origNeutrals::remove_n(ParticleSpecies* pa){
       removed_n[0]++;
       current_n[0] += 2*(int(pa->r[n]))+1;
       removedNeutrals.push_back(pa->GetOneParticle(n));
-      
+
       Sput newSput = calc_sput(pa->GetOneParticle(n), cs_ions[NSpecies-1], NULL);
       if ( newSput.Y != 0 ) sput_cathode.push_back(newSput);
 
@@ -437,7 +437,7 @@ void FlexFN_twoComp_origNeutrals::remove_n(ParticleSpecies* pa){
       removed_n[1]++;
       current_n[1] += 2*(int(pa->r[n]))+1;
       removedNeutrals.push_back(pa->GetOneParticle(n));
-      
+
       Sput newSput = calc_sput(pa->GetOneParticle(n), cs_ions[NSpecies-1], NULL);
       if ( newSput.Y != 0 ) sput_anode.push_back(newSput);
 
@@ -477,23 +477,23 @@ Sput FlexFN_twoComp_origNeutrals::calc_sput(const Particle pa,
     if ( current_enhancedY != NULL ) {
       current_enhancedY[size_t(pa.p.r)] += 1.; // to be rescaled!
     }
-    
+
     // Reduced energy
     double eps = (4.45394e-06)*nrg;
-    
+
     // Nuclear stopping cross section
     double sn = 8205*3.441*sqrt(eps)*log(eps + 2.718) /
       (1 + 6.355*sqrt(eps) + eps*(6.882*sqrt(eps) - 1.708));
-    
-    // Sputtering yield 
+
+    // Sputtering yield
     double p = 0.042*(0.2525/3.49) * (sn/(1 + 0.010124*0.1573*pow(eps,0.3))) *
       pow(1 - sqrt(23.383/nrg),2.5);
-    
+
     // Fractional part of p handled probabilistically
     double Y = int ( p );
     p -= Y;
     if ( RAND <= p ) Y++;
-    
+
     // Register r-coordinates of bombarding particles
     if ( Y > 0 ) {
       Sput ret;
@@ -502,7 +502,7 @@ Sput FlexFN_twoComp_origNeutrals::calc_sput(const Particle pa,
       return ret;
     }
   }
-  
+
   //No sputtering
   Sput ret;
   ret.r = 0.0;

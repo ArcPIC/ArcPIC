@@ -21,4 +21,4 @@
 void allocate_arrays( int nr, int nz, int** perm_c, int** perm_r, double** rhs );
 
 void delete_arrays( int** perm_c, int** perm_r, double** rhs );
- 
+

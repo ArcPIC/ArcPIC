@@ -65,7 +65,7 @@ class FlexFN_ring : public FlexFN {
   double* FN_alpha;
   double* FN_beta;
   double* FN_current;
-  
+
   double alpha_ring, beta_ring;
   unsigned int idx1_ring, idx2_ring;
 };
@@ -75,7 +75,7 @@ class FlexFN_twoComp : public FlexFN {
  public:
   FlexFN_twoComp(std::vector<char*>& option);
   virtual ~FlexFN_twoComp();
-  
+
   virtual void init   (unsigned int nr, double zmin, double zmax, double rmax);
   virtual void re_init(unsigned int nr, double zmin, double zmax, double rmax);
 

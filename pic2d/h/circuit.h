@@ -37,14 +37,14 @@ class Circuit {
  public:
   Circuit() : ofile(NULL), file_timestep(1), deltaQ_accumulated(0.0) { };
   virtual ~Circuit() {fclose(ofile);};
-  
+
   //Called by calc_parameters_2D(), does rescaling etc.
   virtual void init()      = 0;
   //Called when re-initializing from backup
   virtual void re_init()   = 0;
   //Called by print_par_2D()
   virtual void print_par() = 0;
-  
+
   //Calculate the voltage on the gap in the next timestep
   virtual void timestep(double deltaQ, unsigned int nstep) = 0;
   //Write to the circuit.dat output file
@@ -54,21 +54,21 @@ class Circuit {
   //Functions to actually get the new voltages
   inline const double getU0() const { return this->U0;  };
   inline const double getUNz() const { return this->UNz; };
-  
+
   //Save and restore backup data
   virtual void backup(FILE* file)        = 0;
   virtual void restoreBackup(FILE* file) = 0;
-  
+
   //Which circuit is this really?
   virtual const char* getName() const = 0;
-  
+
   //This function identifes and loads the right circuit class
   static Circuit* LoadCircuit(FILE* in_file);
-  
+
  protected: // These are accessed by child classes
   double U0;
   double UNz;
-  
+
   FILE* ofile;
   unsigned int file_timestep;
   double deltaQ_accumulated;
@@ -80,12 +80,12 @@ class FixedVoltage : public Circuit {
    */
  public:
   FixedVoltage( std::vector<char*> options );
-  
+
   virtual void init();
   virtual void re_init() { ofile = fopen("circuit.dat", "a"); init(); };
   virtual void print_par();
   virtual void timestep(double deltaQ, unsigned int nstep);
-  
+
   //These are not needed in this function
   virtual void backup(FILE* file) {};
   virtual void restoreBackup(FILE* file) {};
@@ -100,19 +100,19 @@ class FixedVoltage_resistor : public Circuit {
    */
  public:
   FixedVoltage_resistor( std::vector<char*> options );
-  
+
   virtual void init();
   virtual void re_init() { ofile = fopen("circuit.dat", "a"); init(); };
   virtual void print_par();
-  
+
   virtual void timestep(double deltaQ, unsigned int nstep);
-  
+
   //These are not needed in this function
   virtual void backup(FILE* file) {};
   virtual void restoreBackup(FILE* file) {};
 
   virtual const char* getName() const { return "FixedVoltage_resistor"; };
-  
+
  private:
   double Vin;     //Input voltage
   double Rseries, Rseries_dim; //Series resistance
@@ -124,7 +124,7 @@ class FixedVoltage_resistorCapacitor : public Circuit {
    */
  public:
   FixedVoltage_resistorCapacitor( std::vector<char*> options );
-  
+
   virtual void init();
   virtual void re_init() { ofile = fopen("circuit.dat", "a"); init(); };
   virtual void print_par();
@@ -133,13 +133,13 @@ class FixedVoltage_resistorCapacitor : public Circuit {
   virtual void writeFile(unsigned int nstep);
 
   virtual void timestep(double deltaQ, unsigned int nstep);
-  
+
   //These are not needed in this function
   virtual void backup(FILE* file) {};
   virtual void restoreBackup(FILE* file) {};
 
   virtual const char* getName() const { return "FixedVoltage_resistorCapacitor"; };
-  
+
  private:
   double Vin;                  // Input voltage
   double Rseries, Rseries_dim; // Series resistance
@@ -154,19 +154,19 @@ class FixedVoltage_ramp : public Circuit {
    */
  public:
   FixedVoltage_ramp( std::vector<char*> options );
-  
+
   virtual void init();
   virtual void re_init() { ofile = fopen("circuit.dat", "a"); init(); };
   virtual void print_par();
-  
+
   virtual void timestep(double deltaQ, unsigned int nstep);
-  
+
   //These are not needed in this function
   virtual void backup(FILE* file) {};
   virtual void restoreBackup(FILE* file) {};
 
   virtual const char* getName() const { return "FixedVoltage_ramp"; };
-  
+
  private:
   double Vfinal;
   double rampTime;
@@ -189,12 +189,12 @@ class TwoCapacitors : public Circuit {
   virtual void writeFile(unsigned int nstep);
 
   virtual void timestep(double deltaQ_C, unsigned int nstep);
-  
+
   virtual void backup(FILE* file);
   virtual void restoreBackup(FILE* file);
 
   virtual const char* getName() const { return "TwoCapacitors"; };
-  
+
  private:
   double U0_dim;
   double UNz_dim;
@@ -206,9 +206,9 @@ class TwoCapacitors : public Circuit {
   //TODO: Add these to backup
   double t_change_dim;
   unsigned int t_change;
-  
+
   bool avoid_negative;
-  
+
   bool check_C;
 };
 
@@ -218,14 +218,14 @@ class FrequencyExcitation : public Circuit {
    * Cicuit current does NOT include charging of electrodes.
    */
 
- public:  
+ public:
   FrequencyExcitation( std::vector<char*> options );
-  
+
   virtual void init();
   virtual void re_init() { ofile = fopen("circuit.dat", "a"); init(); };
   virtual void print_par();
   virtual void timestep(double deltaQ, unsigned int nstep);
-  
+
   //These are not needed in this function
   virtual void backup(FILE* file) {};
   virtual void restoreBackup(FILE* file) {};

@@ -41,32 +41,32 @@ class ArcBounds {
 
   //This function identifes and loads the right ArcBounds class
   static ArcBounds* LoadArcBounds(FILE* in_file);
-  
+
   //Called by calc_parameters_2D(), setups rescaling etc.
   virtual void init(unsigned int nr, double zmin, double zmax, double rmax);
   //Called when re-initializing from backup
   virtual void re_init(unsigned int nr, double zmin, double zmax, double rmax);
   //Called by print_par_2D()
   virtual void print_par() const = 0;
-  
+
   //Save and restore backup data
   virtual void backup(FILE* file)        = 0;
   virtual void restoreBackup(FILE* file) = 0;
-  
+
   //Remove out-of-bounds particles
   virtual void remove_e(ParticleSpecies* pa) = 0;
   virtual void remove_i(ParticleSpecies* pa, unsigned int sort) = 0;
   virtual void remove_n(ParticleSpecies* pa) = 0;
-  
+
   //Inject particles
   virtual void inject_e(ParticleSpecies* pa, double const Ez[]) = 0;
   virtual void inject_i(ParticleSpecies* pa, double const Ez[], unsigned int sort) = 0;
   virtual void inject_n(ParticleSpecies* pa, double const Ez[]) = 0;
-  
+
   //Get transported charge, advance to next timestep
   virtual const double getDeltaQ() const;
   virtual void timestep(unsigned int nstep, bool isOutputTimestep);
-  
+
   virtual const char* getName() const = 0;
 
   inline const unsigned int getFileTimestepHist() const {return file_timestep_hist;};
@@ -90,7 +90,7 @@ class ArcBounds {
   int injected_e[2];
   int injected_i[NSpecies-1][2];
   int injected_n[2];
-  //How many particles where removed at each wall  
+  //How many particles where removed at each wall
   int removed_e[3];
   int removed_i[NSpecies-1][3];
   int removed_n[3];
@@ -123,10 +123,10 @@ class ArcBounds {
   double zmin, zmax, rmax;
  private:
   FILE* ofile_arcboundsDat;
-  
+
   FILE* ofile_currentHist_cathode;
   FILE* ofile_currentHist_anode;
-  
+
   FILE* ofile_removedParticles_electrons;
   FILE* ofile_removedParticles_ions;
   FILE* ofile_removedParticles_neutrals;
@@ -135,11 +135,11 @@ class ArcBounds {
 class ArcRemover : public ArcBounds {
   // Pure virtual class removing particles at the boundaries and counting them,
   // no sputtering etc.
- 
+
   virtual void remove_e(ParticleSpecies* pa);
   virtual void remove_i(ParticleSpecies* pa, unsigned int sort);
   virtual void remove_n(ParticleSpecies* pa);
-  
+
  protected:
   //This function does the actual work
   void remover(ParticleSpecies* pa,
@@ -151,12 +151,12 @@ class ArcRemover : public ArcBounds {
 class ArcDummy : public ArcBounds {
   //No particles injected or removed - but not pure virtual.
   // Usefull for testing or as a template
-  
+
  public:
   ArcDummy(std::vector<char*>& options);
 
   virtual void print_par() const {};
-  
+
   //Save and restore backup data
   virtual void backup(FILE* file) {};
   virtual void restoreBackup(FILE* file) {};
@@ -170,7 +170,7 @@ class ArcDummy : public ArcBounds {
   virtual void inject_e(ParticleSpecies* pa, double const Ez[]);
   virtual void inject_i(ParticleSpecies* pa, double const Ez[], unsigned int sort);
   virtual void inject_n(ParticleSpecies* pa, double const Ez[]);
-  
+
   virtual const char* getName() const { return "ArcDummy"; };
 };
 
@@ -179,16 +179,15 @@ class ArcSimple : public ArcRemover {
   //Very simple ArcBound; only inject electrons at a steady, setable rate.
   ArcSimple(std::vector<char*>& options);
   virtual void print_par() const;
-  
+
   //Inject particles
   virtual void inject_e(ParticleSpecies* pa, double const Ez[]);
   virtual void inject_i(ParticleSpecies* pa, double const Ez[], unsigned int sort);
   virtual void inject_n(ParticleSpecies* pa, double const Ez[]);
 
-  
   //Save and restore backup data
   virtual void backup(FILE* file) {};
-  virtual void restoreBackup(FILE* file) {};  
+  virtual void restoreBackup(FILE* file) {};
 
   virtual const char* getName() const { return "ArcSimple"; };
 

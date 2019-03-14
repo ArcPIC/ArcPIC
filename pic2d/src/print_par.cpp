@@ -111,7 +111,7 @@ void print_parameters_2D( void ) {
   printf( " - Continuing old run:  %d \n", CONTINUATION );
   printf( " - Binary output files: %d \n", BINARY_OUTPUT );
   printf( " - Enable collissions:  %c \n", DOCOLL ? 'y' : 'n');
-  
+
   printf( "\n" );
   printf( " - Field boundary condition BC = %i \n", BC );
   if (BC == 0)
@@ -134,14 +134,14 @@ void print_parameters_2D( void ) {
 
 void outputfile_addParameterMetadata(H5::H5File* outputFile, const int nsteps) {
   // Adds a new group with metadata useful for scaling
-  
+
   H5::Group group_metadata       = outputFile->createGroup("/METADATA");
   H5::Group group_metadata_input = outputFile->createGroup("/METADATA/INPUTFILE");
   H5::Group group_metadata_calc  = outputFile->createGroup("/METADATA/CALCULATED");
   H5::Group group_metadata_dynamic = outputFile->createGroup("/METADATA/DYNAMIC");
-  
+
   H5::DataSpace dataspace_scalar(H5S_SCALAR);
-  
+
   // -- INPUTFILE METADATA --
   // Attribute: Reference density [cm^-3]
   H5::Attribute attribute_n_ref = group_metadata_input.createAttribute("n_ref", H5::PredType::NATIVE_DOUBLE, dataspace_scalar);
@@ -171,9 +171,8 @@ void outputfile_addParameterMetadata(H5::H5File* outputFile, const int nsteps) {
   H5::Attribute attribute_Omega_pe = group_metadata_input.createAttribute("Omega_pe", H5::PredType::NATIVE_DOUBLE, dataspace_scalar);
   attribute_Omega_pe.write(H5::PredType::NATIVE_DOUBLE, &Omega_pe);
 
-  
   // -- CALCULATED METADATA --
-  
+
   // Attribute: Particles/superparticle ratio [-]
   H5::Attribute attribute_N_sp = group_metadata_calc.createAttribute("N_sp", H5::PredType::NATIVE_DOUBLE, dataspace_scalar);
   attribute_N_sp.write(H5::PredType::NATIVE_DOUBLE, &N_sp);
@@ -206,16 +205,16 @@ void outputfile_addParameterMetadata(H5::H5File* outputFile, const int nsteps) {
   double Z = dZ*nz;
   H5::Attribute attribute_Z = group_metadata_calc.createAttribute("Z", H5::PredType::NATIVE_DOUBLE, dataspace_scalar);
   attribute_Z.write(H5::PredType::NATIVE_DOUBLE, &Z);
-  
+
   // -- DYNAMIC METADATA --
-  
+
   // Attribute: Current time in the simulation [ns]
   double simTime = nsteps*Omega_pe*1e9/(56414.6*sqrt(n_ref));
   H5::Attribute attribute_simTime = group_metadata_dynamic.createAttribute("simTime", H5::PredType::NATIVE_DOUBLE, dataspace_scalar);
   attribute_simTime.write(H5::PredType::NATIVE_DOUBLE, &simTime);
-  
+
   // Attribute: Step number in the simulation
   H5::Attribute attribute_nsteps = group_metadata_dynamic.createAttribute("Nsteps", H5::PredType::NATIVE_INT, dataspace_scalar);
   attribute_nsteps.write(H5::PredType::NATIVE_INT, &nsteps);
-  
+
 }

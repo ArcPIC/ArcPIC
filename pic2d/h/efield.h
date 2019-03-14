@@ -18,8 +18,6 @@
 
 ***********************************************************************/
 
-void electric_field_2D( double Phi[], double E_grid_r[], double E_grid_z[], 
-			double E_ion_r[], double E_ion_z[], 
-			int nr, int nz, int NR, int NZ );
-
-
+void electric_field_2D( double Phi[], double E_grid_r[], double E_grid_z[],
+                        double E_ion_r[], double E_ion_z[],
+                        int nr, int nz, int NR, int NZ );

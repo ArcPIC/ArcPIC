@@ -21,13 +21,13 @@
 #include "ParticleSpecies.h"
 
 void  push_2D( ParticleSpecies* pa, const double Eg_r[], const double Eg_z[],
-	       int NZ );
+               int NZ );
 
 void  push_magnetic_onlyBz_2D( ParticleSpecies* pa, const double Eg_r[], const double Eg_z[],
-			       const double Bz, double factor, int NZ );
+                               const double Bz, double factor, int NZ );
 
 void  push_magnetic_2D( ParticleSpecies* pa, const double Eg_r[], const double Eg_z[],
-			const double Bextz, const double Bextt, double factor, int NZ );
+                        const double Bextz, const double Bextt, double factor, int NZ );
 
 void  push_neutrals_2D( ParticleSpecies* pa );
 
