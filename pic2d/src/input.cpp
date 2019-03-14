@@ -157,8 +157,7 @@ void input( void ) {
   fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%d", &BINARY_OUTPUT);
 
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%d", &NOCOLL);
+  DOCOLL = parseYN(in_file, "DOCOLL");
 
   // MISCELLANEOUS
   fscanf(in_file,"%*[^:]%*[:]");
@@ -180,6 +179,17 @@ void input( void ) {
 
 }
 
+bool parseYN(FILE* in_file, std::string errorVariable) {
+  char foo;
+  fscanf(in_file,  "%*[^:]%*[:] %c",  &(foo));
+  if      (foo == 'y') return true;
+  else if (foo == 'n') return false;
+  else {
+    cout << "Error in parsing(): '" << errorVariable << "' has to be either 'y' or 'n'" << endl;
+    cout << "Got: '" << foo << "'" << endl;
+    exit(1);
+  }
+}
 
 char* readInputSection (FILE* in_file, vector<char*>& options_ret, bool acceptNone) {
   char wantName [NAME_MAXLEN];

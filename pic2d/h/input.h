@@ -27,6 +27,9 @@
 //Toplevel input.txt parser
 void input( void );
 
+//Parse y/n flags, return a bool
+bool parseYN(FILE* in_file, std::string errorMsg);
+
 /*This reads a section on the form
 
 (something) : <name_to_use>

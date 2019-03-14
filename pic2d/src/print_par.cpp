@@ -110,6 +110,7 @@ void print_parameters_2D( void ) {
   printf( " - Magnetic push:       %d \n", MAGNETIC );
   printf( " - Continuing old run:  %d \n", CONTINUATION );
   printf( " - Binary output files: %d \n", BINARY_OUTPUT );
+  printf( " - Enable collissions:  %c \n", DOCOLL ? 'y' : 'n');
   
   printf( "\n" );
   printf( " - Field boundary condition BC = %i \n", BC );

@@ -491,7 +491,7 @@ int main () {
     } //END IF ION STEP
 
     // V. MCC COLLISIONS (IF NOT DISABLED)
-    if (NOCOLL == 1) {
+    if (DOCOLL == true) {
       // Coulomb collisions
       if (ncoll_el>0 && nsteps/ncoll_el*ncoll_el == nsteps) {
         // e-e Coulomb collisions

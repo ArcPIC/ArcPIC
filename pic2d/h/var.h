@@ -70,7 +70,7 @@ XTRN int CONTINUATION,
   BC;
 
 XTRN int BINARY_OUTPUT; // Write binary output files (HDF5)?
-XTRN int NOCOLL;        // Disable collissions?
+XTRN bool DOCOLL;       // Enable collissions?
 
 XTRN int e2inj_step, i2inj_step, n2inj_step;
 
