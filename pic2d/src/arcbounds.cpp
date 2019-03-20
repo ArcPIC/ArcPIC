@@ -120,8 +120,12 @@ ArcBounds::~ArcBounds() {
 
   delete[] current_cathode;
   delete[] current_anode;
-  fclose(ofile_currentHist_cathode);
-  fclose(ofile_currentHist_anode);
+  if (ofile_currentHist_anode!= NULL) {
+    fclose(ofile_currentHist_cathode);
+  }
+  if (ofile_currentHist_cathode != NULL) {
+    fclose(ofile_currentHist_anode);
+  }
 }
 
 void ArcBounds::init(unsigned int nr, double zmin, double zmax, double rmax) {

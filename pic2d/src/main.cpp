@@ -756,7 +756,7 @@ int main () {
                    n_i_av[NG+k],5./f_dens,n_e_av[k],-5./f_dens,k);
             fflush(stdout);
             check_dens = 1;
-            goto The_END;
+            //goto The_END;
           }
         }
 
@@ -773,6 +773,8 @@ int main () {
 
   }
   //********END LOOP********//
+  printf("Done!.......................... \n");
+  fflush(stdout);
 
   // The_END: save_data( fbckp );
  The_END: delete_arrays( &perm_c_slu, &perm_r_slu, &rhs_slu );
@@ -797,8 +799,6 @@ int main () {
   fclose(timeIndex);
 
   fclose(mainStats);
-
-  printf("Done!.......................... \n");
 
   printf( "*** Total runtime *** \n" );
   print_time( omp_get_wtime()-time_start);
