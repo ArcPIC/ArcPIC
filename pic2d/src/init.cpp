@@ -87,6 +87,19 @@ void calc_parameters_2D( void ) {
   ncoll_ion  = (int)(ncoll_ion*1./dt_ion+0.5)*dt_ion;
 
   Ampl = (double) ncoll_ion;
+
+  if (nstepsmax < nav_start + nav_time) {
+    std::cerr << std::endl;
+    std::cerr << "Error in calc_parameters_2D():" << std::endl;
+    std::cerr << " Found nstepsmax < nav_start + nav_time" << std::endl
+              << " => Simulation will never reach an output timestep." << std::endl;
+    std::cerr << " Got:" << std::endl
+              << "  nstepsmax = " << nstepsmax << std::endl
+              << "  nav_start = " << nav_start << std::endl
+              << "  nav_time  = " << nav_time  << std::endl
+              << "  Omega_pe  = " << Omega_pe  << std::endl;
+    exit(1);
+  }
 }
 
 

@@ -109,7 +109,6 @@ void input( void ) {
   fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%lg", &av_time );
 
-
   // FIELDS, PARTILCES AND BOUNDARY CONDITIONS
 
   fscanf(in_file,"%*[^:]%*[:]");
