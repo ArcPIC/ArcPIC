@@ -31,15 +31,19 @@ void input( void );
 // exit(1) with erro emessage if not 'y' or 'n'.
 bool parseYN(FILE* in_file, std::string errorVariable);
 
+//Parse double-value flags, return a bool
+// exit(1) with erro emessage if not it cannot be successfully converted.
+double parseDouble(FILE* in_file, std::string errorVariable);
+
 /*This reads a section on the form
 
-(something) : <name_to_use>
+(something) : <name_to_use> <short comment bla bla>
 *** <name1>
 <Option 1> : <value> <comment bla bla>
 <Option 2> : <value> <comment bla bla>
 <Option 3> : <value> <comment bla bla>
 ///
-*** <name2>
+*** <name2> <short comment bla bla>
 <Option 1> : <value> <comment bla bla>
 (etc)
 ///

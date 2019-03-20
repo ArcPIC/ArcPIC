@@ -26,7 +26,6 @@
 #include  "arcbounds.h"
 #undef XTRN
 
-
 #include "filenames.h"
 #include "input.h"
 
@@ -40,6 +39,7 @@
 #include <cstring>
 
 #include <assert.h>
+#include <limits>
 
 using namespace std;
 
@@ -65,25 +65,16 @@ void input( void ) {
   in_file = fopen("input.txt","r");
 
   //SCALING PARAMETERS
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%lg", &n_ref);
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%lg", &T_ref);
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%lg", &Ndb);
+  n_ref = parseDouble(in_file,"n_ref");
+  T_ref = parseDouble(in_file, "T_ref");
+  Ndb   = parseDouble(in_file, "Ndb");
 
 
   fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%d %d", &nr, &nz);
 
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%lg", &dz);
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%lg", &Omega_pe);
-
+  dz       = parseDouble(in_file, "dz");
+  Omega_pe = parseDouble(in_file, "Omega_pe");
 
   // TIMESTEPS
   fscanf(in_file,"%*[^:]%*[:]");
@@ -102,22 +93,13 @@ void input( void ) {
   fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%d", &nstepsmax);
 
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%lg", &dt_out);
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%lg", &av_start );
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%lg", &av_time );
+  dt_out   = parseDouble(in_file, "dt_out");
+  av_start = parseDouble(in_file, "av_start");
+  av_time  = parseDouble(in_file, "av_time");
 
   // FIELDS, PARTILCES AND BOUNDARY CONDITIONS
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%lg", &Bz_ext);
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%lg", &Bt_ext);
+  Bz_ext = parseDouble(in_file, "Bz_ext");
+  Bt_ext = parseDouble(in_file, "Bt_ext");
 
   //Injection timesteps
   fscanf(in_file,"%*[^:]%*[:]");
@@ -153,12 +135,9 @@ void input( void ) {
   DODEBUG       = parseYN(in_file, "DODEBUG");
 
   // MISCELLANEOUS
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%lg", &Ti_over_Te);
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%lg", &mi_over_me);
-
+  Ti_over_Te = parseDouble(in_file, "Ti_over_Te");
+  mi_over_me = parseDouble(in_file, "mi_over_me");
+  
   fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%lu", &RNGbaseSeed);
 
@@ -184,6 +163,35 @@ bool parseYN(FILE* in_file, std::string errorVariable) {
   }
 }
 
+double parseDouble(FILE* in_file, std::string errorVariable) {
+  double retVal = std::numeric_limits<double>::quiet_NaN();
+
+  char   buffer[LINE_MAXLEN+1];
+  memset(buffer, '\0', LINE_MAXLEN+1);
+
+  fscanf(in_file, "%*[^:]%*[:] %sLINE_MAXLEN", buffer);// '%sLINE_MAXLEN':
+                                                       // Read from string, maximum NAME_MAXLEN characters
+                                                       // (macro variable LINE_MAXLEN is inserted, making it into e.g. '%s300')
+                                                       // Note that fscanf will read the given number of characters,
+                                                       // and then append a '\0' after that! That's why the allocation is LINE_MAXLEN+1.
+  if (buffer[LINE_MAXLEN-1] != '\0') {
+    cerr << "Error in parseDouble() when reading '" << errorVariable << "': Possible truncation!" << endl;
+    exit(1);
+  }
+
+  try {
+    retVal = std::stod(string(buffer));
+  }
+  catch (const std::invalid_argument& ia) {
+    cout << "Invalid argument when reading variable '" << errorVariable << "'." << endl
+         << "Got: '" << buffer << "'" << endl
+         << "Expected a floating point number! (exponential notation is accepted)" << endl;
+    exit(1);
+  }
+
+  return retVal;
+}
+
 char* readInputSection (FILE* in_file, vector<char*>& options_ret, bool acceptNone) {
   assert (LINE_MAXLEN > NAME_MAXLEN+4); // Should handle '*** NAME'
 
@@ -199,7 +207,7 @@ char* readInputSection (FILE* in_file, vector<char*>& options_ret, bool acceptNo
                                                 // (macro variable NAME_MAXLEN is inserted, making it into e.g. '%s64')
                                                 // Note that fscanf will read the given number of characters,
                                                 // and then append a '\0' after that! That's why the allocation is NAME_MAXLEN+1.
-  if (wantName[NAME_MAXLEN-1]!= '\0') {
+  if (wantName[NAME_MAXLEN-1] != '\0') {
     cerr << "Error in readInputSection(): Possible truncation in wantName" << endl;
     exit(1);
   }

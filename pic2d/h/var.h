@@ -43,6 +43,7 @@ XTRN double Ampl,
   vi_0,
   Zmin, Zmax, Rmin, Rmax;
 
+// New-style classes for handling different parts of the physics
 XTRN Circuit* circuit;
 XTRN ArcBounds* pbounds;
 XTRN InitialParticles* iParts;
