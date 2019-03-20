@@ -350,26 +350,41 @@ ArcDummy::ArcDummy(std::vector<char*>& options) {
          << options.size() << endl;
     exit(1);
   }
+
+  cout << endl
+       << endl
+       << "***************************************************" << endl
+       << "*** WARNING *** WARNING *** WARNING *** WARNING ***" << endl
+       << "***************************************************" << endl;
+
+  cout << "    ArcDummy boundary condition selected; " << endl
+       << "    this does NOT include removal of particles at the domain boundaries!" << endl
+       << "    Simulation will probably crash shortly..." << endl;
+
+  cout << "***************************************************" << endl
+       << "*** WARNING *** WARNING *** WARNING *** WARNING ***" << endl
+       << "***************************************************" << endl
+       << endl << endl;
 }
 
 void ArcDummy::remove_e(ParticleSpecies* pa) {
-  cout << "remove_e" << endl;
+  cout << "ArcDummy::remove_e" << endl;
 }
 void ArcDummy::remove_i(ParticleSpecies* pa, unsigned int sort) {
-  cout << "remove_i, sort=" << sort << endl;
+  cout << "ArcDummy::remove_i, sort=" << sort << endl;
 }
 void ArcDummy::remove_n(ParticleSpecies* pa) {
-  cout << "remove_n" << endl;
+  cout << "ArcDummy::remove_n" << endl;
 }
 
 void ArcDummy::inject_e(ParticleSpecies* pa, double const Ez[]) {
-  cout << "inject_e" << endl;
+  cout << "ArcDummy::inject_e" << endl;
 }
 void ArcDummy::inject_i(ParticleSpecies* pa, double const Ez[], unsigned int sort) {
-  cout << "inject_i, sort=" << sort << endl;
+  cout << "ArcDummy::inject_i, sort=" << sort << endl;
 }
 void ArcDummy::inject_n(ParticleSpecies* pa, double const Ez[]) {
-  cout << "inject_n" << endl;
+  cout << "ArcDummy::inject_n" << endl;
 }
 
 // ******** Implementation of ArcSimple ******************

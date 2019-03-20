@@ -39,6 +39,8 @@
 #include <cstdlib>
 #include <cstring>
 
+#include <assert.h>
+
 using namespace std;
 
 void input( void ) {
@@ -191,67 +193,104 @@ bool parseYN(FILE* in_file, std::string errorVariable) {
 }
 
 char* readInputSection (FILE* in_file, vector<char*>& options_ret, bool acceptNone) {
-  char wantName [NAME_MAXLEN];
+  assert (LINE_MAXLEN > NAME_MAXLEN+4); // Should handle '*** NAME'
+
+  char wantName [NAME_MAXLEN+1];
+  memset(wantName, '\0', NAME_MAXLEN+1);
+
   char* retName = NULL;
   vector<char*> options;
 
   fscanf(in_file, "%*[^:]%*[:]");
-  fscanf(in_file, "%sNAME_MAXLEN", wantName);
+  fscanf(in_file, "%sNAME_MAXLEN", wantName);   // '%sNAME_MAXLEN':
+                                                // Read from string, maximum NAME_MAXLEN characters
+                                                // (macro variable NAME_MAXLEN is inserted, making it into e.g. '%s64')
+                                                // Note that fscanf will read the given number of characters,
+                                                // and then append a '\0' after that! That's why the allocation is NAME_MAXLEN+1.
+  if (wantName[NAME_MAXLEN-1]!= '\0') {
+    cerr << "Error in readInputSection(): Possible truncation in wantName" << endl;
+    exit(1);
+  }
+
   //Move the file pointer past the '\n'
   // foo should be much longer that NAME_MAXLEN (foo also used below)
-  char foo[NAME_MAXLEN];
-  memset(foo, '\0', NAME_MAXLEN);
-  fgets(foo,NAME_MAXLEN,in_file);
-  if (foo[NAME_MAXLEN-1] != '\0') {
-    cout << "Error in readInputSection(): Ran out of space in foo (pos1)."
-         << " Check whitespace in input.txt!" << endl;
+  char foo[LINE_MAXLEN];
+  memset(foo, '\0', LINE_MAXLEN);
+  fgets(foo,LINE_MAXLEN,in_file); // fgets will read at max LINE_MAXLEN-1 characters, and then append a '\0'.
+                                  // Thus the allocation of LINE_MAXLEN bytes and checking at position end-1 (= LINE_MAXLEN-2).
+  if (foo[LINE_MAXLEN-2] != '\0') {
+    cerr << "Error in readInputSection(): Possible buffer overflow in foo (looking for EOL in main header)."
+         << " Check input.txt, could be lots of trailing whitespace!" << endl;
     exit(1);
   }
 
   cout << "wantName='" << wantName << "'\n";
 
   //Loop over config sections
-  const unsigned int safetyMax = 100;
-  for (unsigned int safety = 0; safety < safetyMax; safety++) {
+  const unsigned int safetyMax_sections = 100;
+  unsigned int safety_section = 0;
+  while (true) {
     //Loop sanity check
-    if ( safety >= safetyMax ) {
-      cout << "Error in readInputSection: Infinite loop in parser." << endl;
+    if ( safety_section >= safetyMax_sections ) {
+      cerr << "Error in readInputSection: Infinite loop in parser, or more than"
+           << "safetyMax_sections =" << safetyMax_sections << " config sections." << endl;
       exit(1);
     }
 
     //Find the right section
-    char thisName [NAME_MAXLEN];
-    memset(foo, '\0', NAME_MAXLEN);
-    fgets(foo, NAME_MAXLEN,in_file);
-    if (foo[NAME_MAXLEN-1] != '\0') {
-      cout << "Error in readInputSection(): Ran out of space in foo (pos2)."
-           << " Check input.txt!" << endl;
+    char thisName [NAME_MAXLEN+1];
+    memset(thisName, '\0', NAME_MAXLEN+1);
+
+    memset(foo, '\0', LINE_MAXLEN);
+    fgets(foo, LINE_MAXLEN,in_file);
+    if (foo[LINE_MAXLEN-2] != '\0') {
+      cerr << "Error in readInputSection(): Possible buffer overflow in foo (looking for EOL in section scan)."
+           << " Check input.txt, could be lots of trailing whitespace!" << endl;
       exit(1);
     }
     sscanf(foo, "*** %sNAME_MAXLEN", thisName);
+    if (thisName[NAME_MAXLEN-1]!= '\0') {
+      cerr << "Error in readInputSection(): Possible truncation in thisName" << endl;
+      exit(1);
+    }
 
     cout << "thisName='" << thisName << "'\n";
 
-    if ( ! strncmp(thisName, "END", NAME_MAXLEN) ) break;
+    assert(NAME_MAXLEN >= 3);
+    if ( ! strncmp(thisName, "END", 3) ) break;
 
     //Loop over options for thisName
-    while(true) {
+    const unsigned int safetyMax_options = 300;
+    unsigned int safety_option = 0;
+    while (true) {
+      //Loop sanity check
+      if ( safety_option >= safetyMax_options ) {
+        cerr << "Error in readInputSection: Infinite loop in parser, or more than"
+             << "safetyMax_options =" << safetyMax_options << " options while parsing config section"
+             << " '" << thisName << "'." << endl;
+        exit(1);
+      }
+
       //Get the next line
       char* line = new char[LINE_MAXLEN];
       memset(line, '\0', LINE_MAXLEN);
       fgets(line, LINE_MAXLEN, in_file);
-      if ( line[LINE_MAXLEN-1] != '\0') {
-        cout << "Error in readInputSection(): Ran out of space in line. "
-             << " Check input.txt!" << endl;
+      if ( line[LINE_MAXLEN-2] != '\0') {
+        cerr << "Error in readInputSection(): Possible truncation when reading lines of config section"
+             << " '" << thisName << "'." <<endl
+             << " Check input.txt, could be lots of trailing whitespace!!" << endl;
         exit(1);
       }
       //printf("Got line '%s'\n", line); //DEBUG
 
       //Check for "///"
+      assert(LINE_MAXLEN >= 3);
       if ( ! strncmp(line, "///", 3) ) break;
 
       //Collect the line
       options.push_back(line);
+
+      safety_option++;
     }
 
     //Got the right section!
@@ -259,20 +298,20 @@ char* readInputSection (FILE* in_file, vector<char*>& options_ret, bool acceptNo
       cout << "In readInputSection(), got name = '" << wantName << "'" << endl;
       cout << "Got options:" << endl;
       for (size_t i = 0; i < options.size(); i++) {
-        cout << "\t[" << i << "]:" << options[i]; //endl not needed, already \n at end of lines
+        cout << "\t[" << i << "]:" << options[i]; //endl not needed, already have \n at end of lines
       }
 
       if (retName != NULL) {
-        cout << "Error in readInputSection: Found the wanted name twice in input.txt!" << endl;
+        cerr << "Error in readInputSection: Found the wanted name twice in input.txt!" << endl;
         exit(1);
       }
 
       //Don't return immediatly, need to parse the rest of the sections
       retName = new char[NAME_MAXLEN];
-      strncpy(retName, wantName, NAME_MAXLEN);
+      strncpy(retName, wantName, NAME_MAXLEN);      // We have previously checked that wantName has a \0 in NAME_MAXLEN-1.
       for (size_t i = 0; i < options.size(); i++) {
         char* line_ret = new char[LINE_MAXLEN];
-        strncpy(line_ret, options[i], LINE_MAXLEN);
+        strncpy(line_ret, options[i], LINE_MAXLEN); // fgets makes sure that options[i] has a \0 in LINE_MAXLEN-1 (and we check that there is no overflow)
         options_ret.push_back(line_ret);
       }
     }
@@ -282,6 +321,8 @@ char* readInputSection (FILE* in_file, vector<char*>& options_ret, bool acceptNo
       delete[] options[i];
     }
     options.clear();
+
+    safety_section++;
   }
 
   if (retName != NULL) {
@@ -294,8 +335,8 @@ char* readInputSection (FILE* in_file, vector<char*>& options_ret, bool acceptNo
     return retName;
   }
   //Implicit else
-  cout << "Error in readInputSection(): Couldn't find section corresponding to "
-       << " '" << wantName << "'" << endl;
+  cerr << "Error in readInputSection(): Couldn't find section corresponding to"
+       << "'" << wantName << "'" << endl;
   exit(1);
   return NULL; //avoid compiler warning
 }

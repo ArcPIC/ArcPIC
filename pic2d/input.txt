@@ -49,14 +49,14 @@ Injection timestep in dt, ions:         10
 
 * Particle boundary parameters *
 ArcBoundName: ArcOriginalNewHS
-*** ArcDummy
-///
 *** ArcSimple
 ne_inject       : 10    Number of electrons to inject/timestep
 ni_inject       : 10    Number of ions (type 1, Cu+) to inject/timestep
 nn_inject       : 10    Number of neutrals to inject/timestep
 file_timestep   : 1     How often to write to 'arcbounds.dat'             [dt]
 file_timestep_hist : 0  How often to write current histograms (0 = normal output steps)
+///
+*** ArcDummy  (NOTE: ArcDummy is only for internal testing; it will crash!)
 ///
 *** ArcOriginal
 beta            : 35.   Initial Fowler-Nordheim beta of tip
