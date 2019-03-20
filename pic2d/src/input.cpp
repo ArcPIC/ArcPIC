@@ -139,18 +139,11 @@ void input( void ) {
   iParts = InitialParticles::LoadInitialParticles(in_file);
 
   // OPTIONS
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%d", &OUT_COORD);
+  OUT_COORD     = parseYN(in_file, "OUT_COORD");
+  OUT_EFIELD    = parseYN(in_file, "OUT_EFIELD");
+  OUT_VDF       = parseYN(in_file, "OUT_VDF");
 
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%d", &OUT_EFIELD);
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%d", &OUT_VDF);
-
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%d", &MAGNETIC);
+  MAGNETIC      = parseYN(in_file, "MAGNETIC");
 
   fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%d", &CONTINUATION);

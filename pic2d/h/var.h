@@ -62,13 +62,12 @@ XTRN int diagn_start,
   nsteps, nstepsmax, nstepsmin;
 
 
-XTRN int CONTINUATION,
-  MAGNETIC,
-  OUT_COORD,
-  OUT_EFIELD,
-  OUT_VDF,
-  BC;
+XTRN int CONTINUATION, BC;
 
+XTRN bool OUT_COORD;     // Outputting particle coordinates?
+XTRN bool OUT_EFIELD;    // Outputting electric field?
+XTRN bool OUT_VDF;       // Outputting VDF?
+XTRN bool MAGNETIC;      // Magnetic push?
 XTRN bool BINARY_OUTPUT; // Write binary output files (HDF5)?
 XTRN bool DOCOLL;        // Enable collissions?
 XTRN bool DODEBUG;       // Enable extra debugging checks?
