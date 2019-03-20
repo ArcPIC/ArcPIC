@@ -69,9 +69,8 @@ void input( void ) {
   T_ref = parseDouble(in_file, "T_ref");
   Ndb   = parseDouble(in_file, "Ndb");
 
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%d %d", &nr, &nz);
+  nr = parseInt(in_file, "nr");
+  nz = parseInt(in_file, "nz", false);
 
   dz       = parseDouble(in_file, "dz");
   Omega_pe = parseDouble(in_file, "Omega_pe");
@@ -138,9 +137,14 @@ void input( void ) {
 
 }
 
-bool parseYN(FILE* in_file, std::string errorVariable) {
+bool parseYN(FILE* in_file, std::string errorVariable, bool eatLeadingColon) {
   char foo;
-  fscanf(in_file,  "%*[^:]%*[:] %c",  &(foo));
+  if (eatLeadingColon) {
+    fscanf(in_file,  "%*[^:]%*[:])");
+  }
+
+  fscanf(in_file, " %c",  &(foo));
+
   if      (foo == 'y') return true;
   else if (foo == 'n') return false;
   else {
@@ -150,17 +154,20 @@ bool parseYN(FILE* in_file, std::string errorVariable) {
   }
 }
 
-double parseDouble(FILE* in_file, std::string errorVariable) {
+double parseDouble(FILE* in_file, std::string errorVariable, bool eatLeadingColon) {
   double retVal = std::numeric_limits<double>::quiet_NaN();
 
   char   buffer[LINE_MAXLEN+1];
   memset(buffer, '\0', LINE_MAXLEN+1);
 
-  fscanf(in_file, "%*[^:]%*[:] %sLINE_MAXLEN", buffer);// '%sLINE_MAXLEN':
-                                                       // Read from string, maximum NAME_MAXLEN characters
-                                                       // (macro variable LINE_MAXLEN is inserted, making it into e.g. '%s300')
-                                                       // Note that fscanf will read the given number of characters,
-                                                       // and then append a '\0' after that! That's why the allocation is LINE_MAXLEN+1.
+  if (eatLeadingColon) {
+    fscanf(in_file, "%*[^:]%*[:]");
+  }
+  fscanf(in_file, " %sLINE_MAXLEN", buffer);// '%sLINE_MAXLEN':
+                                           // Read from string, maximum NAME_MAXLEN characters
+                                           // (macro variable LINE_MAXLEN is inserted, making it into e.g. '%s300')
+                                           // Note that fscanf will read the given number of characters,
+                                           // and then append a '\0' after that! That's why the allocation is LINE_MAXLEN+1.
   if (buffer[LINE_MAXLEN-1] != '\0') {
     cerr << "Error in parseDouble() when reading '" << errorVariable << "': Possible truncation!" << endl;
     exit(1);
@@ -195,17 +202,21 @@ double parseDouble(FILE* in_file, std::string errorVariable) {
   return retVal;
 }
 
-double parseInt(FILE* in_file, std::string errorVariable) {
+double parseInt(FILE* in_file, std::string errorVariable, bool eatLeadingColon) {
   int retVal = 0;
 
   char   buffer[LINE_MAXLEN+1];
   memset(buffer, '\0', LINE_MAXLEN+1);
 
-  fscanf(in_file, "%*[^:]%*[:] %sLINE_MAXLEN", buffer);// '%sLINE_MAXLEN':
-                                                       // Read from string, maximum NAME_MAXLEN characters
-                                                       // (macro variable LINE_MAXLEN is inserted, making it into e.g. '%s300')
-                                                       // Note that fscanf will read the given number of characters,
-                                                       // and then append a '\0' after that! That's why the allocation is LINE_MAXLEN+1.
+  if (eatLeadingColon) {
+    fscanf(in_file, " %*[^:]%*[:]");
+  }
+
+  fscanf(in_file, "%sLINE_MAXLEN", buffer);// '%sLINE_MAXLEN':
+                                           // Read from string, maximum NAME_MAXLEN characters
+                                           // (macro variable LINE_MAXLEN is inserted, making it into e.g. '%s300')
+                                           // Note that fscanf will read the given number of characters,
+                                           // and then append a '\0' after that! That's why the allocation is LINE_MAXLEN+1.
   if (buffer[LINE_MAXLEN-1] != '\0') {
     cerr << "Error in parseInt() when reading '" << errorVariable << "': Possible truncation!" << endl;
     exit(1);

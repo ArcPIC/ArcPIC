@@ -58,15 +58,15 @@ char* readInputSection (FILE* in_file, std::vector<char*>& options_ret, bool acc
 
 //Parse a y/n flag, return a bool
 // exit(1) with error message if not 'y' or 'n'.
-bool parseYN(FILE* in_file, std::string errorVariable);
+bool parseYN(FILE* in_file, std::string errorVariable, bool eatLeadingColon=true);
 
 //Parse a double-value flag
 // exit(1) with error message if not it cannot be successfully converted.
-double parseDouble(FILE* in_file, std::string errorVariable);
+double parseDouble(FILE* in_file, std::string errorVariable, bool eatLeadingColon=true);
 
 //Parse a int-value flag
 // exit(1) with error message if not it cannot be successfully converted.
-double parseInt(FILE* in_file, std::string errorVariable);
+double parseInt(FILE* in_file, std::string errorVariable, bool eatLeadingColon=true);
 
 //Buffer sizes used in the parsing functions
 #define NAME_MAXLEN 64  //Maximum allowed length of Name
