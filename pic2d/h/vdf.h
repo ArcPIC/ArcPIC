@@ -24,6 +24,6 @@
 #include "ParticleSpecies.h"
 
 void vel_dst_along_2D( double* fvz, double* fvr, double* fvabs, ParticleSpecies* pa,
-		       int nr, int nz, double dvt, int n_av );
+                       int nr, int nz, double dvt, int n_av );
 
 #endif

@@ -46,7 +46,7 @@ class InitialParticles {
   virtual void inject_e(ParticleSpecies* pa) = 0;
   virtual void inject_n(ParticleSpecies* pa) = 0;
   virtual void inject_i(ParticleSpecies* pa) = 0;
-  
+
   virtual void print_par() = 0;
 
   virtual const char* getName() const = 0;
@@ -61,7 +61,7 @@ class UniformRestricted : public InitialParticles {
   virtual void inject_e(ParticleSpecies* pa);
   virtual void inject_n(ParticleSpecies* pa);
   virtual void inject_i(ParticleSpecies* pa);
-  
+
   virtual void print_par();
 
   virtual const char* getName() const {
@@ -74,7 +74,7 @@ class UniformRestricted : public InitialParticles {
   double maxZ;
   double minR; //Minimum ------ * * ------
   double minZ;
-  
+
   bool doInject_e;
   bool doInject_i;
   bool doInject_n;

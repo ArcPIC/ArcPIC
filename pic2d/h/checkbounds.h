@@ -23,6 +23,6 @@
 
 #include "ParticleSpecies.h"
 
-void checkbounds_2D( ParticleSpecies* pa, double rmin, double rmax, double zmin, double zmax );
+bool checkbounds_2D( ParticleSpecies* pa, double rmin, double rmax, double zmin, double zmax );
 
 #endif

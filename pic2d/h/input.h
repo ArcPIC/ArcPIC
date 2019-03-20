@@ -27,6 +27,10 @@
 //Toplevel input.txt parser
 void input( void );
 
+//Parse y/n flags, return a bool
+// exit(1) with erro emessage if not 'y' or 'n'.
+bool parseYN(FILE* in_file, std::string errorVariable);
+
 /*This reads a section on the form
 
 (something) : <name_to_use>

@@ -19,18 +19,18 @@
 ***********************************************************************/
 
 void potential_factorise_2D( int nr, int nz, int NR, int NZ, double dr, double dz,
-			     SuperMatrix* L, SuperMatrix* U, int** perm_c, int** perm_r );
+                             SuperMatrix* L, SuperMatrix* U, int** perm_c, int** perm_r );
 
 void potential_factorise_BC23( int nr, int nz, int NR, int NZ, double dr, double dz,
-			      SuperMatrix* L, SuperMatrix* U, int** perm_c, int** perm_r );
+                               SuperMatrix* L, SuperMatrix* U, int** perm_c, int** perm_r );
 
 
 void potential_backsolve_2D( int nr, int nz, int NR, int NZ, double dz,
-			     double const phi0, double const phiNz, double Phi[],
-			     SuperMatrix L, SuperMatrix U, int* perm_c, int* perm_r,
-			     double n_e[], double n_i[], double** rhs );
+                             double const phi0, double const phiNz, double Phi[],
+                             SuperMatrix L, SuperMatrix U, int* perm_c, int* perm_r,
+                             double n_e[], double n_i[], double** rhs );
 
 void potential_backsolve_BC23( int nr, int nz, int NR, int NZ, double dz,
-			     double const phi0, double const phiNz, double Phi[],
-			     SuperMatrix L, SuperMatrix U, int* perm_c, int* perm_r,
-			      double n_e[], double n_i[], double** rhs );
+                               double const phi0, double const phiNz, double Phi[],
+                               SuperMatrix L, SuperMatrix U, int* perm_c, int* perm_r,
+                               double n_e[], double n_i[], double** rhs );

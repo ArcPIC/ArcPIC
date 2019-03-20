@@ -34,7 +34,7 @@ class FlexFN_twoComp_origNeutrals : public FlexFN {
  public:
   FlexFN_twoComp_origNeutrals(std::vector<char*>& option);
   virtual ~FlexFN_twoComp_origNeutrals();
-  
+
   virtual void init   (unsigned int nr, double zmin, double zmax, double rmax);
   virtual void re_init(unsigned int nr, double zmin, double zmax, double rmax);
 
@@ -64,7 +64,7 @@ class FlexFN_twoComp_origNeutrals : public FlexFN {
   double alpha1, alpha2;
   double beta1, beta2;
   unsigned int idx1;
-  
+
   //SEY on cathode
   double SEY;    //Single electron yield from copper
   std::vector<Sput> sput_cathode_SEY;
@@ -77,7 +77,7 @@ class FlexFN_twoComp_origNeutrals : public FlexFN {
   //Needed data for sputtering
   std::vector<Sput> sput_cathode;
   std::vector<Sput> sput_anode;
-  
+
   bool doHeatspike;
 
   //Calculate sputtering for a single particle
@@ -85,8 +85,8 @@ class FlexFN_twoComp_origNeutrals : public FlexFN {
   inline Sput calc_sput(const Particle pa, const double cs, double* current_enhancedY);
   //Inject netrals from sputtering on a single wall
   inline void inject_sput(ParticleSpecies* pa,
-			  std::vector<Sput> &sput,
-			  bool isCathode, double v_inj);
+                          std::vector<Sput> &sput,
+                          bool isCathode, double v_inj);
 
 };
 

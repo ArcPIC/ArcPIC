@@ -32,8 +32,8 @@ class FlexFN2 : public ArcRemover {
   //Inject electron superparticles into a ring between r1 and r2 [dz]
   // with a setable alpha and beta, using the same injection algorithm as FlexFN.
   void injectFNring(ParticleSpecies* pa,
-		    double alpha, double beta, double const Ez[],
-		    double r1, double r2);
+                    double alpha, double beta, double const Ez[],
+                    double r1, double r2);
 
 };
 

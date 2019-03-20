@@ -48,7 +48,7 @@ void ParticleSpecies::Order2D() {
       ordcount[j*(nz+1) + k]= 0;
     }
   }
-  
+
   //Sort particles
   for (size_t n=0; n<GetN(); n++) {
     int ir = (int)r[n];
@@ -58,26 +58,26 @@ void ParticleSpecies::Order2D() {
     if ( (ir<0) || (ir>=nr) || (iz<0) || (iz>=nz) ) {
       //Edge cases
       if (r[n] == (double) nr) {
-	ir--;
+        ir--;
       }
       else if (z[n] == (double) nz) {
-	iz--;
+        iz--;
       }
       else {
-	//Over the edge; it's just wrong!
-	fprintf(stderr," !!!ERROR!!! %d %d\n", ir, iz);
-	fflush(stderr);
+      //Over the edge; it's just wrong!
+        fprintf(stderr," !!!ERROR!!! ir=%d iz=%d\n", ir, iz);
+        fflush(stderr);
 
-	printf("Error in ParticleSpecies::order_2D(): particle position out-of-range, r=%g, z=%g, (ir,iz)= (%d,%d)\n", r[n], z[n], ir, iz);
-	
-	exit(1);
+        printf("Error in ParticleSpecies::order_2D(): particle position out-of-range, r=%g, z=%g, (ir,iz)= (%d,%d)\n", r[n], z[n], ir, iz);
+
+        exit(1);
       }
     }
 
     temP[ir*nz+iz].push_back(n);
     ordcount[ir*(nz+1) + iz]++;
   }
-  
+
   //Stuff them back into the particle arrays, but now in the correct order
   ShuffleArray(z);
   ShuffleArray(r);
@@ -88,29 +88,29 @@ void ParticleSpecies::Order2D() {
   for (int cidx = 0; cidx < nr*nz; cidx++) {
     temP[cidx].clear();
   }
-  
+
 }
 
 void ParticleSpecies::UpdateDensityMap( double V_cell[] ) {
   // Initialise
   this->ZeroDensityMap();
-  
+
   // Positive ions: only this
   for (size_t n=0; n<this->GetN(); n++) {
     double hr = r[n];
     int j  = (int)hr;
     hr -= j;
-    
+
     double hz = z[n];
     int k  = (int)hz;
     hz -= k;
-    
+
     densMap[j*(nz+1) + k]         += (1-hr)*(1-hz)/V_cell[j];
     densMap[(j+1)*(nz+1) + k]     += hr*(1-hz)/V_cell[j+1];
     densMap[j*(nz+1) + (k+1)]     += (1-hr)*hz/V_cell[j];
     densMap[(j+1)*(nz+1) + (k+1)] += hr*hz/V_cell[j+1];
   }
-  
+
   /*  Multipying by particles charge	   */
   if (this->charge != 0.0 ) {
     for(size_t j=0; j<(nr+1)*(nz+1); j++) {
@@ -141,24 +141,32 @@ Particle ParticleSpecies::GetOneParticle(size_t n) {
 void ParticleSpecies::ShuffleArray(std::vector<double> &arr) {
   shuffleTmpArr_dbl.resize(0);
   shuffleTmpArr_dbl.reserve(this->GetN());
-  
+
   for (int cidx = 0; cidx < nr*nz; cidx++) {
     for (size_t l = 0; l < temP[cidx].size(); l++) {
       shuffleTmpArr_dbl.push_back(arr[temP[cidx][l]]);
     }
   }
-  
+
   arr.swap(shuffleTmpArr_dbl);
 }
 void ParticleSpecies::ShuffleArray(std::vector<int> &arr) {
   shuffleTmpArr_int.resize(0);
   shuffleTmpArr_int.reserve(this->GetN());
-  
+
   for (int cidx = 0; cidx < nr*nz; cidx++) {
     for (size_t l = 0; l < temP[cidx].size(); l++) {
       shuffleTmpArr_int.push_back(arr[temP[cidx][l]]);
     }
   }
-  
+
   arr.swap(shuffleTmpArr_int);
+}
+
+void ParticleSpecies::PrintParticles() {
+  for (size_t n = 0; n < this->GetN(); n++) {
+    std::cout << n << " " << this->z[n] << " " << this->r[n] << " "
+              << this->vz[n] << " " << this->vr[n] << " " << this-> vt[n] << " "
+              << this->m[n] << std::endl;
+  }
 }

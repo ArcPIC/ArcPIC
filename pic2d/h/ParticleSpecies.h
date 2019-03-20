@@ -27,13 +27,13 @@
 #include <string>
 
 class ParticleSpecies {
-  
+
  public:
   //Constructor
   ParticleSpecies(size_t nr, size_t nz, std::string name, double mass, double charge);
   //Destructor
   ~ParticleSpecies();
-  
+
   //Particle arrays, laid out so that they can be vectorized
   std::vector<double> z;
   std::vector<double> r;
@@ -45,7 +45,7 @@ class ParticleSpecies {
   //Ordering vector, updated by calling order_2D
   // ordcount[i] = number of particles in cell i=ir*(nz+1)+iz
   size_t* ordcount;
-  
+
   //Check the current number of particles
   const size_t GetN() const {
     return z.size();
@@ -79,7 +79,7 @@ class ParticleSpecies {
   // deleting the extra particles
   void ResizeDelete(const size_t newSize);
   void ResizeDeleteBy(const size_t nDelete);
-  
+
   // Name of the particle species, used for printing, tables, etc.
   const std::string name;
 
@@ -87,7 +87,7 @@ class ParticleSpecies {
   const double mass;
   // Dimensionless particle charge
   const double charge;
-  
+
   //Order the particle arrays by cell
   void Order2D();
 
@@ -98,11 +98,14 @@ class ParticleSpecies {
 
   // Extract one particle object
   Particle GetOneParticle(size_t n);
-  
+
+  // Print all the particles (for debugging)
+  void PrintParticles();
+
  private:
   // Local copy of the nr and nz settings
   const size_t nr, nz;
-  
+
   // Temporary array of vectors used in order_2D to sort the particles;
   // use a member variable so we don't destroy&reallocate the temp array between each use.
   std::vector<size_t> *temP = NULL;

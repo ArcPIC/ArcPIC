@@ -52,10 +52,10 @@ class ArcOriginalNewHS : public ArcRemover {
   virtual void writeFile_extras(unsigned int nstep) {
     writeFile_arcboundsOriginalDat(nstep);
   }
-  
+
   //Save and restore backup data
   virtual void backup(FILE* file) {};
-  virtual void restoreBackup(FILE* file) {};  
+  virtual void restoreBackup(FILE* file) {}; 
 
   virtual const char* getName() const { return "ArcOriginalNewHS"; };
 
@@ -73,11 +73,11 @@ class ArcOriginalNewHS : public ArcRemover {
   double alpha_flat;    //Fractional of flat surface covered by emitters
   bool   fracInjectStep;//Inject electrons at fractional timestep (euler method)
 
-  double Remission, Remission_theor; //Electron emission area  
+  double Remission, Remission_theor; //Electron emission area
   double Rborder;                    //Inner radius of flat emission area
 
   double SEY;    //Single electron yield from copper
-  
+
   double r_Cu_e;         // Ratio of copper evaporated to electrons FN-emitted
   double r_Cu_e_flat;    // Ratio of copper evaporated to electrons FN-emitted from flat surface
   bool evap_flat_center; // Evaporate copper from flat surface inside Remission?
@@ -115,7 +115,7 @@ class ArcOriginalNewHS : public ArcRemover {
   int emitted_sputter_cat_output; //cathode sputtering
   int emitted_sputter_ano_output; //  anode sputtering
   int emitted_heatspike_output;   //heatspike sputtering (on cathode)
-  
+
   // 1..nr or 0 (no heatspike)
   unsigned int heatspike_sigma;
   unsigned int heatspike_incident; // [number of neutral superparticles incident]
@@ -130,7 +130,8 @@ class ArcOriginalNewHS : public ArcRemover {
   //Inject netrals from sputtering on a single wall.
   // The sputtering array is automatically reset.
   inline void inject_sput(ParticleSpecies* pa,
-			  std::vector<Sput> &sput, bool isCathode);  
+                          std::vector<Sput> &sput,
+                          bool isCathode);
 };
 
 

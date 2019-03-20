@@ -51,7 +51,7 @@ class ArcOriginal : public ArcRemover {
   virtual void writeFile_extras(unsigned int nstep) {
     writeFile_arcboundsOriginalDat(nstep);
   }
-  
+
   //Save and restore backup data
   virtual void backup(FILE* file) {};
   virtual void restoreBackup(FILE* file) {};
@@ -75,22 +75,22 @@ class ArcOriginal : public ArcRemover {
   bool   fracInjectStep;//Inject electrons at fractional timestep (euler method)
 
   double Remission, Remission_theor; //Electron emission area
-  
+
   double SEY;    //Single electron yield from copper
-  
+
   double r_Cu_e; // ratio of copper evaporated to electrons FN-emitted
-  
+
   double heatspike_threshold; //Threshold (in A/cm^2) for ion current through a cell
                               // on the cathode to trigger a heatspike
   double heatspike_yield;     //Yield in Cu neutrals / standard timestep
                               // (a standard timestep is approximately 1.77 fs,
                               // and arises at Omega_pe = 0.2, n_e = 4e18 cm^-3)
-  
+
   //Needed data for sputtering
   std::vector<Sput> sput_cathode;
   std::vector<Sput> sput_cathode_SEY;
   std::vector<Sput> sput_anode;
-  
+
   //Status for erosion & melting of tip
   bool has_melted;
   int erosion;
@@ -103,13 +103,14 @@ class ArcOriginal : public ArcRemover {
   //Injection velocities (based on thermal velocity)
   double v_inj_e;
   double v_inj_i;
-  
+
   //Calculate sputtering for a single particle
   // Returns a sputtering object, where Y=r=0 if there is no sputtering
   inline Sput calc_sput(const Particle pa, const double cs, double* current_enhancedY);
   //Inject netrals from sputtering on a single wall
   inline void inject_sput(ParticleSpecies* pa,
-			  std::vector<Sput> &sput, bool isCathode);
+                          std::vector<Sput> &sput,
+                          bool isCathode);
 };
 
 

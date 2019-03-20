@@ -18,6 +18,6 @@
 
 ***********************************************************************/
 
-void read_data(const char *fdata ); 
-void save_data(const char *fdata ); 
+void read_data(const char *fdata );
+void save_data(const char *fdata );
 

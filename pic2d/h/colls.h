@@ -24,27 +24,27 @@
 #include "ParticleSpecies.h"
 
 void coll_el_knm_2D( ParticleSpecies* pa,
-		     int nr,int nz,int NZ,
-		     int kind,
-		     Vec3d *momcheck, double *engcheck, int ncoll);
+                     int nr,int nz,int NZ,
+                     int kind,
+                     Vec3d *momcheck, double *engcheck, int ncoll);
 
 void coll_ion_neutral_noSP_2D( ParticleSpecies* neutrals,
-			       ParticleSpecies* ions,
-			       int nr, int nz, int NZ, Reaction React,
-			       Vec3d *momcheck, double *engcheck   );
+                               ParticleSpecies* ions,
+                               int nr, int nz, int NZ, Reaction React,
+                               Vec3d *momcheck, double *engcheck   );
 
 #define COLL_N_N_2D_OMP_MINPARTICLES 1000 //Lower bound for where paralellization kicks in
 void coll_n_n_2D( ParticleSpecies* neutrals,
-		  int nr, int nz, int NZ, Reaction React,
-		  Vec3d *momcheck, double *engcheck );
+                  int nr, int nz, int NZ, Reaction React,
+                  Vec3d *momcheck, double *engcheck );
 
-void coll_el_all_fake_2D( ParticleSpecies* molecules,   // molecules
-			  ParticleSpecies* electrons,              // electrons
-			  int nr, int nz, int NZ, Reaction React);
+void coll_el_all_fake_2D( ParticleSpecies* molecules,              // molecules
+                          ParticleSpecies* electrons,              // electrons
+                          int nr, int nz, int NZ, Reaction React);
 
 void coll_el_neutrals_2D( ParticleSpecies* neutrals,
-			  ParticleSpecies* electrons,
-			  ParticleSpecies* ions, int nr, int nz, int NZ, Reaction React,
-			  Vec3d *momcheck, double *engcheck );
+                          ParticleSpecies* electrons,
+                          ParticleSpecies* ions, int nr, int nz, int NZ, Reaction React,
+                          Vec3d *momcheck, double *engcheck );
 
 #endif
