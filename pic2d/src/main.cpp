@@ -433,6 +433,19 @@ int main () {
       pbounds->inject_e(electrons, E_grid_z);
     }
 
+    if (DODEBUG) {
+      if(not checkbounds_2D(electrons, Rmin, Rmax, Zmin, Zmax)) {
+        std::cerr << "Error detected by checkbounds_2D() for electrons." << std::endl;
+        if (electrons->GetN() < 100){
+          electrons->PrintParticles();
+        }
+        else {
+          std::cerr << " (to many particles to print)" << std::endl;
+        }
+        exit(1);
+      }
+    }
+
     // IV. CALCULATE DENSITIES
     electrons->UpdateDensityMap( Vcell );
 
@@ -440,15 +453,17 @@ int main () {
 
       scalEion_2D( E_ion_r, E_ion_z, NR, NZ, dt_ion, M_ions );
 
+      // Push and remove
+
       for (auto ion : ionSpecies) {
-              unsigned int sort = 1; // TODO: FIXME!
-              if ( MAGNETIC == 0 ) {
-                push_magnetic_2D( ion, E_ion_r + sort*NG, E_ion_z + sort*NG, Bz_ext, Bt_ext, -1.*dt_ion/ion->mass, NZ );
-              }
-              else {
-                push_2D( ion, E_ion_r + sort*NG, E_ion_z + sort*NG, NZ );
-              }
-              pbounds->remove_i(ion, sort);
+        unsigned int sort = 1; // TODO: FIXME!
+        if ( MAGNETIC == 0 ) {
+          push_magnetic_2D( ion, E_ion_r + sort*NG, E_ion_z + sort*NG, Bz_ext, Bt_ext, -1.*dt_ion/ion->mass, NZ );
+        }
+        else {
+          push_2D( ion, E_ion_r + sort*NG, E_ion_z + sort*NG, NZ );
+        }
+        pbounds->remove_i(ion, sort);
       }
 
       for (auto neutral : neutralSpecies) {
@@ -456,34 +471,69 @@ int main () {
         pbounds->remove_n( neutral );
       }
 
-      if ( nsteps/i2inj_step*i2inj_step  == nsteps ) {
-              unsigned int sort = 1; // TODO: FIXME!
-              for (auto ion : ionSpecies) {
-                pbounds->inject_i(ion,E_grid_z,sort);
-              }
-      }
+      // Inject
 
-      for (auto ion : ionSpecies) {
-              ion->UpdateDensityMap( Vcell );
+      if ( nsteps/i2inj_step*i2inj_step  == nsteps ) {
+        unsigned int sort = 1; // TODO: FIXME!
+        for (auto ion : ionSpecies) {
+          pbounds->inject_i(ion,E_grid_z,sort);
+        }
       }
 
       if ( nsteps/n2inj_step*n2inj_step  == nsteps ) {
-              for (auto neutral : neutralSpecies) {
-                pbounds->inject_n(neutral, E_grid_z);
-              }
+        for (auto neutral : neutralSpecies) {
+          pbounds->inject_n(neutral, E_grid_z);
+        }
+      }
+
+      //Compute density maps
+
+      for (auto ion : ionSpecies) {
+        if (DODEBUG) {
+          if(not checkbounds_2D(ion, Rmin, Rmax, Zmin, Zmax)) {
+            std::cerr << "Error detected by checkbounds_2D() for ion '" << ion->name << "'." << std::endl;
+            if (ion->GetN() < 100){
+              ion->PrintParticles();
+            }
+            else {
+              std::cerr << " (to many particles to print)" << std::endl;
+            }
+            exit(1);
+          }
+        }
+
+        ion->UpdateDensityMap( Vcell );
+      }
+
+      for (auto neutral : neutralSpecies) {
+        if (DODEBUG) {
+          if(not checkbounds_2D(neutral, Rmin, Rmax, Zmin, Zmax)) {
+            std::cerr << "Error detected by checkbounds_2D() for neutral '"  << neutral->name << "'." << std::endl;
+            if (neutral->GetN() < 100){
+              neutral->PrintParticles();
+            }
+            else {
+              std::cerr << " (to many particles to print)" << std::endl;
+            }
+            exit(1);
+          }
+        }
+
+        // neutral density only used for outputting
+        if( nsteps >= nav_start ) {
+          neutral->UpdateDensityMap(Vcell);
+        }
       }
 
       if( nsteps >= nav_start ) {
-              // neutral density, only for outputting
-              neutralSpecies[0]->UpdateDensityMap( Vcell );
-              //TODO: All species
-              aver_moments_2D( mom_ion + NG, n_aver_ion, ionSpecies[1], nr, nz, NZ );
-              aver_moments_2D( mom_ion + Lastion*NG, n_aver_ion, neutralSpecies[0], nr, nz, NZ ); // should be _SN()
-              average_2D( ionSpecies[1]->densMap, n_i_av + NG, NR, NZ, n_aver_ion ); // NEW: 25.8.2010
-              average_2D( neutralSpecies[0]->densMap, n_i_av + Lastion*NG, NR, NZ, n_aver_ion ); // NEW: 25.8.2010
+        //TODO: All species
+        aver_moments_2D( mom_ion + NG, n_aver_ion, ionSpecies[1], nr, nz, NZ );
+        aver_moments_2D( mom_ion + Lastion*NG, n_aver_ion, neutralSpecies[0], nr, nz, NZ ); // should be _SN()
+        average_2D( ionSpecies[1]->densMap, n_i_av + NG, NR, NZ, n_aver_ion ); // NEW: 25.8.2010
+        average_2D( neutralSpecies[0]->densMap, n_i_av + Lastion*NG, NR, NZ, n_aver_ion ); // NEW: 25.8.2010
 
         n_aver_ion++;
-              //printf("Averaging ion moments \n");
+        //printf("Averaging ion moments \n");
       }
 
       initEion_2D( E_ion_r, E_ion_z, NR, NZ );

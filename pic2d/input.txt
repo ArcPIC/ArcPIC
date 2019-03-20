@@ -212,6 +212,7 @@ Continue from which run:         0
 Use binary (HDF5) output files:  0
 
 Enable collissions:              y   [y/n]
+Enable debugging:                y   [y/n]
 
 * MISCELLANEOUS *
 

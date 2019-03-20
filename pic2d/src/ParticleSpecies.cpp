@@ -162,3 +162,11 @@ void ParticleSpecies::ShuffleArray(std::vector<int> &arr) {
 
   arr.swap(shuffleTmpArr_int);
 }
+
+void ParticleSpecies::PrintParticles() {
+  for (size_t n = 0; n < this->GetN(); n++) {
+    std::cout << n << " " << this->z[n] << " " << this->r[n] << " "
+              << this->vz[n] << " " << this->vr[n] << " " << this-> vt[n] << " "
+              << this->m[n] << std::endl;
+  }
+}

@@ -99,6 +99,9 @@ class ParticleSpecies {
   // Extract one particle object
   Particle GetOneParticle(size_t n);
 
+  // Print all the particles (for debugging)
+  void PrintParticles();
+
  private:
   // Local copy of the nr and nz settings
   const size_t nr, nz;

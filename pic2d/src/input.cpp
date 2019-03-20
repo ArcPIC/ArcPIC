@@ -158,7 +158,8 @@ void input( void ) {
   fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%d", &BINARY_OUTPUT);
 
-  DOCOLL = parseYN(in_file, "DOCOLL");
+  DOCOLL  = parseYN(in_file, "DOCOLL");
+  DODEBUG = parseYN(in_file, "DODEBUG");
 
   // MISCELLANEOUS
   fscanf(in_file,"%*[^:]%*[:]");

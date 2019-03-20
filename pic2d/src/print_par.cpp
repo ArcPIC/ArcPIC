@@ -111,6 +111,8 @@ void print_parameters_2D( void ) {
   printf( " - Continuing old run:  %d \n", CONTINUATION );
   printf( " - Binary output files: %d \n", BINARY_OUTPUT );
   printf( " - Enable collissions:  %c \n", DOCOLL ? 'y' : 'n');
+  printf( " - Enable debugging:    %c \n", DODEBUG ? 'y' : 'n');
+
 
   printf( "\n" );
   printf( " - Field boundary condition BC = %i \n", BC );
