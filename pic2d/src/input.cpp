@@ -155,11 +155,9 @@ void input( void ) {
   fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%d", &CONTINUATION);
 
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%d", &BINARY_OUTPUT);
-
-  DOCOLL  = parseYN(in_file, "DOCOLL");
-  DODEBUG = parseYN(in_file, "DODEBUG");
+  BINARY_OUTPUT = parseYN(in_file, "BINARY_OUTPUT");
+  DOCOLL        = parseYN(in_file, "DOCOLL");
+  DODEBUG       = parseYN(in_file, "DODEBUG");
 
   // MISCELLANEOUS
   fscanf(in_file,"%*[^:]%*[:]");

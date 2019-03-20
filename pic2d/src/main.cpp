@@ -246,7 +246,7 @@ int main () {
 
       if ( OUT_COORD == 0 ) {
         // Output coordinates: position and velocity
-        if (BINARY_OUTPUT == 0) {
+        if ( BINARY_OUTPUT ) {
           H5::H5File* h5OutFile_initDist = createH5File_timestep( 0, "initDist" );
           H5::Group group_coords = h5OutFile_initDist->createGroup("/COORDS");
 
@@ -298,7 +298,7 @@ int main () {
     printf( "\n");
 
     H5::H5File* h5OutFile_0 = NULL;
-    if ( BINARY_OUTPUT == 0 ) {
+    if ( BINARY_OUTPUT ) {
       std::cout << "Creating HDF5 output file for initial data " << std::flush;
       h5OutFile_0 = createH5File_timestep( 0 );
       std::cout << h5OutFile_0->getFileName() << " ..." << std::flush << std::endl;
@@ -310,7 +310,7 @@ int main () {
     // TO TEST
     electrons->UpdateDensityMap( Vcell );
     ionSpecies[1]->UpdateDensityMap( Vcell );
-    if ( BINARY_OUTPUT == 0 ) {
+    if ( BINARY_OUTPUT ) {
       H5::Group group_dens = h5OutFile_0->createGroup("/DENSITY");
       out_dens_2D_h5( electrons->densMap,     1, -1., nr, nz, NZ, Omega_pe, dr, dz, "ELECTRONS", group_dens );
       out_dens_2D_h5( ionSpecies[1]->densMap, 1,  1., nr, nz, NZ, Omega_pe, dr, dz, "IONS",      group_dens );
@@ -330,7 +330,7 @@ int main () {
 
     // I. GET POTENTIAL
     H5::Group group_emfield_0 = h5OutFile_0->createGroup("/EMFIELD");
-    if ( BINARY_OUTPUT == 0 ) {
+    if ( BINARY_OUTPUT ) {
       out_phi_2D_h5(phi, 1, nr, nz, NZ, Omega_pe, dr, dz, "POTENTIAL0", group_emfield_0);
     }
     else{
@@ -352,7 +352,7 @@ int main () {
 
     printf("\n");
 
-    if ( BINARY_OUTPUT == 0 ) {
+    if ( BINARY_OUTPUT ) {
       out_phi_2D_h5(phi, 1, nr, nz, NZ, Omega_pe, dr, dz, "POTENTIAL", group_emfield_0);
       if ( OUT_EFIELD == 0) {
         out_efield_2D_h5( E_av_z, E_av_r, 1, nr, nz, NZ, Omega_pe, dr, dz, "EFIELD", group_emfield_0 );
@@ -367,7 +367,7 @@ int main () {
     init_reactions();
     print_parameters_2D();
 
-    if ( BINARY_OUTPUT == 0 ) {
+    if ( BINARY_OUTPUT ) {
       //Add metadata
       outputfile_addParameterMetadata(h5OutFile_0, nsteps);
 
@@ -681,7 +681,7 @@ int main () {
         fprintf(timeIndex, "%08i %010e\n", nsteps, nsteps*Omega_pe*1e9/(56414.6*sqrt(n_ref)) );
         fflush(timeIndex);
 
-        if (BINARY_OUTPUT == 0) {
+        if ( BINARY_OUTPUT ) {
           std::cout << "Writing HDF5 output file " << std::flush;
           H5::H5File* h5OutFile = createH5File_timestep( nsteps );
           std::cout << h5OutFile->getFileName() << " ..." << std::flush;

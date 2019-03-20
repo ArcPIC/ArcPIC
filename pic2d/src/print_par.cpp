@@ -109,9 +109,9 @@ void print_parameters_2D( void ) {
   printf( " - Output vdf:          %d \n", OUT_VDF );
   printf( " - Magnetic push:       %d \n", MAGNETIC );
   printf( " - Continuing old run:  %d \n", CONTINUATION );
-  printf( " - Binary output files: %d \n", BINARY_OUTPUT );
-  printf( " - Enable collissions:  %c \n", DOCOLL ? 'y' : 'n');
-  printf( " - Enable debugging:    %c \n", DODEBUG ? 'y' : 'n');
+  printf( " - Binary output files: %c \n", BINARY_OUTPUT ? 'y' : 'n' );
+  printf( " - Enable collissions:  %c \n", DOCOLL        ? 'y' : 'n' );
+  printf( " - Enable debugging:    %c \n", DODEBUG       ? 'y' : 'n' );
 
 
   printf( "\n" );

@@ -69,9 +69,9 @@ XTRN int CONTINUATION,
   OUT_VDF,
   BC;
 
-XTRN int BINARY_OUTPUT; // Write binary output files (HDF5)?
-XTRN bool DOCOLL;       // Enable collissions?
-XTRN bool DODEBUG;     // Enable extra debugging checks?
+XTRN bool BINARY_OUTPUT; // Write binary output files (HDF5)?
+XTRN bool DOCOLL;        // Enable collissions?
+XTRN bool DODEBUG;       // Enable extra debugging checks?
 
 XTRN int e2inj_step, i2inj_step, n2inj_step;
 
