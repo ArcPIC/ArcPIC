@@ -77,21 +77,12 @@ void input( void ) {
   Omega_pe = parseDouble(in_file, "Omega_pe");
 
   // TIMESTEPS
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%d", &dt_ion);
+  dt_ion    = parseInt(in_file, "dt_ion");
+  ncoll_el  = parseInt(in_file, "ncoll_el");
+  ncoll_ion = parseInt(in_file, "ncoll_ion");
+  dt_diagn  = parseInt(in_file, "dt_diagn");
+  nstepsmax = parseInt(in_file, "nstepsmax");
 
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%d", &ncoll_el);
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%d", &ncoll_ion);
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%d", &dt_diagn);
-
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%d", &nstepsmax);
 
   dt_out   = parseDouble(in_file, "dt_out");
   av_start = parseDouble(in_file, "av_start");
@@ -127,8 +118,7 @@ void input( void ) {
 
   MAGNETIC      = parseYN(in_file, "MAGNETIC");
 
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%d", &CONTINUATION);
+  CONTINUATION  = parseInt(in_file,"CONTINUATION");
 
   BINARY_OUTPUT = parseYN(in_file, "BINARY_OUTPUT");
   DOCOLL        = parseYN(in_file, "DOCOLL");
@@ -137,15 +127,12 @@ void input( void ) {
   // MISCELLANEOUS
   Ti_over_Te = parseDouble(in_file, "Ti_over_Te");
   mi_over_me = parseDouble(in_file, "mi_over_me");
-  
+
   fscanf(in_file,"%*[^:]%*[:]");
   fscanf(in_file,"%lu", &RNGbaseSeed);
 
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%i", &BC);
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%i", &numParaThreads);
+  BC             = parseInt(in_file, "BC");
+  numParaThreads = parseInt(in_file,"numParaThreads");
 
   fclose (in_file);
 
@@ -157,8 +144,8 @@ bool parseYN(FILE* in_file, std::string errorVariable) {
   if      (foo == 'y') return true;
   else if (foo == 'n') return false;
   else {
-    cout << "Error in parsing(): '" << errorVariable << "' has to be either 'y' or 'n'" << endl;
-    cout << "Got: '" << foo << "'" << endl;
+    cerr << "Error in parsing(): '" << errorVariable << "' has to be either 'y' or 'n'" << endl;
+    cerr << "Got: '" << foo << "'" << endl;
     exit(1);
   }
 }
@@ -179,13 +166,74 @@ double parseDouble(FILE* in_file, std::string errorVariable) {
     exit(1);
   }
 
+  std::string strbuf = string(buffer);
+  size_t idx = 0;
+
   try {
-    retVal = std::stod(string(buffer));
+    retVal = std::stod(strbuf, &idx);
   }
   catch (const std::invalid_argument& ia) {
-    cout << "Invalid argument when reading variable '" << errorVariable << "'." << endl
+    cerr << "Invalid argument in parseDouble() when reading variable '" << errorVariable << "'." << endl
          << "Got: '" << buffer << "'" << endl
          << "Expected a floating point number! (exponential notation is accepted)" << endl;
+    exit(1);
+  }
+  catch (const std::out_of_range& ia) {
+    cerr << "Invalid argument in parseDouble() when reading variable '" << errorVariable << "'." << endl
+         << "Got: '" << buffer << "'" << endl
+         << "Value is out of range for double!" << endl;
+    exit(1);
+  }
+
+  if (idx != strbuf.length()) {
+    cerr << "Invalid argument in parseDouble() when reading variable '" << errorVariable << "'." << endl
+         << "Got: '" << buffer << "'" << endl
+         << "Junk at the end of the argument: '" << strbuf.substr(idx) << "'" << endl;
+    exit(1);
+  }
+
+  return retVal;
+}
+
+double parseInt(FILE* in_file, std::string errorVariable) {
+  int retVal = 0;
+
+  char   buffer[LINE_MAXLEN+1];
+  memset(buffer, '\0', LINE_MAXLEN+1);
+
+  fscanf(in_file, "%*[^:]%*[:] %sLINE_MAXLEN", buffer);// '%sLINE_MAXLEN':
+                                                       // Read from string, maximum NAME_MAXLEN characters
+                                                       // (macro variable LINE_MAXLEN is inserted, making it into e.g. '%s300')
+                                                       // Note that fscanf will read the given number of characters,
+                                                       // and then append a '\0' after that! That's why the allocation is LINE_MAXLEN+1.
+  if (buffer[LINE_MAXLEN-1] != '\0') {
+    cerr << "Error in parseInt() when reading '" << errorVariable << "': Possible truncation!" << endl;
+    exit(1);
+  }
+
+  std::string strbuf = string(buffer);
+  size_t idx = 0;
+
+  try {
+    retVal = std::stoi(strbuf, &idx);
+  }
+  catch (const std::invalid_argument& ia) {
+    cout << "Invalid argument in parseInt() when reading variable '" << errorVariable << "'." << endl
+         << "Got: '" << buffer << "'" << endl
+         << "Expected an integer!" << endl;
+    exit(1);
+  }
+    catch (const std::out_of_range& ia) {
+    cerr << "Invalid argument in parseInt() when reading variable '" << errorVariable << "'." << endl
+         << "Got: '" << buffer << "'" << endl
+         << "Value is out of range for double!" << endl;
+    exit(1);
+  }
+
+  if (idx != strbuf.length()) {
+    cerr << "Invalid argument in parseInt() when reading variable '" << errorVariable << "'." << endl
+         << "Got: '" << buffer << "'" << endl
+         << "Junk at the end of the argument: '" << strbuf.substr(idx) << "'" << endl;
     exit(1);
   }
 
