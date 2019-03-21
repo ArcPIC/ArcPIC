@@ -26,7 +26,6 @@
 #include  "arcbounds.h"
 #undef XTRN
 
-
 #include "filenames.h"
 #include "input.h"
 
@@ -40,12 +39,11 @@
 #include <cstring>
 
 #include <assert.h>
+#include <limits>
 
 using namespace std;
 
 void input( void ) {
-
-  FILE *in_file;
 
   //Check that file exists, else we get a segfault
   struct stat st;
@@ -62,72 +60,39 @@ void input( void ) {
     }
   }
 
-  in_file = fopen("input.txt","r");
+  FILE* in_file = fopen("input.txt","r");
 
   //SCALING PARAMETERS
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%lg", &n_ref);
+  n_ref = parseDouble(in_file,"n_ref");
+  T_ref = parseDouble(in_file, "T_ref");
+  Ndb   = parseDouble(in_file, "Ndb");
 
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%lg", &T_ref);
+  nr = parseInt(in_file, "nr");
+  nz = parseInt(in_file, "nz", false);
 
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%lg", &Ndb);
-
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%d %d", &nr, &nz);
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%lg", &dz);
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%lg", &Omega_pe);
-
+  dz       = parseDouble(in_file, "dz");
+  Omega_pe = parseDouble(in_file, "Omega_pe");
 
   // TIMESTEPS
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%d", &dt_ion);
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%d", &ncoll_el);
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%d", &ncoll_ion);
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%d", &dt_diagn);
+  dt_ion    = parseInt(in_file, "dt_ion");
+  ncoll_el  = parseInt(in_file, "ncoll_el");
+  ncoll_ion = parseInt(in_file, "ncoll_ion");
+  dt_diagn  = parseInt(in_file, "dt_diagn");
+  nstepsmax = parseInt(in_file, "nstepsmax");
 
 
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%d", &nstepsmax);
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%lg", &dt_out);
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%lg", &av_start );
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%lg", &av_time );
+  dt_out   = parseDouble(in_file, "dt_out");
+  av_start = parseDouble(in_file, "av_start");
+  av_time  = parseDouble(in_file, "av_time");
 
   // FIELDS, PARTILCES AND BOUNDARY CONDITIONS
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%lg", &Bz_ext);
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%lg", &Bt_ext);
+  Bz_ext = parseDouble(in_file, "Bz_ext");
+  Bt_ext = parseDouble(in_file, "Bt_ext");
 
   //Injection timesteps
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%d", &e2inj_step);
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%d", &n2inj_step);
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%d", &i2inj_step);
+  e2inj_step = parseInt(in_file, "e2inj_step");
+  n2inj_step = parseInt(in_file, "n2inj_step");
+  i2inj_step = parseInt(in_file, "i2inj_step");
 
   //New-style particle boundary conditions
   pbounds = ArcBounds::LoadArcBounds(in_file);
@@ -139,56 +104,199 @@ void input( void ) {
   iParts = InitialParticles::LoadInitialParticles(in_file);
 
   // OPTIONS
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%d", &OUT_COORD);
+  OUT_COORD     = parseYN(in_file, "OUT_COORD");
+  OUT_EFIELD    = parseYN(in_file, "OUT_EFIELD");
+  OUT_VDF       = parseYN(in_file, "OUT_VDF");
 
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%d", &OUT_EFIELD);
+  MAGNETIC      = parseYN(in_file, "MAGNETIC");
 
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%d", &OUT_VDF);
-
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%d", &MAGNETIC);
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%d", &CONTINUATION);
+  CONTINUATION  = parseInt(in_file,"CONTINUATION");
 
   BINARY_OUTPUT = parseYN(in_file, "BINARY_OUTPUT");
   DOCOLL        = parseYN(in_file, "DOCOLL");
   DODEBUG       = parseYN(in_file, "DODEBUG");
 
   // MISCELLANEOUS
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%lg", &Ti_over_Te);
+  Ti_over_Te = parseDouble(in_file, "Ti_over_Te");
+  mi_over_me = parseDouble(in_file, "mi_over_me");
 
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%lg", &mi_over_me);
+  RNGbaseSeed = parseULInt(in_file, "RNGbaseSeed");
 
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%lu", &RNGbaseSeed);
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%i", &BC);
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%i", &numParaThreads);
+  BC             = parseInt(in_file, "BC");
+  numParaThreads = parseInt(in_file, "numParaThreads");
 
   fclose (in_file);
 
 }
 
-bool parseYN(FILE* in_file, std::string errorVariable) {
+bool parseYN(FILE* in_file, std::string errorVariable, bool eatLeadingColon) {
   char foo;
-  fscanf(in_file,  "%*[^:]%*[:] %c",  &(foo));
+  if (eatLeadingColon) {
+    fscanf(in_file,  "%*[^:]%*[:])");
+  }
+
+  fscanf(in_file, " %c",  &(foo));
+
   if      (foo == 'y') return true;
   else if (foo == 'n') return false;
   else {
-    cout << "Error in parsing(): '" << errorVariable << "' has to be either 'y' or 'n'" << endl;
-    cout << "Got: '" << foo << "'" << endl;
+    cerr << "Error in parsing(): '" << errorVariable << "' has to be either 'y' or 'n'" << endl;
+    cerr << "Got: '" << foo << "'" << endl;
     exit(1);
   }
+}
+
+double parseDouble(FILE* in_file, std::string errorVariable, bool eatLeadingColon) {
+  double retVal = std::numeric_limits<double>::quiet_NaN();
+
+  char   buffer[LINE_MAXLEN+1];
+  memset(buffer, '\0', LINE_MAXLEN+1);
+
+  if (eatLeadingColon) {
+    fscanf(in_file, "%*[^:]%*[:]");
+  }
+  fscanf(in_file, " %sLINE_MAXLEN", buffer);// '%sLINE_MAXLEN':
+                                           // Read from string, maximum NAME_MAXLEN characters
+                                           // (macro variable LINE_MAXLEN is inserted, making it into e.g. '%s300')
+                                           // Note that fscanf will read the given number of characters,
+                                           // and then append a '\0' after that! That's why the allocation is LINE_MAXLEN+1.
+  if (buffer[LINE_MAXLEN-1] != '\0') {
+    cerr << "Error in parseDouble() when reading '" << errorVariable << "': Possible truncation!" << endl;
+    exit(1);
+  }
+
+  std::string strbuf = string(buffer);
+  size_t idx = 0;
+
+  try {
+    retVal = std::stod(strbuf, &idx);
+  }
+  catch (const std::invalid_argument& ia) {
+    cerr << "Invalid argument in parseDouble() when reading variable '" << errorVariable << "'." << endl
+         << "Got: '" << buffer << "'" << endl
+         << "Expected a floating point number! (exponential notation is accepted)" << endl;
+    exit(1);
+  }
+  catch (const std::out_of_range& ia) {
+    cerr << "Invalid argument in parseDouble() when reading variable '" << errorVariable << "'." << endl
+         << "Got: '" << buffer << "'" << endl
+         << "Value is out of range for double!" << endl;
+    exit(1);
+  }
+
+  if (idx != strbuf.length()) {
+    cerr << "Invalid argument in parseDouble() when reading variable '" << errorVariable << "'." << endl
+         << "Got: '" << buffer << "'" << endl
+         << "Junk at the end of the argument: '" << strbuf.substr(idx) << "'" << endl;
+    exit(1);
+  }
+
+  return retVal;
+}
+
+double parseInt(FILE* in_file, std::string errorVariable, bool eatLeadingColon) {
+  int retVal = 0;
+
+  char   buffer[LINE_MAXLEN+1];
+  memset(buffer, '\0', LINE_MAXLEN+1);
+
+  if (eatLeadingColon) {
+    fscanf(in_file, " %*[^:]%*[:]");
+  }
+
+  fscanf(in_file, " %sLINE_MAXLEN", buffer);// '%sLINE_MAXLEN':
+                                           // Read from string, maximum NAME_MAXLEN characters
+                                           // (macro variable LINE_MAXLEN is inserted, making it into e.g. '%s300')
+                                           // Note that fscanf will read the given number of characters,
+                                           // and then append a '\0' after that! That's why the allocation is LINE_MAXLEN+1.
+  if (buffer[LINE_MAXLEN-1] != '\0') {
+    cerr << "Error in parseInt() when reading '" << errorVariable << "': Possible truncation!" << endl;
+    exit(1);
+  }
+
+  std::string strbuf = string(buffer);
+  size_t idx = 0;
+
+  try {
+    retVal = std::stoi(strbuf, &idx);
+  }
+  catch (const std::invalid_argument& ia) {
+    cout << "Invalid argument in parseInt() when reading variable '" << errorVariable << "'." << endl
+         << "Got: '" << buffer << "'" << endl
+         << "Expected an integer!" << endl;
+    exit(1);
+  }
+    catch (const std::out_of_range& ia) {
+    cerr << "Invalid argument in parseInt() when reading variable '" << errorVariable << "'." << endl
+         << "Got: '" << buffer << "'" << endl
+         << "Value is out of range for int!" << endl;
+    exit(1);
+  }
+
+  if (idx != strbuf.length()) {
+    cerr << "Invalid argument in parseInt() when reading variable '" << errorVariable << "'." << endl
+         << "Got: '" << buffer << "'" << endl
+         << "Junk at the end of the argument: '" << strbuf.substr(idx) << "'" << endl;
+    exit(1);
+  }
+
+  return retVal;
+}
+
+unsigned long int parseULInt(FILE* in_file, std::string errorVariable, bool eatLeadingColon) {
+  unsigned long int retVal = 0;
+
+  char   buffer[LINE_MAXLEN+1];
+  memset(buffer, '\0', LINE_MAXLEN+1);
+
+  if (eatLeadingColon) {
+    fscanf(in_file, " %*[^:]%*[:]");
+  }
+
+  fscanf(in_file, " %sLINE_MAXLEN", buffer);// '%sLINE_MAXLEN':
+                                           // Read from string, maximum NAME_MAXLEN characters
+                                           // (macro variable LINE_MAXLEN is inserted, making it into e.g. '%s300')
+                                           // Note that fscanf will read the given number of characters,
+                                           // and then append a '\0' after that! That's why the allocation is LINE_MAXLEN+1.
+  if (buffer[LINE_MAXLEN-1] != '\0') {
+    cerr << "Error in parseULInt() when reading '" << errorVariable << "': Possible truncation!" << endl;
+    exit(1);
+  }
+
+  if (buffer[0] == '-') {
+    cerr << "Invalid argument in parseULInt() when reading variable '" << errorVariable << "'." << endl
+         << "Got: '" << buffer << "'" << endl
+         << "Unsigned long int cannot be negative!" << endl;
+    exit(1);
+  }
+
+  std::string strbuf = string(buffer);
+  size_t idx = 0;
+
+  try {
+    retVal = std::stoul(strbuf, &idx);
+  }
+  catch (const std::invalid_argument& ia) {
+    cout << "Invalid argument in parseULInt() when reading variable '" << errorVariable << "'." << endl
+         << "Got: '" << buffer << "'" << endl
+         << "Expected an unsigned integer!" << endl;
+    exit(1);
+  }
+    catch (const std::out_of_range& ia) {
+    cerr << "Invalid argument in parseULInt() when reading variable '" << errorVariable << "'." << endl
+         << "Got: '" << buffer << "'" << endl
+         << "Value is out of range for an unsigned long int!" << endl;
+    exit(1);
+  }
+
+  if (idx != strbuf.length()) {
+    cerr << "Invalid argument in parseULInt() when reading variable '" << errorVariable << "'." << endl
+         << "Got: '" << buffer << "'" << endl
+         << "Junk at the end of the argument: '" << strbuf.substr(idx) << "'" << endl;
+    exit(1);
+  }
+
+  return retVal;
 }
 
 char* readInputSection (FILE* in_file, vector<char*>& options_ret, bool acceptNone) {
@@ -206,7 +314,7 @@ char* readInputSection (FILE* in_file, vector<char*>& options_ret, bool acceptNo
                                                 // (macro variable NAME_MAXLEN is inserted, making it into e.g. '%s64')
                                                 // Note that fscanf will read the given number of characters,
                                                 // and then append a '\0' after that! That's why the allocation is NAME_MAXLEN+1.
-  if (wantName[NAME_MAXLEN-1]!= '\0') {
+  if (wantName[NAME_MAXLEN-1] != '\0') {
     cerr << "Error in readInputSection(): Possible truncation in wantName" << endl;
     exit(1);
   }

@@ -244,7 +244,7 @@ int main () {
         iParts->inject_i(ion);
       }
 
-      if ( OUT_COORD == 0 ) {
+      if ( OUT_COORD ) {
         // Output coordinates: position and velocity
         if ( BINARY_OUTPUT ) {
           H5::H5File* h5OutFile_initDist = createH5File_timestep( 0, "initDist" );
@@ -354,7 +354,7 @@ int main () {
 
     if ( BINARY_OUTPUT ) {
       out_phi_2D_h5(phi, 1, nr, nz, NZ, Omega_pe, dr, dz, "POTENTIAL", group_emfield_0);
-      if ( OUT_EFIELD == 0) {
+      if ( OUT_EFIELD ) {
         out_efield_2D_h5( E_av_z, E_av_r, 1, nr, nz, NZ, Omega_pe, dr, dz, "EFIELD", group_emfield_0 );
       }
     }
@@ -424,8 +424,12 @@ int main () {
   for (nsteps=nstepsmin; nsteps<=nstepsmax; nsteps++) {
 
     // III. MOVE PARTICLES
-    if ( MAGNETIC == 0 )push_magnetic_2D( electrons, E_grid_r, E_grid_z, Bz_ext, Bt_ext, 1., NZ );
-    else                         push_2D( electrons, E_grid_r, E_grid_z,                     NZ );
+    if ( MAGNETIC ) {
+      push_magnetic_2D( electrons, E_grid_r, E_grid_z, Bz_ext, Bt_ext, 1., NZ );
+    }
+    else  {
+      push_2D         ( electrons, E_grid_r, E_grid_z,                     NZ );
+    }
 
     pbounds->remove_e( electrons );
 
@@ -457,7 +461,7 @@ int main () {
 
       for (auto ion : ionSpecies) {
         unsigned int sort = 1; // TODO: FIXME!
-        if ( MAGNETIC == 0 ) {
+        if ( MAGNETIC ) {
           push_magnetic_2D( ion, E_ion_r + sort*NG, E_ion_z + sort*NG, Bz_ext, Bt_ext, -1.*dt_ion/ion->mass, NZ );
         }
         else {
@@ -644,7 +648,7 @@ int main () {
     }
 
     if (nsteps >= nav_start) {
-      if ( OUT_VDF == 0 ) {
+      if ( OUT_VDF ) {
         //TODO: Generalize for all species
 
         dvt = 6.66666667/v_te;
@@ -699,12 +703,12 @@ int main () {
         H5::Group group_emfield = h5OutFile->createGroup("/EMFIELD");
         // Electrostatic potential
         out_phi_2D_h5( phi_av, n_aver, nr, nz, NZ, Omega_pe, dr, dz, "POTENTIAL", group_emfield );
-        if ( OUT_EFIELD == 0 ) {
+        if ( OUT_EFIELD ) {
           out_efield_2D_h5( E_av_z, E_av_r, n_aver, nr, nz, NZ, Omega_pe, dr, dz, "EFIELD", group_emfield );
         }
 
         //Position & velocity
-        if ( OUT_COORD == 0 ) {
+        if ( OUT_COORD ) {
           H5::Group group_coords = h5OutFile->createGroup("/COORDS");
           out_coords_2D_h5( electrons, 1, Omega_pe, dz, "ELECTRONS", group_coords );
           out_coords_2D_h5( ionSpecies[1], dt_ion, Omega_pe, dz, "IONS", group_coords );
@@ -723,7 +727,7 @@ int main () {
         out_temps_2D_h5( mom_ion + NG, cs*dt_ion*sqrt(M_ions[0]/M_ions[1]),                            1.0,
                          nr, nz, NZ, dr, dz, "Tiz", "Tir", "Tit", group_temp);
 
-          if ( OUT_VDF == 0 ) {
+          if ( OUT_VDF ) {
             H5::Group group_vdf = h5OutFile->createGroup("/VELOCITY_DIST");
             out_fv_along_2D_h5( vdf_ez, vdf_er, vdf_eabs, nr, nz, "vdfez", "vdfer", "vdfeabs", group_vdf );
             out_fv_along_2D_h5( vdf_iz, vdf_ir, vdf_iabs, nr, nz, "vdfCupz", "vdfCupr", "vdfCupabs", group_vdf );
@@ -750,17 +754,17 @@ int main () {
           out_vels_2D( mom_ion + NG, nr, nz, NZ, cs*dt_ion*sqrt(M_ions[0]/M_ions[1]), dr, dz, fv_iz, fv_ir, fv_it);
           out_temps_2D( mom_ion + NG, cs*dt_ion*sqrt(M_ions[0]/M_ions[1]), 1., nr, nz, NZ, dr, dz, fT_iz, fT_ir, fT_it);
 
-          if ( OUT_VDF == 0 ) {
+          if ( OUT_VDF ) {
             out_fv_along_2D( vdf_ez, vdf_er, vdf_eabs, nr, nz, fvdf_ez, fvdf_er, fvdf_eabs );
             out_fv_along_2D( vdf_iz, vdf_ir, vdf_iabs, nr, nz, fvdf_iz, fvdf_ir, fvdf_iabs );
             out_fv_along_2D( vdf_nz, vdf_nr, vdf_nabs, nr, nz, fvdf_nz, fvdf_nr, fvdf_nabs );
           }
 
-          if ( OUT_EFIELD == 0 ) {
+          if ( OUT_EFIELD ) {
             out_efield_2D( E_av_z, E_av_r, n_aver, nr, nz, NZ, Omega_pe, dr, dz, fEz, fEr );
           }
 
-          if ( OUT_COORD == 0 ) {
+          if ( OUT_COORD ) {
             // Output coordinates: position and velocity
             out_coords_2D( electrons, 1, Omega_pe, dz, fr_e );
             out_coords_2D( ionSpecies[1], dt_ion, Omega_pe, dz, fr_i );

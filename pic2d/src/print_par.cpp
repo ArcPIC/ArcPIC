@@ -52,9 +52,6 @@ void print_parameters_2D( void ) {
   printf( " - dt:                  %g (in O_pe^-1)\n", Omega_pe );
   printf( " - Ti_over_Te:          %g\n", Ti_over_Te );
   printf( " - mi_over_me:          %g\n", mi_over_me );
-  //printf( " - seed:                %llu ( Note: may be changed by initrand() )\n", seed );
-  printf( " - RNGbaseSeed          %lu\n", RNGbaseSeed );
-  printf( " - numParaThreads       %i\n", numParaThreads );
 
   printf( " \n" );
   printf( "Timesteps: \n" );
@@ -105,14 +102,18 @@ void print_parameters_2D( void ) {
 
   printf( " \n" );
   printf( "Options (0=yes 1=no): \n" );
-  printf( " - Output coordinates:  %d \n", OUT_COORD );
-  printf( " - Output vdf:          %d \n", OUT_VDF );
-  printf( " - Magnetic push:       %d \n", MAGNETIC );
-  printf( " - Continuing old run:  %d \n", CONTINUATION );
-  printf( " - Binary output files: %c \n", BINARY_OUTPUT ? 'y' : 'n' );
-  printf( " - Enable collissions:  %c \n", DOCOLL        ? 'y' : 'n' );
-  printf( " - Enable debugging:    %c \n", DODEBUG       ? 'y' : 'n' );
+  printf( " - Output coordinates:     %c \n", OUT_COORD     ? 'y' : 'n' );
+  printf( " - Output electric field:  %c \n", OUT_EFIELD    ? 'y' : 'n' );
+  printf( " - Output vdf:             %c \n", OUT_VDF       ? 'y' : 'n' );
+  printf( " - Magnetic push:          %c \n", MAGNETIC      ? 'y' : 'n' );
+  printf( " - Continuing old run:     %d \n", CONTINUATION );
+  printf( " - Binary output files:    %c \n", BINARY_OUTPUT ? 'y' : 'n' );
+  printf( " - Enable collissions:     %c \n", DOCOLL        ? 'y' : 'n' );
+  printf( " - Enable debugging:       %c \n", DODEBUG       ? 'y' : 'n' );
 
+  printf("\n");
+  printf( " - RNGbaseSeed          %lu\n", RNGbaseSeed );
+  printf( " - numParaThreads       %i\n", numParaThreads );
 
   printf( "\n" );
   printf( " - Field boundary condition BC = %i \n", BC );
