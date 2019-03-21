@@ -45,8 +45,6 @@ using namespace std;
 
 void input( void ) {
 
-  FILE *in_file;
-
   //Check that file exists, else we get a segfault
   struct stat st;
   if ( stat("input.txt", &st) ) {
@@ -62,7 +60,7 @@ void input( void ) {
     }
   }
 
-  in_file = fopen("input.txt","r");
+  FILE* in_file = fopen("input.txt","r");
 
   //SCALING PARAMETERS
   n_ref = parseDouble(in_file,"n_ref");
@@ -92,14 +90,9 @@ void input( void ) {
   Bt_ext = parseDouble(in_file, "Bt_ext");
 
   //Injection timesteps
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%d", &e2inj_step);
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%d", &n2inj_step);
-
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%d", &i2inj_step);
+  e2inj_step = parseInt(in_file, "e2inj_step");
+  n2inj_step = parseInt(in_file, "n2inj_step");
+  i2inj_step = parseInt(in_file, "i2inj_step");
 
   //New-style particle boundary conditions
   pbounds = ArcBounds::LoadArcBounds(in_file);
@@ -127,11 +120,10 @@ void input( void ) {
   Ti_over_Te = parseDouble(in_file, "Ti_over_Te");
   mi_over_me = parseDouble(in_file, "mi_over_me");
 
-  fscanf(in_file,"%*[^:]%*[:]");
-  fscanf(in_file,"%lu", &RNGbaseSeed);
+  RNGbaseSeed = parseULInt(in_file, "RNGbaseSeed");
 
   BC             = parseInt(in_file, "BC");
-  numParaThreads = parseInt(in_file,"numParaThreads");
+  numParaThreads = parseInt(in_file, "numParaThreads");
 
   fclose (in_file);
 
@@ -212,7 +204,7 @@ double parseInt(FILE* in_file, std::string errorVariable, bool eatLeadingColon) 
     fscanf(in_file, " %*[^:]%*[:]");
   }
 
-  fscanf(in_file, "%sLINE_MAXLEN", buffer);// '%sLINE_MAXLEN':
+  fscanf(in_file, " %sLINE_MAXLEN", buffer);// '%sLINE_MAXLEN':
                                            // Read from string, maximum NAME_MAXLEN characters
                                            // (macro variable LINE_MAXLEN is inserted, making it into e.g. '%s300')
                                            // Note that fscanf will read the given number of characters,
@@ -237,12 +229,68 @@ double parseInt(FILE* in_file, std::string errorVariable, bool eatLeadingColon) 
     catch (const std::out_of_range& ia) {
     cerr << "Invalid argument in parseInt() when reading variable '" << errorVariable << "'." << endl
          << "Got: '" << buffer << "'" << endl
-         << "Value is out of range for double!" << endl;
+         << "Value is out of range for int!" << endl;
     exit(1);
   }
 
   if (idx != strbuf.length()) {
     cerr << "Invalid argument in parseInt() when reading variable '" << errorVariable << "'." << endl
+         << "Got: '" << buffer << "'" << endl
+         << "Junk at the end of the argument: '" << strbuf.substr(idx) << "'" << endl;
+    exit(1);
+  }
+
+  return retVal;
+}
+
+unsigned long int parseULInt(FILE* in_file, std::string errorVariable, bool eatLeadingColon) {
+  unsigned long int retVal = 0;
+
+  char   buffer[LINE_MAXLEN+1];
+  memset(buffer, '\0', LINE_MAXLEN+1);
+
+  if (eatLeadingColon) {
+    fscanf(in_file, " %*[^:]%*[:]");
+  }
+
+  fscanf(in_file, " %sLINE_MAXLEN", buffer);// '%sLINE_MAXLEN':
+                                           // Read from string, maximum NAME_MAXLEN characters
+                                           // (macro variable LINE_MAXLEN is inserted, making it into e.g. '%s300')
+                                           // Note that fscanf will read the given number of characters,
+                                           // and then append a '\0' after that! That's why the allocation is LINE_MAXLEN+1.
+  if (buffer[LINE_MAXLEN-1] != '\0') {
+    cerr << "Error in parseULInt() when reading '" << errorVariable << "': Possible truncation!" << endl;
+    exit(1);
+  }
+
+  if (buffer[0] == '-') {
+    cerr << "Invalid argument in parseULInt() when reading variable '" << errorVariable << "'." << endl
+         << "Got: '" << buffer << "'" << endl
+         << "Unsigned long int cannot be negative!" << endl;
+    exit(1);
+  }
+
+  std::string strbuf = string(buffer);
+  size_t idx = 0;
+
+  try {
+    retVal = std::stoul(strbuf, &idx);
+  }
+  catch (const std::invalid_argument& ia) {
+    cout << "Invalid argument in parseULInt() when reading variable '" << errorVariable << "'." << endl
+         << "Got: '" << buffer << "'" << endl
+         << "Expected an unsigned integer!" << endl;
+    exit(1);
+  }
+    catch (const std::out_of_range& ia) {
+    cerr << "Invalid argument in parseULInt() when reading variable '" << errorVariable << "'." << endl
+         << "Got: '" << buffer << "'" << endl
+         << "Value is out of range for an unsigned long int!" << endl;
+    exit(1);
+  }
+
+  if (idx != strbuf.length()) {
+    cerr << "Invalid argument in parseULInt() when reading variable '" << errorVariable << "'." << endl
          << "Got: '" << buffer << "'" << endl
          << "Junk at the end of the argument: '" << strbuf.substr(idx) << "'" << endl;
     exit(1);

@@ -56,6 +56,12 @@ void input( void );
  */
 char* readInputSection (FILE* in_file, std::vector<char*>& options_ret, bool acceptNone=false);
 
+// Single-line input parsers
+// These all take a eatLeadingColon flag, which will strip off the first part of the line
+// (everything in the file until it hits a ":") before attempting to parse.
+// If parsing several numbers on the same line, this can be switched off.
+// The input parsing itself will always ignore any leading whitespace.
+
 //Parse a y/n flag, return a bool
 // exit(1) with error message if not 'y' or 'n'.
 bool parseYN(FILE* in_file, std::string errorVariable, bool eatLeadingColon=true);
@@ -67,6 +73,10 @@ double parseDouble(FILE* in_file, std::string errorVariable, bool eatLeadingColo
 //Parse a int-value flag
 // exit(1) with error message if not it cannot be successfully converted.
 double parseInt(FILE* in_file, std::string errorVariable, bool eatLeadingColon=true);
+
+//Parse an unsigned long int-value flag
+// exit(1) with error message if not it cannot be successfully converted.
+unsigned long int parseULInt(FILE* in_file, std::string errorVariable, bool eatLeadingColon=true);
 
 //Buffer sizes used in the parsing functions
 #define NAME_MAXLEN 64  //Maximum allowed length of Name
