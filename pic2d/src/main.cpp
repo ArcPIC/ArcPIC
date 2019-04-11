@@ -34,6 +34,7 @@
 
 #include "H5Cpp.h"
 
+#include "ArcPicConfig.h"
 #include "ParticleSpecies.h"
 
 #define   XTRN
@@ -111,6 +112,8 @@ int main () {
   FILE* mainStats;
 
   // Initialise variables
+  picConfig = ArcPicConfig();
+
   double dvt;
   n_aver = 0, n_aver_ion = 0, n_aver_diagn = 0;
 
@@ -161,7 +164,7 @@ int main () {
     }
   }
 
-  dr = dz;
+  picConfig.dr = picConfig.dz;
 
   double time_start = omp_get_wtime(); //Real walltime [s], relative to some (thread-dependent) starting point
 
@@ -178,22 +181,22 @@ int main () {
     allocate_arrays( nr, nz, &perm_c_slu, &perm_r_slu, &rhs_slu );
 
     //Initialize scaling
-    calc_parameters_2D();
+    picConfig.calc_parameters_2D();
 
-    M_ions[0] =  mi_over_me;                 //  H+
-    M_ions[1] =  63.546/1.0073*mi_over_me-1; //  Cu+
-    M_ions[2] =  63.546/1.0073*mi_over_me;   //  Cu
+    M_ions[0] =  picConfig.mi_over_me;                 //  H+
+    M_ions[1] =  63.546/1.0073*picConfig.mi_over_me-1; //  Cu+
+    M_ions[2] =  63.546/1.0073*picConfig.mi_over_me;   //  Cu
 
     for (int sort=0; sort < NSpecies; sort++) {
-      cs_ions[sort] =  sqrt(M_ions[0]/M_ions[sort])*vi_0;
-      vt_ions[sort] =  sqrt(M_ions[0]/M_ions[sort])*v_ti;
+      cs_ions[sort] =  sqrt(M_ions[0]/M_ions[sort])*picConfig.vi_0;
+      vt_ions[sort] =  sqrt(M_ions[0]/M_ions[sort])*picConfig.v_ti;
     }
 
     //Create particle arrays
-    electrons              = new ParticleSpecies(nr,nz, "e-", 1.0, qe);                    //e-
-    ionSpecies.push_back    (new ParticleSpecies(nr,nz, "H+", 63.546/1.0073*mi_over_me-1, qi));//Cu+
-    ionSpecies.push_back    (new ParticleSpecies(nr,nz, "Cu+", 63.546/1.0073*mi_over_me-1, qi));//Cu+
-    neutralSpecies.push_back(new ParticleSpecies(nr,nz, "Cu", 63.546/1.0073*mi_over_me  , 0.0));//Cu
+    electrons              = new ParticleSpecies(nr,nz, "e-", 1.0, picConfig.qe);                    //e-
+    ionSpecies.push_back    (new ParticleSpecies(nr,nz, "H+", 63.546/1.0073*picConfig.mi_over_me-1, picConfig.qi));//Cu+
+    ionSpecies.push_back    (new ParticleSpecies(nr,nz, "Cu+", 63.546/1.0073*picConfig.mi_over_me-1, picConfig.qi));//Cu+
+    neutralSpecies.push_back(new ParticleSpecies(nr,nz, "Cu", 63.546/1.0073*picConfig.mi_over_me  , 0.0));//Cu
 
     rng_initialize(RNGbaseSeed, numParaThreads);
     printf("\n");
@@ -203,15 +206,15 @@ int main () {
     // External circuit elements
     circuit->init();
     //Particle boundary conditions
-    pbounds->init(nr, Zmin, Zmax, Rmax);
+    pbounds->init(nr, picConfig.Zmin, picConfig.Zmax, picConfig.Rmax);
     //Initial particle distribution
     if (iParts != NULL) {
       iParts->init();
     }
 
     // Add initial conditions, outputting
-    if ( BC == 2 || BC == 3 ) potential_factorise_BC23( nr, nz, NR, NZ, dr, dz, &L_slu, &U_slu, &perm_c_slu, &perm_r_slu );
-    else                        potential_factorise_2D( nr, nz, NR, NZ, dr, dz, &L_slu, &U_slu, &perm_c_slu, &perm_r_slu );
+    if ( BC == 2 || BC == 3 ) potential_factorise_BC23( nr, nz, NR, NZ, picConfig.dr, picConfig.dz, &L_slu, &U_slu, &perm_c_slu, &perm_r_slu );
+    else                        potential_factorise_2D( nr, nz, NR, NZ, picConfig.dr, picConfig.dz, &L_slu, &U_slu, &perm_c_slu, &perm_r_slu );
 
     // Initialize field and sputtering arrays
     for (int i=0; i<Lastion*(nr+1)*(nz+1); i++) {
@@ -250,18 +253,18 @@ int main () {
           H5::H5File* h5OutFile_initDist = createH5File_timestep( 0, "initDist" );
           H5::Group group_coords = h5OutFile_initDist->createGroup("/COORDS");
 
-          out_coords_2D_h5( electrons, 1, Omega_pe, dz, "ELECTRONS", group_coords );
-          out_coords_2D_h5( ionSpecies[1], dt_ion, Omega_pe, dz, "IONS", group_coords );
-          out_coords_2D_h5( neutralSpecies[0], dt_ion, Omega_pe, dz, "NEUTRALS", group_coords );
+          out_coords_2D_h5( electrons, 1, picConfig.Omega_pe, picConfig.dz, "ELECTRONS", group_coords );
+          out_coords_2D_h5( ionSpecies[1], dt_ion, picConfig.Omega_pe, picConfig.dz, "IONS", group_coords );
+          out_coords_2D_h5( neutralSpecies[0], dt_ion, picConfig.Omega_pe, picConfig.dz, "NEUTRALS", group_coords );
           h5OutFile_initDist->close();
           delete h5OutFile_initDist;
           h5OutFile_initDist = NULL;
         }
         else {
           file_names_2D( 0 );
-          out_coords_2D( electrons, 1, Omega_pe, dz, fr_e );
-          out_coords_2D( ionSpecies[1], dt_ion, Omega_pe, dz, fr_i );
-          out_coords_2D( neutralSpecies[0], dt_ion, Omega_pe, dz, fr_n );
+          out_coords_2D( electrons, 1, picConfig.Omega_pe, picConfig.dz, fr_e );
+          out_coords_2D( ionSpecies[1], dt_ion, picConfig.Omega_pe, picConfig.dz, fr_i );
+          out_coords_2D( neutralSpecies[0], dt_ion, picConfig.Omega_pe, picConfig.dz, fr_n );
         }
       }
 
@@ -271,7 +274,7 @@ int main () {
     kin_pot_en( electrons, ionSpecies[1], neutralSpecies[0],
                 &En_e, En_i+1, En_i+Lastion, &En_p, &En_tot,
                 1./ionSpecies[1]->mass, 1./neutralSpecies[0]->mass,
-                phi, NR, NZ, Omega_pe, dz );
+                phi, NR, NZ, picConfig.Omega_pe, picConfig.dz );
     printf( "...... Initial energy .................... \n" );
 
     std::cout   << std::setw(8) << std::setfill('.') << std::left << electrons->name
@@ -312,12 +315,12 @@ int main () {
     ionSpecies[1]->UpdateDensityMap( Vcell );
     if ( BINARY_OUTPUT ) {
       H5::Group group_dens = h5OutFile_0->createGroup("/DENSITY");
-      out_dens_2D_h5( electrons->densMap,     1, -1., nr, nz, NZ, Omega_pe, dr, dz, "ELECTRONS", group_dens );
-      out_dens_2D_h5( ionSpecies[1]->densMap, 1,  1., nr, nz, NZ, Omega_pe, dr, dz, "IONS",      group_dens );
+      out_dens_2D_h5( electrons->densMap,     1, -1., nr, nz, NZ, picConfig.Omega_pe, picConfig.dr, picConfig.dz, "ELECTRONS", group_dens );
+      out_dens_2D_h5( ionSpecies[1]->densMap, 1,  1., nr, nz, NZ, picConfig.Omega_pe, picConfig.dr, picConfig.dz, "IONS",      group_dens );
     }
     else {
-      out_dens_2D( electrons->densMap,     1, -1., nr, nz, NZ, Omega_pe, dr, dz, fn_e );
-      out_dens_2D( ionSpecies[1]->densMap, 1,  1., nr, nz, NZ, Omega_pe, dr, dz, fn_i );
+      out_dens_2D( electrons->densMap,     1, -1., nr, nz, NZ, picConfig.Omega_pe, picConfig.dr, picConfig.dz, fn_e );
+      out_dens_2D( ionSpecies[1]->densMap, 1,  1., nr, nz, NZ, picConfig.Omega_pe, picConfig.dr, picConfig.dz, fn_i );
     }
     //TODO: Maybe not needed?
     electrons->ZeroDensityMap();
@@ -331,17 +334,17 @@ int main () {
     // I. GET POTENTIAL
     H5::Group group_emfield_0 = h5OutFile_0->createGroup("/EMFIELD");
     if ( BINARY_OUTPUT ) {
-      out_phi_2D_h5(phi, 1, nr, nz, NZ, Omega_pe, dr, dz, "POTENTIAL0", group_emfield_0);
+      out_phi_2D_h5(phi, 1, nr, nz, NZ, picConfig.Omega_pe, picConfig.dr, picConfig.dz, "POTENTIAL0", group_emfield_0);
     }
     else{
       file_names_2D( 0 );
-      out_phi_2D(phi, 1, nr, nz, NZ, Omega_pe, dr, dz, fphi);
+      out_phi_2D(phi, 1, nr, nz, NZ, picConfig.Omega_pe, picConfig.dr, picConfig.dz, fphi);
     }
 
-    if ( BC == 2 || BC == 3 ) potential_backsolve_BC23( nr, nz, NR, NZ, dz, circuit->getU0(), circuit->getUNz(),
+    if ( BC == 2 || BC == 3 ) potential_backsolve_BC23( nr, nz, NR, NZ, picConfig.dz, circuit->getU0(), circuit->getUNz(),
                                                         phi, L_slu, U_slu, perm_c_slu, perm_r_slu,
                                                         electrons->densMap, ionSpecies[1]->densMap, &rhs_slu );
-    else                        potential_backsolve_2D( nr, nz, NR, NZ, dz, circuit->getU0(), circuit->getUNz(),
+    else                        potential_backsolve_2D( nr, nz, NR, NZ, picConfig.dz, circuit->getU0(), circuit->getUNz(),
                                                         phi, L_slu, U_slu, perm_c_slu, perm_r_slu,
                                                         electrons->densMap, ionSpecies[1]->densMap, &rhs_slu );
 
@@ -353,23 +356,23 @@ int main () {
     printf("\n");
 
     if ( BINARY_OUTPUT ) {
-      out_phi_2D_h5(phi, 1, nr, nz, NZ, Omega_pe, dr, dz, "POTENTIAL", group_emfield_0);
+      out_phi_2D_h5(phi, 1, nr, nz, NZ, picConfig.Omega_pe, picConfig.dr, picConfig.dz, "POTENTIAL", group_emfield_0);
       if ( OUT_EFIELD ) {
-        out_efield_2D_h5( E_av_z, E_av_r, 1, nr, nz, NZ, Omega_pe, dr, dz, "EFIELD", group_emfield_0 );
+        out_efield_2D_h5( E_av_z, E_av_r, 1, nr, nz, NZ, picConfig.Omega_pe, picConfig.dr, picConfig.dz, "EFIELD", group_emfield_0 );
       }
     }
     else{
       file_names_2D( 1 );
-      out_phi_2D(phi, 1, nr, nz, NZ, Omega_pe, dr, dz, fphi);
+      out_phi_2D(phi, 1, nr, nz, NZ, picConfig.Omega_pe, picConfig.dr, picConfig.dz, fphi);
     }
 
     //Initialize reactions etc. just before writing metadata to h5OutFile_0
-    init_reactions();
-    print_parameters_2D();
+    picConfig.init_reactions();
+    picConfig.print_parameters_2D();
 
     if ( BINARY_OUTPUT ) {
       //Add metadata
-      outputfile_addParameterMetadata(h5OutFile_0, nsteps);
+      picConfig.outputfile_addParameterMetadata(h5OutFile_0, nsteps);
 
       h5OutFile_0->close();
       delete h5OutFile_0;
@@ -393,22 +396,22 @@ int main () {
     mainStats = fopen("mainStats.dat", "a");
 
     // Check the data read in:
-    checkbounds_2D( electrons, Rmin, Rmax, Zmin, Zmax );
+    checkbounds_2D( electrons, picConfig.Rmin, picConfig.Rmax, picConfig.Zmin, picConfig.Zmax );
     for (auto ion : ionSpecies) {
-      checkbounds_2D( ion, Rmin, Rmax, Zmin, Zmax );
+      checkbounds_2D( ion, picConfig.Rmin, picConfig.Rmax, picConfig.Zmin, picConfig.Zmax );
     }
     for (auto neutral : neutralSpecies) {
-      checkbounds_2D( neutral, Rmin, Rmax, Zmin, Zmax );
+      checkbounds_2D( neutral, picConfig.Rmin, picConfig.Rmax, picConfig.Zmin, picConfig.Zmax );
     }
 
     // Compute L and U matrices
-    if ( BC == 2 || BC == 3 ) potential_factorise_BC23( nr, nz, NR, NZ, dr, dz, &L_slu, &U_slu, &perm_c_slu, &perm_r_slu );
-    else                        potential_factorise_2D( nr, nz, NR, NZ, dr, dz, &L_slu, &U_slu, &perm_c_slu, &perm_r_slu );
+    if ( BC == 2 || BC == 3 ) potential_factorise_BC23( nr, nz, NR, NZ, picConfig.dr, picConfig.dz, &L_slu, &U_slu, &perm_c_slu, &perm_r_slu );
+    else                        potential_factorise_2D( nr, nz, NR, NZ, picConfig.dr, picConfig.dz, &L_slu, &U_slu, &perm_c_slu, &perm_r_slu );
 
     printf("-- Continuing from old run. (%d steps) -- \n", nstepsmin);
 
-    init_reactions();
-    print_parameters_2D();
+    picConfig.init_reactions();
+    picConfig.print_parameters_2D();
 
     // Continue with loop - electron push
   }
@@ -425,7 +428,7 @@ int main () {
 
     // III. MOVE PARTICLES
     if ( MAGNETIC ) {
-      push_magnetic_2D( electrons, E_grid_r, E_grid_z, Bz_ext, Bt_ext, 1., NZ );
+      push_magnetic_2D( electrons, E_grid_r, E_grid_z, picConfig.Bz_ext, picConfig.Bt_ext, 1., NZ );
     }
     else  {
       push_2D         ( electrons, E_grid_r, E_grid_z,                     NZ );
@@ -438,7 +441,7 @@ int main () {
     }
 
     if (DODEBUG) {
-      if(not checkbounds_2D(electrons, Rmin, Rmax, Zmin, Zmax)) {
+      if(not checkbounds_2D(electrons, picConfig.Rmin, picConfig.Rmax, picConfig.Zmin, picConfig.Zmax)) {
         std::cerr << "Error detected by checkbounds_2D() for electrons." << std::endl;
         if (electrons->GetN() < 100){
           electrons->PrintParticles();
@@ -462,7 +465,7 @@ int main () {
       for (auto ion : ionSpecies) {
         unsigned int sort = 1; // TODO: FIXME!
         if ( MAGNETIC ) {
-          push_magnetic_2D( ion, E_ion_r + sort*NG, E_ion_z + sort*NG, Bz_ext, Bt_ext, -1.*dt_ion/ion->mass, NZ );
+          push_magnetic_2D( ion, E_ion_r + sort*NG, E_ion_z + sort*NG, picConfig.Bz_ext, picConfig.Bt_ext, -1.*dt_ion/ion->mass, NZ );
         }
         else {
           push_2D( ion, E_ion_r + sort*NG, E_ion_z + sort*NG, NZ );
@@ -494,7 +497,7 @@ int main () {
 
       for (auto ion : ionSpecies) {
         if (DODEBUG) {
-          if(not checkbounds_2D(ion, Rmin, Rmax, Zmin, Zmax)) {
+          if(not checkbounds_2D(ion, picConfig.Rmin, picConfig.Rmax, picConfig.Zmin, picConfig.Zmax)) {
             std::cerr << "Error detected by checkbounds_2D() for ion '" << ion->name << "'." << std::endl;
             if (ion->GetN() < 100){
               ion->PrintParticles();
@@ -511,7 +514,7 @@ int main () {
 
       for (auto neutral : neutralSpecies) {
         if (DODEBUG) {
-          if(not checkbounds_2D(neutral, Rmin, Rmax, Zmin, Zmax)) {
+          if(not checkbounds_2D(neutral, picConfig.Rmin, picConfig.Rmax, picConfig.Zmin, picConfig.Zmax)) {
             std::cerr << "Error detected by checkbounds_2D() for neutral '"  << neutral->name << "'." << std::endl;
             if (neutral->GetN() < 100){
               neutral->PrintParticles();
@@ -609,10 +612,10 @@ int main () {
 
 
 
-    if ( BC == 2 || BC == 3 ) potential_backsolve_BC23( nr, nz, NR, NZ, dz, circuit->getU0(), circuit->getUNz(),
+    if ( BC == 2 || BC == 3 ) potential_backsolve_BC23( nr, nz, NR, NZ, picConfig.dz, circuit->getU0(), circuit->getUNz(),
                                                         phi, L_slu, U_slu, perm_c_slu, perm_r_slu,
                                                         electrons->densMap, ionSpecies[1]->densMap, &rhs_slu );
-    else                        potential_backsolve_2D( nr, nz, NR, NZ, dz, circuit->getU0(), circuit->getUNz(),
+    else                        potential_backsolve_2D( nr, nz, NR, NZ, picConfig.dz, circuit->getU0(), circuit->getUNz(),
                                                         phi, L_slu, U_slu, perm_c_slu, perm_r_slu,
                                                         electrons->densMap, ionSpecies[1]->densMap, &rhs_slu );
 
@@ -622,7 +625,7 @@ int main () {
     // VIII. DIAGNOSTICS AND OUTPUT
     step_time = omp_get_wtime()-step_time;
     fprintf(mainStats, "%08i %010e %f %zu %zu %zu \n",
-            nsteps, nsteps*Omega_pe*1e9/(56414.6*sqrt(n_ref)), step_time,
+            nsteps, nsteps*picConfig.Omega_pe*1e9/(56414.6*sqrt(picConfig.n_ref)), step_time,
             electrons->GetN(), ionSpecies[1]->GetN(), neutralSpecies[0]->GetN());
     fflush(mainStats);
     step_time = omp_get_wtime();
@@ -632,8 +635,8 @@ int main () {
       n_aver_diagn++;
 
       if (nsteps == diagn_start+nav_time) {
-        diagn_av_stability( diagn_dens, diagn_Te, diagn_ne, n_aver_diagn, -1., v_te, nr, nz,
-                            NR, NZ, Omega_pe, dr, dz, nsteps, &check_stab, ferr );
+        diagn_av_stability( diagn_dens, diagn_Te, diagn_ne, n_aver_diagn, -1., picConfig.v_te, nr, nz,
+                            NR, NZ, picConfig.Omega_pe, picConfig.dr, picConfig.dz, nsteps, &check_stab, ferr );
         if (check_stab == 1) {
           //printf("*** ERROR: stability violated. Stopping *** \n");
           //goto The_END; //STOP!!
@@ -651,7 +654,7 @@ int main () {
       if ( OUT_VDF ) {
         //TODO: Generalize for all species
 
-        dvt = 6.66666667/v_te;
+        dvt = 6.66666667/picConfig.v_te;
         vel_dst_along_2D( vdf_ez, vdf_er, vdf_eabs, electrons,         nr, nz, dvt, n_aver );
 
         dvt = 6.66666667/cs_ions[1];
@@ -673,7 +676,7 @@ int main () {
       if (nsteps == nav_start) {
         printf("Start averaging .......................... \n");
         printf("Omega_pe*t= %-6.0f, t=%f ns (%d steps) \n",
-        nsteps*Omega_pe, nsteps*Omega_pe*1e9/(56414.6*sqrt(n_ref)), nsteps);
+        nsteps*picConfig.Omega_pe, nsteps*picConfig.Omega_pe*1e9/(56414.6*sqrt(picConfig.n_ref)), nsteps);
       }
       if( nsteps == nav_start+nav_time ) {
         printf("*** Outputting now. (%d steps) *** \n", nsteps);
@@ -682,7 +685,7 @@ int main () {
                electrons->GetN(),ionSpecies[1]->GetN(),neutralSpecies[0]->GetN());
         printf("\n");
 
-        fprintf(timeIndex, "%08i %010e\n", nsteps, nsteps*Omega_pe*1e9/(56414.6*sqrt(n_ref)) );
+        fprintf(timeIndex, "%08i %010e\n", nsteps, nsteps*picConfig.Omega_pe*1e9/(56414.6*sqrt(picConfig.n_ref)) );
         fflush(timeIndex);
 
         if ( BINARY_OUTPUT ) {
@@ -691,41 +694,41 @@ int main () {
           std::cout << h5OutFile->getFileName() << " ..." << std::flush;
 
         //Add metadata
-        outputfile_addParameterMetadata(h5OutFile, nsteps);
+        picConfig.outputfile_addParameterMetadata(h5OutFile, nsteps);
 
         //Density
         H5::Group group_dens = h5OutFile->createGroup("/DENSITY");
-        out_dens_2D_h5( n_e_av,              n_aver,    -1., nr, nz, NZ, Omega_pe, dr, dz, "ELECTRONS", group_dens );
-        out_dens_2D_h5( n_i_av + NG,         n_aver_ion, 1., nr, nz, NZ, Omega_pe, dr, dz, "IONS",      group_dens );
-        out_dens_2D_h5( n_i_av + Lastion*NG, n_aver_ion, 1., nr, nz, NZ, Omega_pe, dr, dz, "NEUTRALS",  group_dens );
+        out_dens_2D_h5( n_e_av,              n_aver,    -1., nr, nz, NZ, picConfig.Omega_pe, picConfig.dr, picConfig.dz, "ELECTRONS", group_dens );
+        out_dens_2D_h5( n_i_av + NG,         n_aver_ion, 1., nr, nz, NZ, picConfig.Omega_pe, picConfig.dr, picConfig.dz, "IONS",      group_dens );
+        out_dens_2D_h5( n_i_av + Lastion*NG, n_aver_ion, 1., nr, nz, NZ, picConfig.Omega_pe, picConfig.dr, picConfig.dz, "NEUTRALS",  group_dens );
 
         //Electromagnetic fields
         H5::Group group_emfield = h5OutFile->createGroup("/EMFIELD");
         // Electrostatic potential
-        out_phi_2D_h5( phi_av, n_aver, nr, nz, NZ, Omega_pe, dr, dz, "POTENTIAL", group_emfield );
+        out_phi_2D_h5( phi_av, n_aver, nr, nz, NZ, picConfig.Omega_pe, picConfig.dr, picConfig.dz, "POTENTIAL", group_emfield );
         if ( OUT_EFIELD ) {
-          out_efield_2D_h5( E_av_z, E_av_r, n_aver, nr, nz, NZ, Omega_pe, dr, dz, "EFIELD", group_emfield );
+          out_efield_2D_h5( E_av_z, E_av_r, n_aver, nr, nz, NZ, picConfig.Omega_pe, picConfig.dr, picConfig.dz, "EFIELD", group_emfield );
         }
 
         //Position & velocity
         if ( OUT_COORD ) {
           H5::Group group_coords = h5OutFile->createGroup("/COORDS");
-          out_coords_2D_h5( electrons, 1, Omega_pe, dz, "ELECTRONS", group_coords );
-          out_coords_2D_h5( ionSpecies[1], dt_ion, Omega_pe, dz, "IONS", group_coords );
-          out_coords_2D_h5( neutralSpecies[0], dt_ion, Omega_pe, dz, "NEUTRALS", group_coords );
+          out_coords_2D_h5( electrons, 1, picConfig.Omega_pe, picConfig.dz, "ELECTRONS", group_coords );
+          out_coords_2D_h5( ionSpecies[1], dt_ion, picConfig.Omega_pe, picConfig.dz, "IONS", group_coords );
+          out_coords_2D_h5( neutralSpecies[0], dt_ion, picConfig.Omega_pe, picConfig.dz, "NEUTRALS", group_coords );
         }
 
         //Velocity moments
         // Average velocity
         H5::Group group_velavg = h5OutFile->createGroup("/VELOCITY_AVERAGE");
-        out_vels_2D_h5( mom_el, nr, nz, NZ, cs*sqrt(M_ions[0]/M_ions[1]), dr, dz, "uez", "uer", "uet", group_velavg);
-        out_vels_2D_h5( mom_ion + NG, nr, nz, NZ, cs*dt_ion*sqrt(M_ions[0]/M_ions[1]), dr, dz, "uiz", "uir", "uit", group_velavg);
+        out_vels_2D_h5( mom_el, nr, nz, NZ, picConfig.cs*sqrt(M_ions[0]/M_ions[1]), picConfig.dr, picConfig.dz, "uez", "uer", "uet", group_velavg);
+        out_vels_2D_h5( mom_ion + NG, nr, nz, NZ, picConfig.cs*dt_ion*sqrt(M_ions[0]/M_ions[1]), picConfig.dr, picConfig.dz, "uiz", "uir", "uit", group_velavg);
         // Temperature
         H5::Group group_temp = h5OutFile->createGroup("/VELOCITY_TEMP");
-        out_temps_2D_h5(       mom_el,        cs*sqrt(M_ions[0]/M_ions[1]), me_over_mi*M_ions[0]/M_ions[1],
-                         nr, nz, NZ, dr, dz, "Tez", "Ter", "Tet", group_temp);
-        out_temps_2D_h5( mom_ion + NG, cs*dt_ion*sqrt(M_ions[0]/M_ions[1]),                            1.0,
-                         nr, nz, NZ, dr, dz, "Tiz", "Tir", "Tit", group_temp);
+        out_temps_2D_h5(       mom_el,        picConfig.cs*sqrt(M_ions[0]/M_ions[1]), picConfig.me_over_mi*M_ions[0]/M_ions[1],
+                         nr, nz, NZ, picConfig.dr, picConfig.dz, "Tez", "Ter", "Tet", group_temp);
+        out_temps_2D_h5( mom_ion + NG, picConfig.cs*dt_ion*sqrt(M_ions[0]/M_ions[1]), 1.0,
+                         nr, nz, NZ, picConfig.dr, picConfig.dz, "Tiz", "Tir", "Tit", group_temp);
 
           if ( OUT_VDF ) {
             H5::Group group_vdf = h5OutFile->createGroup("/VELOCITY_DIST");
@@ -741,18 +744,18 @@ int main () {
         }
         else{
           file_names_2D( nsteps );
-          out_dens_2D( n_e_av,              n_aver,    -1., nr, nz, NZ, Omega_pe, dr, dz, fn_e );
-          out_dens_2D( n_i_av + NG,         n_aver_ion, 1., nr, nz, NZ, Omega_pe, dr, dz, fn_i );
-          out_dens_2D( n_i_av + Lastion*NG, n_aver_ion, 1., nr, nz, NZ, Omega_pe, dr, dz, fn_n );
+          out_dens_2D( n_e_av,              n_aver,    -1., nr, nz, NZ, picConfig.Omega_pe, picConfig.dr, picConfig.dz, fn_e );
+          out_dens_2D( n_i_av + NG,         n_aver_ion, 1., nr, nz, NZ, picConfig.Omega_pe, picConfig.dr, picConfig.dz, fn_i );
+          out_dens_2D( n_i_av + Lastion*NG, n_aver_ion, 1., nr, nz, NZ, picConfig.Omega_pe, picConfig.dr, picConfig.dz, fn_n );
 
-          out_phi_2D( phi_av, n_aver, nr, nz, NZ, Omega_pe, dr, dz, fphi );
+          out_phi_2D( phi_av, n_aver, nr, nz, NZ, picConfig.Omega_pe, picConfig.dr, picConfig.dz, fphi );
 
-          out_vels_2D ( mom_el, nr, nz, NZ, cs*sqrt(M_ions[0]/M_ions[1]), dr, dz, fv_ez, fv_er, fv_et );
-          out_temps_2D( mom_el, cs*sqrt(M_ions[0]/M_ions[1]), me_over_mi*M_ions[0]/M_ions[1],
-                        nr, nz, NZ, dr, dz, fT_ez, fT_er, fT_et);
+          out_vels_2D ( mom_el, nr, nz, NZ, picConfig.cs*sqrt(M_ions[0]/M_ions[1]), picConfig.dr, picConfig.dz, fv_ez, fv_er, fv_et );
+          out_temps_2D( mom_el, picConfig.cs*sqrt(M_ions[0]/M_ions[1]), picConfig.me_over_mi*M_ions[0]/M_ions[1],
+                        nr, nz, NZ, picConfig.dr, picConfig.dz, fT_ez, fT_er, fT_et);
 
-          out_vels_2D( mom_ion + NG, nr, nz, NZ, cs*dt_ion*sqrt(M_ions[0]/M_ions[1]), dr, dz, fv_iz, fv_ir, fv_it);
-          out_temps_2D( mom_ion + NG, cs*dt_ion*sqrt(M_ions[0]/M_ions[1]), 1., nr, nz, NZ, dr, dz, fT_iz, fT_ir, fT_it);
+          out_vels_2D( mom_ion + NG, nr, nz, NZ, picConfig.cs*dt_ion*sqrt(M_ions[0]/M_ions[1]), picConfig.dr, picConfig.dz, fv_iz, fv_ir, fv_it);
+          out_temps_2D( mom_ion + NG, picConfig.cs*dt_ion*sqrt(M_ions[0]/M_ions[1]), 1., nr, nz, NZ, picConfig.dr, picConfig.dz, fT_iz, fT_ir, fT_it);
 
           if ( OUT_VDF ) {
             out_fv_along_2D( vdf_ez, vdf_er, vdf_eabs, nr, nz, fvdf_ez, fvdf_er, fvdf_eabs );
@@ -761,20 +764,20 @@ int main () {
           }
 
           if ( OUT_EFIELD ) {
-            out_efield_2D( E_av_z, E_av_r, n_aver, nr, nz, NZ, Omega_pe, dr, dz, fEz, fEr );
+            out_efield_2D( E_av_z, E_av_r, n_aver, nr, nz, NZ, picConfig.Omega_pe, picConfig.dr, picConfig.dz, fEz, fEr );
           }
 
           if ( OUT_COORD ) {
             // Output coordinates: position and velocity
-            out_coords_2D( electrons, 1, Omega_pe, dz, fr_e );
-            out_coords_2D( ionSpecies[1], dt_ion, Omega_pe, dz, fr_i );
-            out_coords_2D( neutralSpecies[0], dt_ion, Omega_pe, dz, fr_n );
+            out_coords_2D( electrons, 1, picConfig.Omega_pe, picConfig.dz, fr_e );
+            out_coords_2D( ionSpecies[1], dt_ion, picConfig.Omega_pe, picConfig.dz, fr_i );
+            out_coords_2D( neutralSpecies[0], dt_ion, picConfig.Omega_pe, picConfig.dz, fr_n );
           }
         }
 
         kin_pot_en( electrons, ionSpecies[1], neutralSpecies[0],
                     &En_e, En_i+1, En_i+Lastion, &En_p, &En_tot,
-                    1./M_ions[1], 1./M_ions[2], phi, NR, NZ, Omega_pe, dz );
+                    1./M_ions[1], 1./M_ions[2], phi, NR, NZ, picConfig.Omega_pe, picConfig.dz );
         printf( "...... Energy balance .................... \n" );
 
         std::cout   << std::setw(8) << std::setfill('.') << std::left << electrons->name
@@ -803,7 +806,7 @@ int main () {
         fflush( stdout );
 
         // Check densities
-        f_dens = SQU(1./Omega_pe)/n_aver;
+        f_dens = SQU(1./picConfig.Omega_pe)/n_aver;
         for (int k=0; k<=nz; k++ ) {
           if ( (n_i_av[NG+k] > 5./f_dens) || (n_e_av[k] < -5./f_dens) ) {
             printf("ERROR: UNDERRESOLVED n_i_av = %.4e > %.4e or n_e_av = %.4e < %.4e for k = %d \n",

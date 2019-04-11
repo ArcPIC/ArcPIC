@@ -30,6 +30,8 @@
 #include "arrays1.h"
 #undef XTRN
 
+#include "ArcPicConfig.h"
+
 #include <cmath>
 
 using namespace std;
@@ -37,8 +39,7 @@ using namespace std;
 // ******** Implementation of FlexFN_twoComp_origNeutrals ******************
 FlexFN_twoComp_origNeutrals::FlexFN_twoComp_origNeutrals(std::vector<char*>& options) {
   if (options.size() != 9) {
-    cout << "Error in FlexFN_twoComp_origNeutrals(): Expected 9 options, got "
-	 << options.size() << endl;
+    cout << "Error in FlexFN_twoComp_origNeutrals(): Expected 9 options, got " << options.size() << endl;
     exit(1);
   }
 
@@ -132,7 +133,7 @@ void FlexFN_twoComp_origNeutrals::inject_e(ParticleSpecies* pa, double const Ez[
 
   //SEY at cathode
   double r1, r2; // temp variables from Gaussian RNG
-  double v_inj_e = v_te*0.01; //electron injection velocity
+  double v_inj_e = picConfig.v_te*0.01; //electron injection velocity
   // SEY: inject with incident r-coordinates, empty SEY variables!
   size_t totY = 0;
   for (size_t k=0; k < sput_cathode_SEY.size(); k++ ) {
@@ -273,8 +274,8 @@ void FlexFN_twoComp_origNeutrals::remove_i(ParticleSpecies* pa, unsigned int sor
 
   // check threshold of sputtering yield, only for ions, only at the cathode
   // threshold = 1e7 A/cm^2
-  double threshold = 1.e7*(Ndb*dt_ion*Omega_pe) /
-    (6.7193e-12*n_ref*sqrt(T_ref));
+  double threshold = 1.e7*(picConfig.Ndb*dt_ion*picConfig.Omega_pe) /
+    (6.7193e-12*picConfig.n_ref*sqrt(picConfig.T_ref));
   double current [nr];
   for (unsigned int i=0; i<nr; i++ ) current[i] = 0.;
 
@@ -313,7 +314,7 @@ void FlexFN_twoComp_origNeutrals::remove_i(ParticleSpecies* pa, unsigned int sor
       // SEY = 0.5 = constant, only from ions hitting the cathode
       // SEY with registering r-coordinates
       // Set reasonable threshold for incident ion energy (e.g. 100 eV)
-      if ( (SQU(pa->vz[n]) + SQU(pa->vr[n]) + SQU(pa->vt[n]))*T_ref/(2*SQU(cs_ions[sort])) > 100 ) {
+      if ( (SQU(pa->vz[n]) + SQU(pa->vr[n]) + SQU(pa->vt[n]))*picConfig.T_ref/(2*SQU(cs_ions[sort])) > 100 ) {
         if ( RAND <= SEY_f ) {
           Sput foo;
           foo.r = pa->r[n];
@@ -370,7 +371,7 @@ void FlexFN_twoComp_origNeutrals::remove_i(ParticleSpecies* pa, unsigned int sor
   double r, sigma(1e6*nr); //Crash if sigma not initialized
   for (unsigned int i=0; i<nr; i++ ) {
     // Rescale current with area of cell / area Ldb^2
-    current[i] /= PI * (2*i + 1) * SQU(dr);
+    current[i] /= PI * (2*i + 1) * SQU(picConfig.dr);
 
     if ( current[i] >= threshold ) {
       check_enh = true;
@@ -387,7 +388,8 @@ void FlexFN_twoComp_origNeutrals::remove_i(ParticleSpecies* pa, unsigned int sor
   else if ( check_enh == true ) {
     // Enhanced yield from MD
     // Generate Gaussian distribution for r-coord's
-#warning "Strange model - always generate 1000 Cu's?"
+  
+    // It's a strange model, always generating exactly 1000 Cu neutral superparticles when we are above the threshold...
     for (int j=0; j<1000; j++ ) { // 1000/SN
       do { r = sigma * sqrt(-2.*log(RAND+1.e-20)); } while ( r >= nr );
       Sput foo;
@@ -467,11 +469,9 @@ void FlexFN_twoComp_origNeutrals::remove_n(ParticleSpecies* pa){
   }
 }
 
-Sput FlexFN_twoComp_origNeutrals::calc_sput(const Particle pa,
-					     const double cs,
-					     double* current_enhancedY) {
+Sput FlexFN_twoComp_origNeutrals::calc_sput(const Particle pa, const double cs, double* current_enhancedY) {
   double nrg = SQU(pa.p.vz) + SQU(pa.p.vr) + SQU(pa.p.vt);
-  nrg *= T_ref/(2*SQU(cs));
+  nrg *= picConfig.T_ref/(2*SQU(cs));
   if ( nrg > 23.383 ) { //in eV
     // Register fluxes going through each cell for enhanced Y
     if ( current_enhancedY != NULL ) {

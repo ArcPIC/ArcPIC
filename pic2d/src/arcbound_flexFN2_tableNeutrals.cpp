@@ -29,6 +29,8 @@
 #include "arrays1.h"
 #undef XTRN
 
+#include "ArcPicConfig.h"
+
 #include <cmath>
 
 using namespace std;
@@ -37,8 +39,7 @@ using namespace std;
 // ******** Implementation of FlexFN2_tableNeutrals ******************
 FlexFN2_tableNeutrals::FlexFN2_tableNeutrals(std::vector<char*>& options) {
   if (options.size() != 6) {
-    cout << "Error in FlexFN2_tableNeutrals(): Expected 6 options, got "
-	 << options.size() << endl;
+    cout << "Error in FlexFN2_tableNeutrals(): Expected 6 options, got " << options.size() << endl;
     exit(1);
   }
 

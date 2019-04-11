@@ -28,16 +28,16 @@
 #include "arrays1.h"
 #undef XTRN
 
+#include "ArcPicConfig.h"
+
 #include <cmath>
 
 using namespace std;
 
 // ******** Implementation of FlexFN2 ******************
-void FlexFN2::injectFNring(ParticleSpecies* pa,
-			   double alpha, double beta, double const Ez[],
-			   double r1, double r2) {
+void FlexFN2::injectFNring(ParticleSpecies* pa, double alpha, double beta, double const Ez[], double r1, double r2) {
 
-  double v_inj_e = v_te*0.01;
+  double v_inj_e = picConfig.v_te*0.01;
 
   for (size_t i = (size_t) r1; i <= (size_t) (r2+0.6); i++) { //Loop over meshpoints
     // r2+0.6 in case nr-0.5 < r2 < nr, needs to activate outer ring.
@@ -50,8 +50,7 @@ void FlexFN2::injectFNring(ParticleSpecies* pa,
 
     //Sanity check
     if (R1 < 0 || R2 > nr) {
-      printf("Error in FlexFN2::injectFNring(): i=%zu, nr=%u, r1=%g, r2=%g\n",
-	     i, nr, r1, r2);
+      printf("Error in FlexFN2::injectFNring(): i=%zu, nr=%u, r1=%g, r2=%g\n", i, nr, r1, r2);
       printf("Check your emitter boundaries!\n");
       exit(1);
     }
@@ -67,7 +66,7 @@ void FlexFN2::injectFNring(ParticleSpecies* pa,
     // work fct=4.5eV, j in A/cm^2, E in V/m
     
     // rescale the field to GV/m, multiply with beta(r_i)
-    field = - 2.69036254e-10*dz/SQU(Omega_pe)*sqrt(T_ref*n_ref)*field*beta;
+    field = - 2.69036254e-10*picConfig.dz/SQU(picConfig.Omega_pe)*sqrt(picConfig.T_ref*picConfig.n_ref)*field*beta;
     // Protect against numerical fluctuations
     // (this caps j at the field where FN becomes invalid;
     //  Murphy&Good eq. 57, T=0K, phi=4.5eV).
@@ -75,11 +74,11 @@ void FlexFN2::injectFNring(ParticleSpecies* pa,
     double I_FN = 4.7133e9 * SQU(field) * exp(-62.338/field); // in A/cm^2
     
     //Rescale to units (#Superparticles / omega_pe^-1) / lambda_Db^2
-    I_FN *= Ndb/(6.7192539e-12*n_ref*sqrt(T_ref));
+    I_FN *= picConfig.Ndb/(6.7192539e-12*picConfig.n_ref*sqrt(picConfig.T_ref));
     //Area factor
     I_FN *= alpha;
     // [#superparticles]
-    I_FN *= PI*(SQU(R2*dz)-SQU(R1*dz))*(e2inj_step*Omega_pe);
+    I_FN *= PI*(SQU(R2*picConfig.dz)-SQU(R1*picConfig.dz))*(e2inj_step*picConfig.Omega_pe);
 
     // *** INJECTION *** //
     

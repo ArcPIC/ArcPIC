@@ -72,8 +72,8 @@ void coll_el_knm_2D( ParticleSpecies*  pa,
   static const double Amplcoulomb =  1.;  // Amplification of coulomb collisions, only for testing purposes
   static const double LanLog = 13.;       // Coulomb Log
   //Constant factor in coulomb collisions
-  double Acoll = Amplcoulomb * ( !kind ? 1.0 : dt_ion*dt_ion*dt_ion ) * LanLog * SQU(SQU(Omega_pe)) * ncoll /
-    ( TWOPI*PI * SQU(SQU(dz))*SQU(dz) * SQU(pa->mass) * SQU(Ndb) * N_sp );
+  double Acoll = Amplcoulomb * ( !kind ? 1.0 : dt_ion*dt_ion*dt_ion ) * LanLog * SQU(SQU(picConfig.Omega_pe)) * ncoll /
+    ( TWOPI*PI * SQU(SQU(picConfig.dz))*SQU(picConfig.dz) * SQU(pa->mass) * SQU(picConfig.Ndb) * N_sp );
 
   size_t Next = 0; // Index in pa[] of first particle in cell ir*NZ+iz (the way this is done today messes up paralellization)
   for (int ir=0; ir<nr;  ir++) {
@@ -257,7 +257,7 @@ void coll_ion_neutral_noSP_2D( ParticleSpecies* neutrals,
               S_i = React.CS[Epoints];
             else
               S_i = React.CS[Eind] + (React.CS[Eind +1] - React.CS[Eind])*((W2_0 - Emin)/Estep - Eind);
-            S_i *= Ampl;
+            S_i *= picConfig.Ampl;
 
             // 1-exp(-n_n*W_0*Si*dt_coll)
             if ( RAND < n_n*W_0*S_i*dti/(2*jr+1) ) { // correct Si with 2D volume factor (2j+1) here
@@ -356,13 +356,16 @@ void coll_ion_neutral_noSP_2D( ParticleSpecies* neutrals,
 
             // Linear fit for Cross-section
             Eind = (int)((W2_0 - Emin)/Estep);
-            if ( Eind < 0)
+            if ( Eind < 0){
               S_i = React.CS[0];
-            else if ( Eind >= Epoints)
+            }
+            else if ( Eind >= Epoints) {
               S_i = React.CS[Epoints];
-            else
+            }
+            else {
               S_i = React.CS[Eind] + (React.CS[Eind +1] - React.CS[Eind])*((W2_0 - Emin)/Estep - Eind);
-            S_i *= Ampl;
+            }
+            S_i *= picConfig.Ampl;
 
             // 1-exp(-n_n*W_0*Si*dt_coll)
             if ( RAND < n_ion*W_0*S_i*dti/(2*jr+1) ) { // correct Si with 2D volume factor (2j+1) here
@@ -610,7 +613,7 @@ void coll_n_n_2D( ParticleSpecies* neutrals,
             S_i = React.CS[Epoints];
           else
             S_i = React.CS[Eind] + (React.CS[Eind +1] - React.CS[Eind])*((W2_0 - Emin)/Estep - Eind);
-          S_i *= Ampl*one_or_half;
+          S_i *= picConfig.Ampl*one_or_half;
 
           // 1-exp(-n_n*W_0*Si*dt_coll)
           if ( Random(CPUIDX) < n_n*W_0*S_i*dti/(2*jr+1) ) { // correct Si with 2D volume factor (2j+1) here
@@ -744,7 +747,7 @@ void coll_el_all_fake_2D( ParticleSpecies* molecules,   // molecules
             else
               S_i = React.CS[Eind] + (React.CS[Eind +1] - React.CS[Eind])*((W2_0 - Emin)/Estep - Eind);
           }
-          S_i *= Ampl;
+          S_i *= picConfig.Ampl;
 
           // 1-exp(-n_m*W_0*Si*dt_coll)
           if (W2_0 >= E_th && RAND < nm_real*W_0*S_i/(2*jr+1) ) { // correct Si with 2D volume factor (2j+1) here
@@ -958,7 +961,7 @@ void coll_el_neutrals_2D( ParticleSpecies* neutrals,
               else
                 S_i = React.CS[Eind] + (React.CS[Eind +1] - React.CS[Eind])*((W2_0 - Emin)/Estep - Eind);
             }
-            S_i *= Ampl;
+            S_i *= picConfig.Ampl;
 
             // 1-exp(-n_n*W_0*Si*dt_coll)
             if (W2_0 >= E_th && RAND < Nn_real*W_0*S_i/(2*jr+1) )  {// correct Si with 2D volume factor (2j+1) here
@@ -1178,7 +1181,7 @@ void coll_el_neutrals_2D( ParticleSpecies* neutrals,
                 else
                   S_i = React.CS[Eind] + (React.CS[Eind +1] - React.CS[Eind])*((W2_0 - Emin)/Estep - Eind);
               }
-              S_i *= Ampl;
+              S_i *= picConfig.Ampl;
 
               if (W2_0 >= E_th && RAND < n_el*W_0*S_i/(2*jr+1) ) { // correct Si with 2D volume factor (2j+1) here
 

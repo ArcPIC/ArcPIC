@@ -433,8 +433,8 @@ void ArcSimple::injector(ParticleSpecies* pa, unsigned int n_inject) {
   pa->ExpandBy(n_inject);
 
   for (unsigned int i = 0; i < n_inject; i++) {
-    pa->r.push_back( RAND*dr );
-    pa->z.push_back( RAND*dz );
+    pa->r.push_back( RAND*picConfig.dr );
+    pa->z.push_back( RAND*picConfig.dz );
 
     pa->vr.push_back( 0.0 );
     pa->vt.push_back( 0.0 );
