@@ -63,7 +63,6 @@
 #include  "input.h"
 #include  "vdf.h"
 #include  "backup.h"
-#include  "print_par.h"
 #include  "checkbounds.h"
 #include  "weightPotential.h"
 
@@ -436,13 +435,26 @@ int main () {
 
     pbounds->remove_e( electrons );
 
+    if (DODEBUG) {
+      if(not checkbounds_2D(electrons, picConfig.Rmin, picConfig.Rmax, picConfig.Zmin, picConfig.Zmax)) {
+        std::cerr << "Error detected by checkbounds_2D() for electrons (right after remove_e() ), nsteps = " << nsteps << "." << std::endl;
+        if (electrons->GetN() < 100){
+          electrons->PrintParticles();
+        }
+        else {
+          std::cerr << " (to many particles to print)" << std::endl;
+        }
+        exit(1);
+      }
+    }
+
     if ( nsteps/e2inj_step*e2inj_step  == nsteps ) {
       pbounds->inject_e(electrons, E_grid_z);
     }
 
     if (DODEBUG) {
       if(not checkbounds_2D(electrons, picConfig.Rmin, picConfig.Rmax, picConfig.Zmin, picConfig.Zmax)) {
-        std::cerr << "Error detected by checkbounds_2D() for electrons." << std::endl;
+        std::cerr << "Error detected by checkbounds_2D() for electrons, nsteps = " << nsteps << "." << std::endl;
         if (electrons->GetN() < 100){
           electrons->PrintParticles();
         }
@@ -498,7 +510,7 @@ int main () {
       for (auto ion : ionSpecies) {
         if (DODEBUG) {
           if(not checkbounds_2D(ion, picConfig.Rmin, picConfig.Rmax, picConfig.Zmin, picConfig.Zmax)) {
-            std::cerr << "Error detected by checkbounds_2D() for ion '" << ion->name << "'." << std::endl;
+            std::cerr << "Error detected by checkbounds_2D() for ion '" << ion->name << "', nsteps = " << nsteps << "." << std::endl;
             if (ion->GetN() < 100){
               ion->PrintParticles();
             }
@@ -515,7 +527,7 @@ int main () {
       for (auto neutral : neutralSpecies) {
         if (DODEBUG) {
           if(not checkbounds_2D(neutral, picConfig.Rmin, picConfig.Rmax, picConfig.Zmin, picConfig.Zmax)) {
-            std::cerr << "Error detected by checkbounds_2D() for neutral '"  << neutral->name << "'." << std::endl;
+            std::cerr << "Error detected by checkbounds_2D() for neutral '"  << neutral->name << "', nsteps = " << nsteps << "." << std::endl;
             if (neutral->GetN() < 100){
               neutral->PrintParticles();
             }

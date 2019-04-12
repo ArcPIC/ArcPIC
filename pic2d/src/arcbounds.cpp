@@ -338,7 +338,7 @@ void ArcRemover::remover(ParticleSpecies* pa,
   }
   //Delete the final n_lost particles
   if (n_lost > 0 ){
-    pa->ResizeDelete(n_lost);
+    pa->ResizeDeleteBy(n_lost);
   }
 }
 

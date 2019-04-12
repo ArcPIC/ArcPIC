@@ -262,7 +262,7 @@ void ArcOriginalNewHS::remove_i(ParticleSpecies* pa, unsigned int sort) {
   }
   //Delete the final n_lost particles
   if (n_lost > 0 ){
-    pa->ResizeDelete(n_lost);
+    pa->ResizeDeleteBy(n_lost);
   }
 }
 
@@ -309,7 +309,7 @@ void ArcOriginalNewHS::remove_n(ParticleSpecies* pa){
   }
   //Delete the final n_lost particles
   if (n_lost > 0 ){
-    pa->ResizeDelete(n_lost);
+    pa->ResizeDeleteBy(n_lost);
   }
 }
 
@@ -363,7 +363,6 @@ void ArcOriginalNewHS::inject_e(ParticleSpecies* pa, double const Ez[]) {
   // Fowler-Nordheim with Wang-Loew approximation
   // W-L: v(y) ~ 0.956 - 1.062*(3.7947e-5)^2*Eloc/(4.5*4.5)
   // beta=dynamic, work fct=4.5eV, j in A/cm^2, E in V/m
-  
   field = Ez[0];
   // rescale the field to GV/m
   Eloc = - 2.69036254e-10*picConfig.dz / 
@@ -383,13 +382,13 @@ void ArcOriginalNewHS::inject_e(ParticleSpecies* pa, double const Ez[]) {
     j=0.; 
   }
   
-  // FN OUTSIDE THE FIELD EMITTER
+  // FN OUTSIDE THE FIELD EMITTER (also Wang-Loew)
   for (unsigned int jj=0; jj<nr; jj++ ) {
     field = Ez[(jj+1)*NZ];
     if (field < 0.) {
       // B=B_f, rescale the field to GV/m
       Eloc = - 2.69036254e-10*picConfig.dz/SQU(picConfig.Omega_pe)*sqrt(picConfig.T_ref*picConfig.n_ref)*field*beta_f; 
-      if ( Eloc > 12. ) Eloc = 12.;  
+      if ( Eloc > 12. ) Eloc = 12.; // FN model makes no sense above 12 GV/m
       jFN[jj] = 4.7133e9 * SQU(Eloc) * exp(-62.338/Eloc); // in A/cm^2
       
       jFN[jj] *= this->alpha_flat;
@@ -431,8 +430,7 @@ void ArcOriginalNewHS::inject_e(ParticleSpecies* pa, double const Ez[]) {
       pa->vt.push_back( r1*sin(r2)*v_inj_e );
       
       // Gaussian scheme
-      do { r1 = sqrt(-2.*log(RAND+1.e-20)); }
-      while( r1 > 5. );
+      do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
       pa->vz.push_back( r1*v_inj_e );
       
       pa->z.push_back( zmin + pa->vz.back() );
@@ -440,6 +438,12 @@ void ArcOriginalNewHS::inject_e(ParticleSpecies* pa, double const Ez[]) {
       if ( pa->r.back() < 0 )     pa->r.back() = 1.e-20;
       else if (pa->r.back() > nr) pa->r.back() = 2*nr - pa->r.back();
 
+      if(DODEBUG and pa->z.back() < 0.0) {
+        cerr << "Error in ArcOriginalNewHS::inject_e()::SEY (Legacy scheme):" << endl
+             << "Generated particle with z = " << pa->z.back() << " < 0.0." << endl
+             << " zmin = " << zmin << ", vz =" << pa->vz.back() << endl;
+        exit(1);
+      }
       pa->m.push_back( 1 );
       
       current_e[0] += 2*( int(pa->r.back()) ) + 1;
@@ -482,6 +486,13 @@ void ArcOriginalNewHS::inject_e(ParticleSpecies* pa, double const Ez[]) {
                         // are we at z=0?
       pa->r.back()  += Rp*e2inj_step*pa->vr.back();
       pa->z.back()  += Rp*e2inj_step*pa->vz.back();
+      if(DODEBUG and pa->z.back() < 0.0) {
+        cerr << "Error in ArcOriginalNewHS::inject_e()::FN at field emitter (Fractional timestep scheme):" << endl
+             << "Generated particle with z = " << pa->z.back() << " < 0.0." << endl
+             << " zmin = " << zmin << ", vz =" << pa->vz.back() << ", Ez = " << Ez[0] << endl;
+        exit(1);
+      }
+
       //No magnetic field, E = Ez on surface
       pa->vz.back() -= (Rp*e2inj_step-0.5)*2*Ez[0];
       
@@ -504,6 +515,13 @@ void ArcOriginalNewHS::inject_e(ParticleSpecies* pa, double const Ez[]) {
       
       if ( pa->r.back() < 0 )     pa->r.back() = 1.e-20;
       else if (pa->r.back() > nr) pa->r.back() = 2*nr - pa->r.back();
+
+      if(DODEBUG and pa->z.back() < 0.0) {
+        cerr << "Error in ArcOriginalNewHS::inject_e()::FN at field emitter (Legacy scheme):" << endl
+             << "Generated particle with z = " << pa->z.back() << " < 0.0." << endl
+             << " zmin = " << zmin << ", vz =" << pa->vz.back() << endl;
+        exit(1);
+      }
     }
     
     pa->m.push_back( 1 );
@@ -557,6 +575,12 @@ void ArcOriginalNewHS::inject_e(ParticleSpecies* pa, double const Ez[]) {
           // are we at z=0?
           pa->r.back()  += Rp*e2inj_step*pa->vr.back();
           pa->z.back()  += Rp*e2inj_step*pa->vz.back();
+          if(DODEBUG and pa->z.back() < 0.0) {
+            cerr << "Error in ArcOriginalNewHS::inject_e()::FN at flat surface (Fractional step scheme):" << endl
+                 << "Generated particle with z = " << pa->z.back() << " < 0.0." << endl
+                 << " zmin = " << zmin << ", vz =" << pa->vz.back() << ", Ez = " << Ez[(jj+1)*NZ] << ", jj = " << jj << endl;
+            exit(1);
+          }
           //No magnetic field, E = Ez on surface
           pa->vz.back() -= (Rp*e2inj_step-0.5)*2*Ez[(jj+1)*NZ];
 
@@ -598,6 +622,13 @@ void ArcOriginalNewHS::inject_e(ParticleSpecies* pa, double const Ez[]) {
           }
           else if (pa->r.back() > nr) {
             pa->r.back() = 2*nr - pa->r.back();
+          }
+
+          if(DODEBUG and pa->z.back() < 0.0) {
+            cerr << "Error in ArcOriginalNewHS::inject_e()::FN at flat surface (Legacy scheme):" << endl
+                 << "Generated particle with z = " << pa->z.back() << " < 0.0." << endl
+                 << " zmin = " << zmin << ", vz =" << pa->vz.back() << ", jj = " << jj << endl;
+            exit(1);
           }
         }
         pa->m.push_back( 1 );

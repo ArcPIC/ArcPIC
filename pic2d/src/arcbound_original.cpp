@@ -216,7 +216,7 @@ void ArcOriginal::remove_i(ParticleSpecies* pa, unsigned int sort) {
   }
   //Delete the final n_lost particles
   if (n_lost > 0 ){
-    pa->ResizeDelete(n_lost);
+    pa->ResizeDeleteBy(n_lost);
   }
   
   // Enhanced yield?
@@ -303,7 +303,7 @@ void ArcOriginal::remove_n(ParticleSpecies* pa){
   }
   //Delete the final n_lost particles
   if (n_lost > 0 ){
-    pa->ResizeDelete(n_lost);
+    pa->ResizeDeleteBy(n_lost);
   }
 }
 
