@@ -26,6 +26,8 @@
 #include  "arcbounds.h"
 #undef XTRN
 
+#include "ArcPicConfig.h"
+
 #include "filenames.h"
 #include "input.h"
 
@@ -63,15 +65,15 @@ void input( void ) {
   FILE* in_file = fopen("input.txt","r");
 
   //SCALING PARAMETERS
-  n_ref = parseDouble(in_file,"n_ref");
-  T_ref = parseDouble(in_file, "T_ref");
-  Ndb   = parseDouble(in_file, "Ndb");
+  picConfig.n_ref = parseDouble(in_file, "n_ref");
+  picConfig.T_ref = parseDouble(in_file, "T_ref");
+  picConfig.Ndb   = parseDouble(in_file, "Ndb");
 
   nr = parseInt(in_file, "nr");
   nz = parseInt(in_file, "nz", false);
 
-  dz       = parseDouble(in_file, "dz");
-  Omega_pe = parseDouble(in_file, "Omega_pe");
+  picConfig.dz       = parseDouble(in_file, "dz");
+  picConfig.Omega_pe = parseDouble(in_file, "Omega_pe");
 
   // TIMESTEPS
   dt_ion    = parseInt(in_file, "dt_ion");
@@ -81,13 +83,13 @@ void input( void ) {
   nstepsmax = parseInt(in_file, "nstepsmax");
 
 
-  dt_out   = parseDouble(in_file, "dt_out");
-  av_start = parseDouble(in_file, "av_start");
-  av_time  = parseDouble(in_file, "av_time");
+  picConfig.dt_out   = parseDouble(in_file, "dt_out");
+  picConfig.av_start = parseDouble(in_file, "av_start");
+  picConfig.av_time  = parseDouble(in_file, "av_time");
 
   // FIELDS, PARTILCES AND BOUNDARY CONDITIONS
-  Bz_ext = parseDouble(in_file, "Bz_ext");
-  Bt_ext = parseDouble(in_file, "Bt_ext");
+  picConfig.Bz_ext = parseDouble(in_file, "Bz_ext");
+  picConfig.Bt_ext = parseDouble(in_file, "Bt_ext");
 
   //Injection timesteps
   e2inj_step = parseInt(in_file, "e2inj_step");
@@ -117,8 +119,8 @@ void input( void ) {
   DODEBUG       = parseYN(in_file, "DODEBUG");
 
   // MISCELLANEOUS
-  Ti_over_Te = parseDouble(in_file, "Ti_over_Te");
-  mi_over_me = parseDouble(in_file, "mi_over_me");
+  picConfig.Ti_over_Te = parseDouble(in_file, "Ti_over_Te");
+  picConfig.mi_over_me = parseDouble(in_file, "mi_over_me");
 
   RNGbaseSeed = parseULInt(in_file, "RNGbaseSeed");
 

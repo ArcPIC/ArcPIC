@@ -29,13 +29,14 @@
 #include "arrays1.h"
 #undef XTRN
 
+#include "ArcPicConfig.h"
+
 #include <cmath>
 
 using namespace std;
 
 // ******** Implementation of FlexFN ******************
-void FlexFN::calcFN_current(double const Ez[], double* alpha, double* beta,
-		    double* currentFN) {
+void FlexFN::calcFN_current(double const Ez[], double* alpha, double* beta, double* currentFN) {
   for (size_t i = 0; i <= nr; i++) { //Loop over meshpoints
     double field = Ez[i*NZ];
     double deltaI_FN = 0.0;
@@ -45,24 +46,24 @@ void FlexFN::calcFN_current(double const Ez[], double* alpha, double* beta,
       // work fct=4.5eV, j in A/cm^2, E in V/m
       
       // rescale the field to GV/m, multiply with beta(r_i)
-      field = - 2.69036254e-10*dz/SQU(Omega_pe)*sqrt(T_ref*n_ref)*field*beta[i];
+      field = - 2.69036254e-10*picConfig.dz/SQU(picConfig.Omega_pe)*sqrt(picConfig.T_ref*picConfig.n_ref)*field*beta[i];
       // Protect against numerical fluctuations
       // (this caps j at the field where tunneling probability = 1 (check!)
       if ( field > 12. ) field = 12.;      
       deltaI_FN = 4.7133e9 * SQU(field) * exp(-62.338/field); // in A/cm^2
       
       //Rescale to units (#Superparticles / omega_pe^-1) / lambda_Db^2
-      deltaI_FN *= Ndb/(6.7192539e-12*n_ref*sqrt(T_ref));
+      deltaI_FN *= picConfig.Ndb/(6.7192539e-12*picConfig.n_ref*sqrt(picConfig.T_ref));
       //Area factor
       deltaI_FN *= alpha[i];
       //Find the current (#Superparticles) through each annular disk
       // between (j - 0.5)*DZ and (j+0.5)*DZ AND inside the domain (0, nr*dz)
       if (i == 0) 
-	deltaI_FN *= (PI*SQU(0.5*dz))*(e2inj_step*Omega_pe);
+        deltaI_FN *= (PI*SQU(0.5*picConfig.dz))*(e2inj_step*picConfig.Omega_pe);
       else if (i > 0 && i < nr)
-	deltaI_FN *= (TWOPI*i*SQU(dz))*(e2inj_step*Omega_pe);
+        deltaI_FN *= (TWOPI*i*SQU(picConfig.dz))*(e2inj_step*picConfig.Omega_pe);
       else if (i == nr)
-	deltaI_FN *= (PI*(nr-0.25)*SQU(dz))*(e2inj_step*Omega_pe);
+        deltaI_FN *= (PI*(nr-0.25)*SQU(picConfig.dz))*(e2inj_step*picConfig.Omega_pe);
     }
     currentFN[i] += deltaI_FN;    
   } // END loop over meshpoints
@@ -70,7 +71,7 @@ void FlexFN::calcFN_current(double const Ez[], double* alpha, double* beta,
 
 void FlexFN::injectFN(ParticleSpecies* pa, double* currentFN, double const Ez[]) {
 
-  double v_inj_e = v_te*0.01;
+  double v_inj_e = picConfig.v_te*0.01;
 
   for (size_t i = 0; i <= nr; i++) { //Loop over meshpoints
     
@@ -123,8 +124,7 @@ void FlexFN::injectFN(ParticleSpecies* pa, double* currentFN, double const Ez[])
 // ******** Implementation of FlexFN_ring ******************
 FlexFN_ring::FlexFN_ring(std::vector<char*>& options) {
   if (options.size() != 5) {
-    cout << "Error in FlexFN_ring(): Expected 5 options, got "
-	 << options.size() << endl;
+    cout << "Error in FlexFN_ring(): Expected 5 options, got " << options.size() << endl;
     exit(1);
   }
 
@@ -180,8 +180,7 @@ void FlexFN_ring::inject_e(ParticleSpecies* pa, double const Ez[]) {
 // ******** Implementation of FlexFN_twoComp ******************
 FlexFN_twoComp::FlexFN_twoComp(std::vector<char*>& options) {
   if (options.size() != 6) {
-    cout << "Error in FlexFN_twoComp(): Expected 6 options, got "
-	 << options.size() << endl;
+    cout << "Error in FlexFN_twoComp(): Expected 6 options, got " << options.size() << endl;
     exit(1);
   }
 

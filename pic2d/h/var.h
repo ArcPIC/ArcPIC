@@ -24,24 +24,9 @@
 #include "circuit.h"
 #include "arcbounds.h"
 #include "initialParticles.h"
+#include "ArcPicConfig.h"
 
-XTRN double Ampl,
-  av_start, av_time,
-  Bt_ext, Bz_ext,
-  cs,
-  dr, dz,
-  dt_out,
-  lambda_De,
-  me_over_mi,
-  mi_over_me,
-  Ndb,
-  n_ref, T_ref,       /*  Ref. dens. and temp. for rescaling  */
-  Omega_pe,
-  qe, qi,
-  Ti_over_Te,
-  v_te, v_ti,
-  vi_0,
-  Zmin, Zmax, Rmin, Rmax;
+XTRN ArcPicConfig picConfig;
 
 // New-style classes for handling different parts of the physics
 XTRN Circuit* circuit;

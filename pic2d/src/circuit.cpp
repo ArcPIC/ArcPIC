@@ -62,7 +62,7 @@ Circuit* Circuit::LoadCircuit(FILE* in_file) {
   }
   else {
     cout << "Error in LoadCircuit: Can't handle given circuitName '"
-	 << circuitName << "'" << endl;
+         << circuitName << "'" << endl;
     exit(1);
   }
   
@@ -96,7 +96,7 @@ void Circuit::writeFile(unsigned int nstep){
 FixedVoltage::FixedVoltage( std::vector<char*> options ) { 
   if (options.size() != 3) {
     cout << "Error in FixedVoltage(): Expected 3 options, got "
-	 << options.size() << endl;
+         << options.size() << endl;
     exit(1);
   }
 
@@ -107,18 +107,18 @@ FixedVoltage::FixedVoltage( std::vector<char*> options ) {
 }
 
 void FixedVoltage::init() {
-  this->U0  *= SQU(Omega_pe/dz);
-  this->UNz *= SQU(Omega_pe/dz);
+  this->U0  *= SQU(picConfig.Omega_pe/picConfig.T_ref);
+  this->UNz *= SQU(picConfig.Omega_pe/picConfig.T_ref);
 }
 
 void FixedVoltage::print_par() {
   // Need to convert back from dimless
   printf( " - U0:                  %g [T_ref]\n",
-	  (this->U0)*dz*dz/Omega_pe/Omega_pe );
+          (this->U0)*picConfig.dz*picConfig.dz/picConfig.Omega_pe/picConfig.Omega_pe );
   printf( " - UNz:                 %g [T_ref]\n",
-	  (this->UNz)*dz*dz/Omega_pe/Omega_pe );
+          (this->UNz)*picConfig.dz*picConfig.dz/picConfig.Omega_pe/picConfig.Omega_pe );
   printf( " - file_timestep:       %u\n",
-	  this->file_timestep );
+          this->file_timestep );
 }
 
 void FixedVoltage::timestep(double deltaQ, unsigned int nstep) {
@@ -132,7 +132,7 @@ void FixedVoltage::timestep(double deltaQ, unsigned int nstep) {
 FixedVoltage_resistor::FixedVoltage_resistor( std::vector<char*> options ) { 
   if (options.size() != 3) {
     cout << "Error in FixedVoltage_resistor(): Expected 3 options, got "
-	 << options.size() << endl;
+         << options.size() << endl;
     exit(1);
   }
 
@@ -145,26 +145,26 @@ FixedVoltage_resistor::FixedVoltage_resistor( std::vector<char*> options ) {
 }
 
 void FixedVoltage_resistor::init() {
-  this->U0      *= SQU(Omega_pe/dz);
-  this->UNz     *= SQU(Omega_pe/dz);
-  this->Vin     *= SQU(Omega_pe/dz);
-  this->Rseries  = this->Rseries_dim * 3.713294e-6*Omega_pe*sqrt(T_ref)/SQU(dz)/Ndb;
+  this->U0      *= SQU(picConfig.Omega_pe/picConfig.dz);
+  this->UNz     *= SQU(picConfig.Omega_pe/picConfig.dz);
+  this->Vin     *= SQU(picConfig.Omega_pe/picConfig.dz);
+  this->Rseries  = this->Rseries_dim * 3.713294e-6*picConfig.Omega_pe*sqrt(picConfig.T_ref)/SQU(picConfig.dz)/picConfig.Ndb;
 }
 
 void FixedVoltage_resistor::print_par() {
   // Need to convert back from dimless
   printf( " - U0:                  %g [T_ref]\n",
-	  (this->U0)*dz*dz/Omega_pe/Omega_pe );
+          (this->U0)*picConfig.dz*picConfig.dz/picConfig.Omega_pe/picConfig.Omega_pe );
   printf( " - UNz:                 %g [T_ref]\n",
-	  (this->UNz)*dz*dz/Omega_pe/Omega_pe );
+          (this->UNz)*picConfig.dz*picConfig.dz/picConfig.Omega_pe/picConfig.Omega_pe );
   printf( " - Vin:                 %g [T_ref]\n",
-	  (this->Vin)*dz*dz/Omega_pe/Omega_pe );
+          (this->Vin)*picConfig.dz*picConfig.dz/picConfig.Omega_pe/picConfig.Omega_pe );
   printf( " - Rseries              %g [Ohm] = %g [1] \n",
-	  this->Rseries_dim, this->Rseries);
+          this->Rseries_dim, this->Rseries);
   printf( " => Assuming burning voltage = 50 V, max current = %g A\n",
-	  (Vin*SQU(dz/Omega_pe)*T_ref - 50.0)/Rseries_dim );
+          (Vin*SQU(picConfig.dz/picConfig.Omega_pe)*picConfig.T_ref - 50.0)/Rseries_dim );
   printf( " - file_timestep:       %u\n",
-	  this->file_timestep );
+          this->file_timestep );
 }
 
 void FixedVoltage_resistor::timestep(double deltaQ, unsigned int nstep) {
@@ -180,7 +180,7 @@ void FixedVoltage_resistor::timestep(double deltaQ, unsigned int nstep) {
 FixedVoltage_resistorCapacitor::FixedVoltage_resistorCapacitor( std::vector<char*> options ) { 
   if (options.size() != 4) {
     cout << "Error in FixedVoltage_resistorCapacitor(): Expected 4 options, got "
-	 << options.size() << endl;
+         << options.size() << endl;
     exit(1);
   }
 
@@ -195,12 +195,12 @@ FixedVoltage_resistorCapacitor::FixedVoltage_resistorCapacitor( std::vector<char
 }
 
 void FixedVoltage_resistorCapacitor::init() {
-  this->U0      *= SQU(Omega_pe/dz);
-  this->UNz     *= SQU(Omega_pe/dz);
-  this->Vin     *= SQU(Omega_pe/dz);
-  this->Rseries  = this->Rseries_dim * 3.713294e-6*Omega_pe*sqrt(T_ref)/SQU(dz)/Ndb;
+  this->U0      *= SQU(picConfig.Omega_pe/picConfig.dz);
+  this->UNz     *= SQU(picConfig.Omega_pe/picConfig.dz);
+  this->Vin     *= SQU(picConfig.Omega_pe/picConfig.dz);
+  this->Rseries  = this->Rseries_dim * 3.713294e-6*picConfig.Omega_pe*sqrt(picConfig.T_ref)/SQU(picConfig.T_ref)/picConfig.Ndb;
   
-  this->Cgap     = this->Cgap_dim    * 1.519260e10*SQU(dz/Omega_pe)*Ndb*sqrt(n_ref/T_ref);
+  this->Cgap     = this->Cgap_dim    * 1.519260e10*SQU(picConfig.T_ref/picConfig.Omega_pe)*picConfig.Ndb*sqrt(picConfig.n_ref/picConfig.T_ref);
   
   this->I_circ   = 0.0;
 }
@@ -208,19 +208,19 @@ void FixedVoltage_resistorCapacitor::init() {
 void FixedVoltage_resistorCapacitor::print_par() {
   // Need to convert back from dimless
   printf( " - U0:                  %g [T_ref]\n",
-	  (this->U0)*dz*dz/Omega_pe/Omega_pe );
+          (this->U0)*picConfig.T_ref*picConfig.T_ref/picConfig.Omega_pe/picConfig.Omega_pe );
   printf( " - UNz:                 %g [T_ref]\n",
-	  (this->UNz)*dz*dz/Omega_pe/Omega_pe );
+          (this->UNz)*picConfig.T_ref*picConfig.T_ref/picConfig.Omega_pe/picConfig.Omega_pe );
   printf( " - Vin:                 %g [T_ref]\n",
-	  (this->Vin)*dz*dz/Omega_pe/Omega_pe );
+          (this->Vin)*picConfig.T_ref*picConfig.T_ref/picConfig.Omega_pe/picConfig.Omega_pe );
   printf( " - Rseries:             %g [Ohm] = %g [1] \n",
-	  this->Rseries_dim, this->Rseries);
+          this->Rseries_dim, this->Rseries);
   printf( " => Assuming burning voltage = 50 V, max current = %g A\n",
-	  (Vin*SQU(dz/Omega_pe)*T_ref - 50.0)/Rseries_dim );
+          (Vin*SQU(picConfig.T_ref/picConfig.Omega_pe)*picConfig.T_ref - 50.0)/Rseries_dim );
   printf( " - Cgap:                %g [Farad]\n",
-	  this->Cgap );
+          this->Cgap );
   printf( " - file_timestep:       %u\n",
-	  this->file_timestep );
+          this->file_timestep );
 }
 
 void FixedVoltage_resistorCapacitor::timestep(double deltaQ, unsigned int nstep) {
@@ -252,7 +252,7 @@ void FixedVoltage_resistorCapacitor::writeFile(unsigned int nstep){
 FixedVoltage_ramp::FixedVoltage_ramp( std::vector<char*> options ) {
   if (options.size() != 4) {
     cout << "Error in FixedVoltage_ramp(): Expected 4 options, got "
-	 << options.size() << endl;
+         << options.size() << endl;
     exit(1);
   }
 
@@ -263,12 +263,12 @@ FixedVoltage_ramp::FixedVoltage_ramp( std::vector<char*> options ) {
   sscanf(options[3], "%*[^:]%*[:] %u",  &(this->file_timestep) );
 }
 void FixedVoltage_ramp::init() {
-  this->U0  *= SQU(Omega_pe/dz);
-  this->UNz *= SQU(Omega_pe/dz);
+  this->U0  *= SQU(picConfig.Omega_pe/picConfig.T_ref);
+  this->UNz *= SQU(picConfig.Omega_pe/picConfig.T_ref);
   this->Vfinal = this->UNz - this->U0;
   this->UNz = U0;
   this->rampTime_steps = 
-    ceil( 56414.6*sqrt(n_ref)/Omega_pe * 1e-9*(this->rampTime) );
+    ceil( 56414.6*sqrt(picConfig.n_ref)/picConfig.Omega_pe * 1e-9*(this->rampTime) );
 }
 void FixedVoltage_ramp::timestep(double deltaQ, unsigned int nstep) {
   if (nstep < this->rampTime_steps) {
@@ -286,13 +286,13 @@ void FixedVoltage_ramp::timestep(double deltaQ, unsigned int nstep) {
 void FixedVoltage_ramp::print_par() {
   // Need to convert back from dimless
   printf( " - U0:                  %g [T_ref]\n",
-	  (this->U0)*dz*dz/Omega_pe/Omega_pe );
+          (this->U0)*picConfig.T_ref*picConfig.T_ref/picConfig.Omega_pe/picConfig.Omega_pe );
   printf( " - UNz:                 %g [in T_ref]\n",
-	  (this->UNz)*dz*dz/Omega_pe/Omega_pe );
+          (this->UNz)*picConfig.T_ref*picConfig.T_ref/picConfig.Omega_pe/picConfig.Omega_pe );
   printf( " - rampTime             %g [ns] = %u [steps]\n",
-	  this->rampTime, this->rampTime_steps );
+          this->rampTime, this->rampTime_steps );
   printf( " - file_timestep:       %u\n",
-	  this->file_timestep );
+          this->file_timestep );
 }
 
 
@@ -300,7 +300,7 @@ void FixedVoltage_ramp::print_par() {
 TwoCapacitors::TwoCapacitors( std::vector<char*> options ) {
   if (options.size() != 8) {
     cout << "Error in TwoCapacitors(): Expected 8 options, got "
-	 << options.size() << endl;
+         << options.size() << endl;
     exit(1);
   }
   
@@ -332,27 +332,27 @@ TwoCapacitors::TwoCapacitors( std::vector<char*> options ) {
 }
 
 void TwoCapacitors::init() {
-  this->U0     = U0_dim  * SQU(Omega_pe/dz);
-  this->UNz    = UNz_dim * SQU(Omega_pe/dz);
+  this->U0     = U0_dim  * SQU(picConfig.Omega_pe/picConfig.T_ref);
+  this->UNz    = UNz_dim * SQU(picConfig.Omega_pe/picConfig.T_ref);
   
-  this->C_ext  = C_ext_dim  * 1.519260e10*SQU(dz/Omega_pe)*Ndb*sqrt(n_ref/T_ref);
-  this->C_ext2 = C_ext2_dim * 1.519260e10*SQU(dz/Omega_pe)*Ndb*sqrt(n_ref/T_ref);
-  this->R_ext  = R_ext_dim  * 3.713294e-6*Omega_pe*sqrt(T_ref)/SQU(dz)/Ndb;
+  this->C_ext  = C_ext_dim  * 1.519260e10*SQU(picConfig.T_ref/picConfig.Omega_pe)*picConfig.Ndb*sqrt(picConfig.n_ref/picConfig.T_ref);
+  this->C_ext2 = C_ext2_dim * 1.519260e10*SQU(picConfig.T_ref/picConfig.Omega_pe)*picConfig.Ndb*sqrt(picConfig.n_ref/picConfig.T_ref);
+  this->R_ext  = R_ext_dim  * 3.713294e-6*picConfig.Omega_pe*sqrt(picConfig.T_ref)/SQU(picConfig.T_ref)/picConfig.Ndb;
   this->Q_ext  = (this->C_ext)*(UNz-U0);
 
-  this->t_change = (unsigned int) ( t_change_dim*1e-9*56414.6*sqrt(n_ref) / Omega_pe );
+  this->t_change = (unsigned int) ( t_change_dim*1e-9*56414.6*sqrt(picConfig.n_ref) / picConfig.Omega_pe );
 
   this->check_C = false;
 }
 void TwoCapacitors::re_init() {
   ofile = fopen("circuit.dat", "a");
   
-  C_ext  = C_ext_dim  * 1.519260e10*SQU(dz/Omega_pe)*Ndb*sqrt(n_ref/T_ref);
-  C_ext2 = C_ext2_dim * 1.519260e10*SQU(dz/Omega_pe)*Ndb*sqrt(n_ref/T_ref);
-  R_ext  = R_ext_dim  * 3.713294e-6*Omega_pe*sqrt(T_ref)/SQU(dz)/Ndb;
-  Q_ext *=  1.519260e10*Ndb*sqrt(n_ref/T_ref)/T_ref;
+  C_ext  = C_ext_dim  * 1.519260e10*SQU(picConfig.T_ref/picConfig.Omega_pe)*picConfig.Ndb*sqrt(picConfig.n_ref/picConfig.T_ref);
+  C_ext2 = C_ext2_dim * 1.519260e10*SQU(picConfig.T_ref/picConfig.Omega_pe)*picConfig.Ndb*sqrt(picConfig.n_ref/picConfig.T_ref);
+  R_ext  = R_ext_dim  * 3.713294e-6*picConfig.Omega_pe*sqrt(picConfig.T_ref)/SQU(picConfig.T_ref)/picConfig.Ndb;
+  Q_ext *=  1.519260e10*picConfig.Ndb*sqrt(picConfig.n_ref/picConfig.T_ref)/picConfig.T_ref;
 
-  this->t_change = (unsigned int) ( t_change_dim*1e-9*56414.6*sqrt(n_ref) / Omega_pe );
+  this->t_change = (unsigned int) ( t_change_dim*1e-9*56414.6*sqrt(picConfig.n_ref) / picConfig.Omega_pe );
 
   //TODO: Uses global variable (disable unused code for now)
   //if ( ( nsteps > t_change ) ) {
@@ -395,14 +395,14 @@ void TwoCapacitors::timestep(double deltaQ, unsigned int nstep) {
 void TwoCapacitors::backup(FILE* file) {
   // In SI-units 
   fprintf(file,"%19.11e %19.11e %19.11e %19.11e\n",
-	  (this->R_ext)  / 3.713294e-6/Omega_pe/sqrt(T_ref)*SQU(dz)*Ndb, 
-	  (this->C_ext)  / 1.519260e10/SQU(dz/Omega_pe)/Ndb/sqrt(n_ref/T_ref),
-	  (this->C_ext2) / 1.519260e10/SQU(dz/Omega_pe)/Ndb/sqrt(n_ref/T_ref),
-	  (this->Q_ext)  / 1.519260e10/Ndb/sqrt(n_ref/T_ref)*T_ref );
+          (this->R_ext)  / 3.713294e-6/picConfig.Omega_pe/sqrt(picConfig.T_ref)*SQU(picConfig.T_ref)*picConfig.Ndb, 
+          (this->C_ext)  / 1.519260e10/SQU(picConfig.T_ref/picConfig.Omega_pe)/picConfig.Ndb/sqrt(picConfig.n_ref/picConfig.T_ref),
+          (this->C_ext2) / 1.519260e10/SQU(picConfig.T_ref/picConfig.Omega_pe)/picConfig.Ndb/sqrt(picConfig.n_ref/picConfig.T_ref),
+          (this->Q_ext)  / 1.519260e10/picConfig.Ndb/sqrt(picConfig.n_ref/picConfig.T_ref)*picConfig.T_ref );
 }
 void TwoCapacitors::restoreBackup(FILE* file) {
   fscanf(file,"%19lg %19lg %19lg %19lg",
-	 &(this->R_ext_dim), &(this->C_ext_dim), &(this->C_ext2_dim), &(this->Q_ext) );
+         &(this->R_ext_dim), &(this->C_ext_dim), &(this->C_ext2_dim), &(this->Q_ext) );
 }
 
 void TwoCapacitors::initFile(){
@@ -425,7 +425,7 @@ void TwoCapacitors::writeFile(unsigned int nstep){
 FrequencyExcitation::FrequencyExcitation( std::vector<char*> options ) { 
   if (options.size() != 3) {
     cout << "Error in FrequencyExcitation(): Expected 3 options, got "
-	 << options.size() << endl;
+         << options.size() << endl;
     exit(1);
   }
 
@@ -438,18 +438,18 @@ FrequencyExcitation::FrequencyExcitation( std::vector<char*> options ) {
 void FrequencyExcitation::init() {
   this->U0             = 0.0;
   this->UNz            = 0.0;
-  this->UNz_ampl      *= SQU(Omega_pe/dz);
-  this->omega_dimless  = TWOPI*freq_GHz*1e9 * Omega_pe/(56313.6*sqrt(n_ref));
+  this->UNz_ampl      *= SQU(picConfig.Omega_pe/picConfig.T_ref);
+  this->omega_dimless  = TWOPI*freq_GHz*1e9 * picConfig.Omega_pe/(56313.6*sqrt(picConfig.n_ref));
 }
 
 void FrequencyExcitation::print_par() {
   // Need to convert back from dimless
   printf( " - UNz_ampl:            %g [T_ref]\n",
-	  (this->UNz_ampl)*dz*dz/Omega_pe/Omega_pe );
+          (this->UNz_ampl)*picConfig.T_ref*picConfig.T_ref/picConfig.Omega_pe/picConfig.Omega_pe );
   printf( " - freq_GHz =           %g [GHz] = %g [radians/timestep]\n", 
-	  freq_GHz, omega_dimless);
+          freq_GHz, omega_dimless);
   printf( " - file_timestep:       %u\n",
-	  this->file_timestep );
+          this->file_timestep );
 }
 
 void FrequencyExcitation::timestep(double deltaQ, unsigned int nstep) {

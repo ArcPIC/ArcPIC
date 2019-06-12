@@ -40,23 +40,23 @@ void save_data( const char *fdata ) {
   
   // INPUT AND CALC_PARAMETERS  
   //fprintf(file,"%19.11e %19.11e %19.11e %19.11e %19.11e %19.11e\n", n_ref, T_ref, Ndb, dz, dr, Omega_pe);
-  fprintf(file,"%19.11e %19.11e %19.11e %19.11e %19.11e\n", n_ref, T_ref, dz, dr, Omega_pe); // possibility to re-start with different Ndb
-  fprintf(file,"%19.11e %19.11e %19.11e %19.11e\n", Rmin, Rmax, Zmin, Zmax);
+  fprintf(file,"%19.11e %19.11e %19.11e %19.11e %19.11e\n", picConfig.n_ref, picConfig.T_ref, picConfig.dz, picConfig.dr, picConfig.Omega_pe); // possibility to re-start with different Ndb
+  fprintf(file,"%19.11e %19.11e %19.11e %19.11e\n", picConfig.Rmin, picConfig.Rmax, picConfig.Zmin, picConfig.Zmax);
   /* FIXME
   fprintf(file,"%11d %11d %11d %11d %11zu\n", nr, NR, nz, NZ, nr_e);
   */
   fprintf(file,"%11d %11d %11d %11d %11d %11d %19.11e\n",
-	  nsteps, nstepsmax, dt_ion, dt_diagn, ncoll_el, ncoll_ion, Ampl);
+	  nsteps, nstepsmax, dt_ion, dt_diagn, ncoll_el, ncoll_ion, picConfig.Ampl);
   fprintf(file,"%11d %11d %11d\n",
 	  e2inj_step, n2inj_step, i2inj_step);
   fprintf(file,"%11d %11d %11d %11d\n", nav_dt, nav_start, nav_time, diagn_start);
   fprintf(file,"%11d %11d %11d %11d\n", OUT_COORD, OUT_EFIELD, OUT_VDF, MAGNETIC);
   
-  fprintf(file,"%19.11e %19.11e\n", Bz_ext, Bt_ext);
+  fprintf(file,"%19.11e %19.11e\n", picConfig.Bz_ext, picConfig.Bt_ext);
   fprintf(file,"%19.11e %19.11e %19.11e %19.11e\n", 
-	  Ti_over_Te, mi_over_me, me_over_mi, lambda_De);
+	  picConfig.Ti_over_Te, picConfig.mi_over_me, picConfig.me_over_mi, picConfig.lambda_De);
   fprintf(file,"%19.11e %19.11e %19.11e %19.11e\n", 
-	  v_te, v_ti, cs, vi_0);
+	  picConfig.v_te, picConfig.v_ti, picConfig.cs, picConfig.vi_0);
   
   circuit->backup(file);
   
@@ -116,22 +116,22 @@ void read_data( const char *fdata ) {
   
   // INPUT AND CALC_PARAMETERS
   //fscanf(file,"%19lg %19lg %19lg %19lg %19lg %19lg", &n_ref, &T_ref, &Ndb, &dz, &dr, &Omega_pe);
-  fscanf(file,"%19lg %19lg %19lg %19lg %19lg", &n_ref, &T_ref, &dz, &dr, &Omega_pe); // possibility to re-start with different Ndb
-  fscanf(file,"%19lg %19lg %19lg %19lg", &Rmin, &Rmax, &Zmin, &Zmax);
+  fscanf(file,"%19lg %19lg %19lg %19lg %19lg", &picConfig.n_ref, &picConfig.T_ref, &picConfig.dz, &picConfig.dr, &picConfig.Omega_pe); // possibility to re-start with different Ndb
+  fscanf(file,"%19lg %19lg %19lg %19lg", &picConfig.Rmin, &picConfig.Rmax, &picConfig.Zmin, &picConfig.Zmax);
   /* FIXME
   fscanf(file,"%11d %11d %11d %11d %zu", &nr, &NR, &nz, &NZ, &nr_e);
   */
   fscanf(file,"%11d %11d %11d %11d %11d %11d %19lg",
-	 &nsteps, &nstepsmax, &dt_ion, &dt_diagn, &ncoll_el, &ncoll_ion, &Ampl);
+	 &nsteps, &nstepsmax, &dt_ion, &dt_diagn, &ncoll_el, &ncoll_ion, &picConfig.Ampl);
   fscanf(file,"%11d %11d %11d", &e2inj_step, &n2inj_step, &i2inj_step);
   fscanf(file,"%11d %11d %11d %11d", &nav_dt, &nav_start, &nav_time, &diagn_start);
   fscanf(file,"%11d %11d %11d %11d", &OUT_COORD, &OUT_EFIELD, &OUT_VDF, &MAGNETIC);
   
-  fscanf(file,"%19lg %19lg", &Bz_ext, &Bt_ext);
+  fscanf(file,"%19lg %19lg", &picConfig.Bz_ext, &picConfig.Bt_ext);
   fscanf(file,"%19lg, %19lg %19lg %19lg", 
-	 &Ti_over_Te, &mi_over_me, &me_over_mi, &lambda_De);
+	 &picConfig.Ti_over_Te, &picConfig.mi_over_me, &picConfig.me_over_mi, &picConfig.lambda_De);
   fscanf(file,"%19lg %19lg %19lg %19lg", 
-	 &v_te, &v_ti, &cs, &vi_0);
+	 &picConfig.v_te, &picConfig.v_ti, &picConfig.cs, &picConfig.vi_0);
   
   circuit->restoreBackup(file);
   

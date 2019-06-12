@@ -31,6 +31,8 @@
 #include "arrays1.h"
 #undef XTRN
 
+#include "ArcPicConfig.h"
+
 #include <vector>
 
 #include <cmath>
@@ -39,8 +41,7 @@ using namespace std;
 
 SumTipFNField::SumTipFNField(vector<char*>& options) : ofile_tip(NULL) {
   if (options.size() != 4) {
-    cout << "Error in SumTipFNField(): Expected 4 options, got "
-	 << options.size() << endl;
+    cout << "Error in SumTipFNField(): Expected 4 options, got " << options.size() << endl;
     exit(1);
   }
 
@@ -61,10 +62,10 @@ void SumTipFNField::print_par() const {
 
 void SumTipFNField::inject_e(ParticleSpecies* pa, double const Ez[]) {
   //Calculate field
-  double fieldConst = N_sp*1.602176565e-19/(4*PI*8.854187e-12); // -N_sp*e/(4*pi*eps0) [V*m]
-  double unitConst0 = dz*Ldb*1e-2;                         //dimless length (dz) -> m
-  double unitConst1 = T_ref * SQU(dz/Omega_pe);            //dimless potential -> V
-  double unitConst2 = unitConst1 * 2.0 / (Ldb*1e-2) / dz;  //dimless field -> V/m
+  double fieldConst = N_sp*1.602176565e-19/(4*PI*8.854187e-12);               // -N_sp*e/(4*pi*eps0) [V*m]
+  double unitConst0 = picConfig.dz*Ldb*1e-2;                                  //dimless length (dz) -> m
+  double unitConst1 = picConfig.T_ref * SQU(picConfig.dz/picConfig.Omega_pe); //dimless potential -> V
+  double unitConst2 = unitConst1 * 2.0 / (Ldb*1e-2) / picConfig.dz;           //dimless field -> V/m
 
   double field = 0.0;
   for(size_t i = 0; i < pa->GetN(); i++) {
@@ -94,11 +95,11 @@ void SumTipFNField::inject_e(ParticleSpecies* pa, double const Ez[]) {
   else if (Eloc < 0.0) return;
   
   double j = 4.7133e9 * SQU(Eloc) * exp(-62.338/Eloc); // in A/cm^2
-  j *= PI*(Ndb*e2inj_step*Omega_pe*SQU(Remission_theor*dz))/(6.7193e-12*n_ref*sqrt(T_ref)); //dimless, 2D: rem^2
+  j *= PI*(picConfig.Ndb*e2inj_step*picConfig.Omega_pe*SQU(Remission_theor*picConfig.dz))/(6.7193e-12*picConfig.n_ref*sqrt(picConfig.T_ref)); //dimless, 2D: rem^2
 
   // FN INJECTION FROM FIELD EMITTER
   // FE: inject with flat distribution over the emission radius
-  double v_inj_e = v_te*0.01;
+  double v_inj_e = picConfig.v_te*0.01;
   double r1, r2; // temp variables from Gaussian RNG
 
   //Inject 'tmp' num particles

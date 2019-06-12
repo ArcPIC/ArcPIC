@@ -29,6 +29,8 @@
 #include "arrays1.h"
 #undef XTRN
 
+#include "ArcPicConfig.h"
+
 #include <cmath>
 
 using namespace std;
@@ -130,14 +132,14 @@ void ArcOriginalNewHS::print_par() const {
   printf( " - fracInjectStep:      %c \n", this->fracInjectStep ? 'y' : 'n');
   printf( " - heatspike_threshold: %g [particles/cm^2/s]\n",  this->heatspike_threshold);
   printf( "   = %g [particles/Ldb^2/injection_timestep]\n",
-	  this->heatspike_threshold*(Ndb*n2inj_step*Omega_pe) /
-	  (4.1938226e7*n_ref*sqrt(T_ref)) );
+          this->heatspike_threshold*(picConfig.Ndb*n2inj_step*picConfig.Omega_pe) /
+          (4.1938226e7*picConfig.n_ref*sqrt(picConfig.T_ref)) );
   printf( "   = %g [particles/inner cell/injection_timestep]\n",
-	  this->heatspike_threshold*(Ndb*n2inj_step*Omega_pe) /
-	  (4.1938226e7*n_ref*sqrt(T_ref)) * PI*SQU(dr) );
+          this->heatspike_threshold*(picConfig.Ndb*n2inj_step*picConfig.Omega_pe) /
+          (4.1938226e7*picConfig.n_ref*sqrt(picConfig.T_ref)) * PI*SQU(picConfig.dr) );
   printf( "   = %g [particles/2nd cell/injection_timestep]\n",
-	  this->heatspike_threshold*(Ndb*n2inj_step*Omega_pe) /
-	  (4.1938226e7*n_ref*sqrt(T_ref)) * 3*PI*SQU(dr) );
+          this->heatspike_threshold*(picConfig.Ndb*n2inj_step*picConfig.Omega_pe) /
+          (4.1938226e7*picConfig.n_ref*sqrt(picConfig.T_ref)) * 3*PI*SQU(picConfig.dr) );
   printf( " - heatspike_yieldRatio: %g [outgoing/incomming]\n", this->heatspike_yield_ratio);
   printf( " - heatspike_model:     %c \n",          this->heatspike_model  );
   printf( " - file_timestep:       %u \n",          this->file_timestep    );
@@ -146,7 +148,7 @@ void ArcOriginalNewHS::print_par() const {
 void ArcOriginalNewHS::init(unsigned int nr, double zmin, double zmax, double rmax) {
   ArcBounds::init(nr,zmin,zmax,rmax);
   
-  v_inj_e = v_te*0.01;
+  v_inj_e = picConfig.v_te*0.01;
   v_inj_i = vt_ions[2];
 
   sput_cathode_current = new unsigned int[nr];
@@ -177,6 +179,7 @@ void ArcOriginalNewHS::init(unsigned int nr, double zmin, double zmax, double rm
   this->heatspike_incident = 0;
 
 }
+
 void ArcOriginalNewHS::re_init(unsigned int nr, double zmin, double zmax, double rmax) {
   //ArcBounds::re_init(nr, zmin, zmax, rmax);
   ArcOriginalNewHS::init(nr, zmin, zmax, rmax); //ArcBounds::re_init just calls init()
@@ -215,25 +218,25 @@ void ArcOriginalNewHS::remove_i(ParticleSpecies* pa, unsigned int sort) {
 
       Sput newSput = calc_sput(pa->GetOneParticle(n), cs_ions[sort], sput_cathode_current);
       if ( newSput.Y != 0 ) {
-	sput_cathode.push_back(newSput);
+        sput_cathode.push_back(newSput);
       }
 
       // SEY = 0.5 = constant, only from ions hitting the cathode
       // SEY with registering r-coordinates
       // Set reasonable threshold for incident ion energy (e.g. 100 eV)
-      if ( (SQU(pa->vz[n]) + SQU(pa->vr[n]) + SQU(pa->vt[n]))*T_ref/(2*SQU(cs_ions[sort])) > 100 ) {
-	if ( RAND <= SEY_f ) {
-	  Sput foo;
-	  foo.r = pa->r[n];
-	  foo.Y = SEY_i+1;
-	  sput_cathode_SEY.push_back(foo);
-	}
-	else if ( SEY_i > 0 ) {
-	  Sput foo;
-	  foo.r = pa->r[n];
-	  foo.Y = SEY_i;
-	  sput_cathode_SEY.push_back(foo);
-	}
+      if ( (SQU(pa->vz[n]) + SQU(pa->vr[n]) + SQU(pa->vt[n]))*picConfig.T_ref/(2*SQU(cs_ions[sort])) > 100 ) {
+        if ( RAND <= SEY_f ) {
+          Sput foo;
+          foo.r = pa->r[n];
+          foo.Y = SEY_i+1;
+          sput_cathode_SEY.push_back(foo);
+        }
+        else if ( SEY_i > 0 ) {
+          Sput foo;
+          foo.r = pa->r[n];
+          foo.Y = SEY_i;
+          sput_cathode_SEY.push_back(foo);
+        }
       }
       n_lost++;
       continue;
@@ -259,9 +262,10 @@ void ArcOriginalNewHS::remove_i(ParticleSpecies* pa, unsigned int sort) {
   }
   //Delete the final n_lost particles
   if (n_lost > 0 ){
-    pa->ResizeDelete(n_lost);
+    pa->ResizeDeleteBy(n_lost);
   }
 }
+
 void ArcOriginalNewHS::remove_n(ParticleSpecies* pa){
   size_t n_lost = 0;
   
@@ -305,13 +309,13 @@ void ArcOriginalNewHS::remove_n(ParticleSpecies* pa){
   }
   //Delete the final n_lost particles
   if (n_lost > 0 ){
-    pa->ResizeDelete(n_lost);
+    pa->ResizeDeleteBy(n_lost);
   }
 }
 
 Sput ArcOriginalNewHS::calc_sput(const Particle pa, const double cs, unsigned int* current_enhancedY) {
   double nrg = SQU(pa.p.vz) + SQU(pa.p.vr) + SQU(pa.p.vt);
-  nrg *= T_ref/(2*SQU(cs));
+  nrg *= picConfig.T_ref/(2*SQU(cs));
   if ( nrg > 23.383 ) { //in eV
     // Register fluxes going through each cell for enhanced Y
     if ( current_enhancedY != NULL ) {
@@ -359,10 +363,10 @@ void ArcOriginalNewHS::inject_e(ParticleSpecies* pa, double const Ez[]) {
   // Fowler-Nordheim with Wang-Loew approximation
   // W-L: v(y) ~ 0.956 - 1.062*(3.7947e-5)^2*Eloc/(4.5*4.5)
   // beta=dynamic, work fct=4.5eV, j in A/cm^2, E in V/m
-  
   field = Ez[0];
   // rescale the field to GV/m
-  Eloc = - 2.69036254e-10*dz/SQU(Omega_pe)*sqrt(T_ref*n_ref)*field*beta_tip; 
+  Eloc = - 2.69036254e-10*picConfig.dz / 
+            SQU(picConfig.Omega_pe)*sqrt(picConfig.T_ref*picConfig.n_ref)*field*beta_tip; 
   this->E_tip_loc = Eloc; //For output
 
   if (Eloc > 0.) {  
@@ -371,30 +375,36 @@ void ArcOriginalNewHS::inject_e(ParticleSpecies* pa, double const Ez[]) {
     if ( Eloc > 12. ) Eloc = 12.;
     
     j = 4.7133e9 * SQU(Eloc) * exp(-62.338/Eloc); // in A/cm^2
-    j *= PI*(Ndb*e2inj_step*Omega_pe*SQU(Remission_theor*dz))/(6.7193e-12*n_ref*sqrt(T_ref)); //dimless, 2D: rem^2
+    j *= PI*(picConfig.Ndb*e2inj_step*picConfig.Omega_pe*SQU(Remission_theor*picConfig.dz)) / 
+          (6.7193e-12*picConfig.n_ref*sqrt(picConfig.T_ref)); //dimless, 2D: rem^2
   }
   else { 
     j=0.; 
   }
   
-  // FN OUTSIDE THE FIELD EMITTER
+  // FN OUTSIDE THE FIELD EMITTER (also Wang-Loew)
   for (unsigned int jj=0; jj<nr; jj++ ) {
     field = Ez[(jj+1)*NZ];
     if (field < 0.) {
       // B=B_f, rescale the field to GV/m
-      Eloc = - 2.69036254e-10*dz/SQU(Omega_pe)*sqrt(T_ref*n_ref)*field*beta_f; 
-      if ( Eloc > 12. ) Eloc = 12.;  
+      Eloc = - 2.69036254e-10*picConfig.dz/SQU(picConfig.Omega_pe)*sqrt(picConfig.T_ref*picConfig.n_ref)*field*beta_f; 
+      if ( Eloc > 12. ) Eloc = 12.; // FN model makes no sense above 12 GV/m
       jFN[jj] = 4.7133e9 * SQU(Eloc) * exp(-62.338/Eloc); // in A/cm^2
       
       jFN[jj] *= this->alpha_flat;
       
       //dimless currents
-      if ( Rborder <= jj ) 
-	jFN[jj] *= (Ndb*e2inj_step*Omega_pe*PI*SQU(dz)*(2*jj+1))/(6.7193e-12*n_ref*sqrt(T_ref));
-      else if ( (Rborder > jj) && (Rborder < jj+1) )
-	jFN[jj] *= Ndb*e2inj_step*Omega_pe*PI*SQU(dz)*( SQU(jj+1)-SQU(Rborder) )/(6.7193e-12*n_ref*sqrt(T_ref));
-      else 
-	jFN[jj] = 0.;
+      if ( Rborder <= jj ) {
+        jFN[jj] *= (picConfig.Ndb*e2inj_step*picConfig.Omega_pe*PI*SQU(picConfig.dz)*(2*jj+1)) / 
+                    (6.7193e-12*picConfig.n_ref*sqrt(picConfig.T_ref));
+      }
+      else if ( (Rborder > jj) && (Rborder < jj+1) ) {
+        jFN[jj] *= picConfig.Ndb*e2inj_step*picConfig.Omega_pe*PI*SQU(picConfig.dz)*( SQU(jj+1)-SQU(Rborder) ) / 
+                    (6.7193e-12*picConfig.n_ref*sqrt(picConfig.T_ref));
+      }
+      else {
+        jFN[jj] = 0.;
+      }
     }
     else { 
       jFN[jj]=0.; 
@@ -420,8 +430,7 @@ void ArcOriginalNewHS::inject_e(ParticleSpecies* pa, double const Ez[]) {
       pa->vt.push_back( r1*sin(r2)*v_inj_e );
       
       // Gaussian scheme
-      do { r1 = sqrt(-2.*log(RAND+1.e-20)); }
-      while( r1 > 5. );
+      do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
       pa->vz.push_back( r1*v_inj_e );
       
       pa->z.push_back( zmin + pa->vz.back() );
@@ -429,6 +438,12 @@ void ArcOriginalNewHS::inject_e(ParticleSpecies* pa, double const Ez[]) {
       if ( pa->r.back() < 0 )     pa->r.back() = 1.e-20;
       else if (pa->r.back() > nr) pa->r.back() = 2*nr - pa->r.back();
 
+      if(DODEBUG and pa->z.back() < 0.0) {
+        cerr << "Error in ArcOriginalNewHS::inject_e()::SEY (Legacy scheme):" << endl
+             << "Generated particle with z = " << pa->z.back() << " < 0.0." << endl
+             << " zmin = " << zmin << ", vz =" << pa->vz.back() << endl;
+        exit(1);
+      }
       pa->m.push_back( 1 );
       
       current_e[0] += 2*( int(pa->r.back()) ) + 1;
@@ -471,6 +486,13 @@ void ArcOriginalNewHS::inject_e(ParticleSpecies* pa, double const Ez[]) {
                         // are we at z=0?
       pa->r.back()  += Rp*e2inj_step*pa->vr.back();
       pa->z.back()  += Rp*e2inj_step*pa->vz.back();
+      if(DODEBUG and pa->z.back() < 0.0) {
+        cerr << "Error in ArcOriginalNewHS::inject_e()::FN at field emitter (Fractional timestep scheme):" << endl
+             << "Generated particle with z = " << pa->z.back() << " < 0.0." << endl
+             << " zmin = " << zmin << ", vz =" << pa->vz.back() << ", Ez = " << Ez[0] << endl;
+        exit(1);
+      }
+
       //No magnetic field, E = Ez on surface
       pa->vz.back() -= (Rp*e2inj_step-0.5)*2*Ez[0];
       
@@ -493,6 +515,13 @@ void ArcOriginalNewHS::inject_e(ParticleSpecies* pa, double const Ez[]) {
       
       if ( pa->r.back() < 0 )     pa->r.back() = 1.e-20;
       else if (pa->r.back() > nr) pa->r.back() = 2*nr - pa->r.back();
+
+      if(DODEBUG and pa->z.back() < 0.0) {
+        cerr << "Error in ArcOriginalNewHS::inject_e()::FN at field emitter (Legacy scheme):" << endl
+             << "Generated particle with z = " << pa->z.back() << " < 0.0." << endl
+             << " zmin = " << zmin << ", vz =" << pa->vz.back() << endl;
+        exit(1);
+      }
     }
     
     pa->m.push_back( 1 );
@@ -517,75 +546,95 @@ void ArcOriginalNewHS::inject_e(ParticleSpecies* pa, double const Ez[]) {
       pa->ExpandBy(tmp);
 
       for  (size_t k=0; k<tmp; k++ ) {
-	if (fracInjectStep) {
-	  //Velocity
-	  do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
-	  r2 = RAND * TWOPI;
-	  pa->vr.push_back( r1*cos(r2)*v_inj_e );
-	  pa->vt.push_back( r1*sin(r2)*v_inj_e );
-	  do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
-	  pa->vz.push_back( r1*v_inj_e );
-	  
-	  //Position
-	  if ( Rborder <= jj ) {
-	    pa->r.push_back( sqrt( (2*jj+1)*RAND + SQU(jj) ) );
-	  }
-	  else if ( (Rborder > jj) && (Rborder < jj+1) ) {
-	    pa->r.push_back( sqrt( ( SQU(jj+1)-SQU(Rborder) )*RAND + SQU(Rborder) ) );
-	  }
-	  else {
-	    printf("ERROR in ArcOriginalNewHS::inject_e():\n");
-	    printf("unexpected non-zero jFN - jj=%u, Rborder=%g\n", jj, Rborder);
-	    printf("nsteps=%d jFN[jj]=%g\n, k=%zu\n\n", nsteps, jFN[jj]+tmp, k); //nsteps = global variable!
-	  }
+        if (fracInjectStep) {
+          //Velocity
+          do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
+          r2 = RAND * TWOPI;
+          pa->vr.push_back( r1*cos(r2)*v_inj_e );
+          pa->vt.push_back( r1*sin(r2)*v_inj_e );
+          do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
+          pa->vz.push_back( r1*v_inj_e );
 
-	  pa->z.push_back( zmin );
-	  
-	  //Fractional timestep push (euler method)
-	  double Rp = RAND; //1-R; how (fractionally) far into the timestep
-	  // are we at z=0?
-	  pa->r.back()  += Rp*e2inj_step*pa->vr.back();
-	  pa->z.back()  += Rp*e2inj_step*pa->vz.back();
-	  //No magnetic field, E = Ez on surface
-	  pa->vz.back() -= (Rp*e2inj_step-0.5)*2*Ez[(jj+1)*NZ];
-	  
-	  //Reflect on axis
-	  if ( pa->r.back() < 0 )     pa->r.back() = -pa->r.back();
-	  else if (pa->r.back() > nr) pa->r.back() = 2*nr - pa->r.back();
+          //Position
+          if ( Rborder <= jj ) {
+            pa->r.push_back( sqrt( (2*jj+1)*RAND + SQU(jj) ) );
+          }
+          else if ( (Rborder > jj) && (Rborder < jj+1) ) {
+            pa->r.push_back( sqrt( ( SQU(jj+1)-SQU(Rborder) )*RAND + SQU(Rborder) ) );
+          }
+          else {
+            printf("ERROR in ArcOriginalNewHS::inject_e():\n");
+            printf("unexpected non-zero jFN - jj=%u, Rborder=%g\n", jj, Rborder);
+            printf("nsteps=%d jFN[jj]=%g\n, k=%zu\n\n", nsteps, jFN[jj]+tmp, k); //nsteps = global variable!
+          }
 
-	}
-	else {	
-	  // Gaussian scheme
-	  do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
-	  r2 = RAND * TWOPI;
-	  pa->vr.push_back( r1*cos(r2)*v_inj_e );
-	  pa->vt.push_back( r1*sin(r2)*v_inj_e );
-	  
-	  // Gaussian scheme
-	  do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
-	  pa->vz.push_back( r1*v_inj_e );
-	  
-	  pa->z.push_back( zmin + pa->vz.back() );
+          pa->z.push_back( zmin );
 
-	  if ( Rborder <= jj ) {
-	    pa->r.push_back( sqrt( (2*jj+1)*RAND + SQU(jj) ) + pa->vr.back() );
-	  }
-	  else if ( (Rborder > jj) && (Rborder < jj+1) ) {
-	    pa->r.push_back( sqrt( ( SQU(jj+1)-SQU(Rborder) )*RAND + SQU(Rborder) ) + pa->vr.back() );
-	  }
-	  else {
-	    printf("ERROR in ArcOriginalNewHS::inject_e():\n");
-	    printf("unexpected non-zero jFN - jj=%u, Rborder=%g\n", jj, Rborder);
-	    printf("nsteps=%d jFN[jj]=%g\n, k=%zu\n\n", nsteps, jFN[jj]+tmp, k); //nsteps = global variable!
-	  }
+          //Fractional timestep push (euler method)
+          double Rp = RAND; //1-R; how (fractionally) far into the timestep
+          // are we at z=0?
+          pa->r.back()  += Rp*e2inj_step*pa->vr.back();
+          pa->z.back()  += Rp*e2inj_step*pa->vz.back();
+          if(DODEBUG and pa->z.back() < 0.0) {
+            cerr << "Error in ArcOriginalNewHS::inject_e()::FN at flat surface (Fractional step scheme):" << endl
+                 << "Generated particle with z = " << pa->z.back() << " < 0.0." << endl
+                 << " zmin = " << zmin << ", vz =" << pa->vz.back() << ", Ez = " << Ez[(jj+1)*NZ] << ", jj = " << jj << endl;
+            exit(1);
+          }
+          //No magnetic field, E = Ez on surface
+          pa->vz.back() -= (Rp*e2inj_step-0.5)*2*Ez[(jj+1)*NZ];
 
-	  if ( pa->r.back() < 0 )     pa->r.back() = 1.e-20;
-	  else if (pa->r.back() > nr) pa->r.back() = 2*nr - pa->r.back();
-	}
-	pa->m.push_back( 1 );
-	
-	current_e[0] += 2*( int(pa->r.back()) ) + 1;
-	current_cathode[ int(pa->r.back()) ] += 1;
+          //Reflect on axis
+          if ( pa->r.back() < 0 ) {
+            pa->r.back() = -pa->r.back();
+          }
+          else if (pa->r.back() > nr) {
+            pa->r.back() = 2*nr - pa->r.back();
+          }
+        }
+        else {	
+          // Gaussian scheme
+          do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
+          r2 = RAND * TWOPI;
+          pa->vr.push_back( r1*cos(r2)*v_inj_e );
+          pa->vt.push_back( r1*sin(r2)*v_inj_e );
+
+          // Gaussian scheme
+          do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
+          pa->vz.push_back( r1*v_inj_e );
+
+          pa->z.push_back( zmin + pa->vz.back() );
+
+          if ( Rborder <= jj ) {
+            pa->r.push_back( sqrt( (2*jj+1)*RAND + SQU(jj) ) + pa->vr.back() );
+          }
+          else if ( (Rborder > jj) && (Rborder < jj+1) ) {
+            pa->r.push_back( sqrt( ( SQU(jj+1)-SQU(Rborder) )*RAND + SQU(Rborder) ) + pa->vr.back() );
+          }
+          else {
+            printf("ERROR in ArcOriginalNewHS::inject_e():\n");
+            printf("unexpected non-zero jFN - jj=%u, Rborder=%g\n", jj, Rborder);
+            printf("nsteps=%d jFN[jj]=%g\n, k=%zu\n\n", nsteps, jFN[jj]+tmp, k); //nsteps = global variable!
+          }
+
+          if ( pa->r.back() < 0 ) {
+            pa->r.back() = 1.e-20;
+          }
+          else if (pa->r.back() > nr) {
+            pa->r.back() = 2*nr - pa->r.back();
+          }
+
+          if(DODEBUG and pa->z.back() < 0.0) {
+            cerr << "Error in ArcOriginalNewHS::inject_e()::FN at flat surface (Legacy scheme):" << endl
+                 << "Generated particle with z = " << pa->z.back() << " < 0.0." << endl
+                 << " zmin = " << zmin << ", vz =" << pa->vz.back() << ", jj = " << jj << endl;
+            exit(1);
+          }
+        }
+        pa->m.push_back( 1 );
+
+        current_e[0] += 2*( int(pa->r.back()) ) + 1;
+        current_cathode[ int(pa->r.back()) ] += 1;
       }
 
       injected_e[0]         += tmp;
@@ -654,30 +703,34 @@ void ArcOriginalNewHS::inject_n(ParticleSpecies* pa, double const Ez[]) {
       if ( RAND <= tmp ) n2inject_evap++;
       pa->ExpandBy(n2inject_evap);
       for ( size_t k=0; k<n2inject_evap; k++ ) {
-	// Velocity
-	do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
-	r2 = RAND * TWOPI;
-	pa->vr.push_back( r1*cos(r2)*v_inj_i ); // do not suppress
-	pa->vt.push_back( r1*sin(r2)*v_inj_i ); // do not suppress
-	
-	do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
-	pa->vz.push_back( r1*v_inj_i );
-	
-	// Position
-	pa->z.push_back( zmin + pa->vz.back() );
+        // Velocity
+        do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
+        r2 = RAND * TWOPI;
+        pa->vr.push_back( r1*cos(r2)*v_inj_i ); // do not suppress
+        pa->vt.push_back( r1*sin(r2)*v_inj_i ); // do not suppress
 
-	if ( Rborder <= i ) {
-	  pa->r.push_back( sqrt( (2*i+1)*RAND + SQU(i) ) + pa->vr.back() );
-	}
-	else if ( (Rborder > i) && (Rborder < i+1) ) {
-	  pa->r.push_back( sqrt( ( SQU(i+1)-SQU(Rborder) )*RAND + SQU(Rborder) ) + pa->vr.back());
-	}
-	
-	if ( pa->r.back() < 0 ) pa->r.back() = 1.e-20;
-	else if (pa->r.back() > nr) pa->r.back() = 2*nr - pa->r.back();
-	
-	pa->m.push_back( 1 ); //SN;
-	
+        do { r1 = sqrt(-2.*log(RAND+1.e-20)); } while( r1 > 5. );
+        pa->vz.push_back( r1*v_inj_i );
+
+        // Position
+        pa->z.push_back( zmin + pa->vz.back() );
+
+        if ( Rborder <= i ) {
+          pa->r.push_back( sqrt( (2*i+1)*RAND + SQU(i) ) + pa->vr.back() );
+        }
+        else if ( (Rborder > i) && (Rborder < i+1) ) {
+          pa->r.push_back( sqrt( ( SQU(i+1)-SQU(Rborder) )*RAND + SQU(Rborder) ) + pa->vr.back());
+        }
+
+        if ( pa->r.back() < 0 ) {
+          pa->r.back() = 1.e-20;
+        }
+        else if (pa->r.back() > nr) {
+          pa->r.back() = 2*nr - pa->r.back();
+        }
+
+        pa->m.push_back( 1 ); //SN;
+
       }
       erosion             += n2inject_evap;
       emitted_evap_output += n2inject_evap;
@@ -693,8 +746,8 @@ void ArcOriginalNewHS::inject_n(ParticleSpecies* pa, double const Ez[]) {
   // Cathode, heat-spike sputtering
 
   //Threshold for heatspike sputtering [superparticles /  lambda_db^2 / t_inj_neutrals
-  double threshold = heatspike_threshold*(Ndb*n2inj_step*Omega_pe) / 
-    (4.1938226e7*n_ref*sqrt(T_ref));
+  double threshold = heatspike_threshold*(picConfig.Ndb*n2inj_step*picConfig.Omega_pe) / 
+                      (4.1938226e7*picConfig.n_ref*sqrt(picConfig.T_ref));
   
   if (heatspike_model == 'a' or heatspike_model == 'b') {
     unsigned int num_incident        = 0; //Number of superparticles in cells > threshold
@@ -706,17 +759,17 @@ void ArcOriginalNewHS::inject_n(ParticleSpecies* pa, double const Ez[]) {
     for (unsigned int i=0; i<nr; i++ ) {
       unsigned int cell_incident = sput_cathode_current[i];
       // Rescale current with area of cell / area Ldb^2
-      double current = cell_incident / ( PI * (2*i + 1) * SQU(dr) );
+      double current = cell_incident / ( PI * (2*i + 1) * SQU(picConfig.dr) );
       
       num_incident_inside += cell_incident;
       
       if ( current >= threshold ) {
-	num_incident += cell_incident;
-	
-	num_incident2 += num_incident_inside;
-	num_incident_inside = 0;
-	
-	sigma = i+1;
+        num_incident += cell_incident;
+
+        num_incident2 += num_incident_inside;
+        num_incident_inside = 0;
+
+        sigma = i+1;
       }
       
       sput_cathode_current[i] = 0;
@@ -735,11 +788,11 @@ void ArcOriginalNewHS::inject_n(ParticleSpecies* pa, double const Ez[]) {
     for (unsigned int i = 0; i<nr; i++) {
       unsigned int cell_incident = sput_cathode_current[i];
       num_incident += cell_incident;
-      double current = num_incident / ( PI*SQU((i+1)*dr) );
+      double current = num_incident / ( PI*SQU((i+1)*picConfig.dr) );
       
       if ( current >= threshold ) {
-	num_incident_inside = num_incident;
-	sigma = i+1;
+        num_incident_inside = num_incident;
+        sigma = i+1;
       }
       sput_cathode_current[i] = 0;
     }
@@ -780,6 +833,7 @@ void ArcOriginalNewHS::inject_n(ParticleSpecies* pa, double const Ez[]) {
   emitted_sputter_ano_output += (pa->GetN()-foo);
 
 }
+
 void ArcOriginalNewHS::inject_sput(ParticleSpecies* pa, vector<Sput> &sput, bool isCathode) {
   
   double r1, r2;
@@ -821,7 +875,7 @@ void ArcOriginalNewHS::inject_sput(ParticleSpecies* pa, vector<Sput> &sput, bool
 void ArcOriginalNewHS::timestep(unsigned int nstep, bool isOutputTimestep) {
   if ( !has_melted ) {
     if (do_erosion) {
-      beta_tip -= erosion * n_ref / ( Ndb * pow(Remission_theor*dz,3)) * 3.824131e-24; 
+      beta_tip -= erosion * picConfig.n_ref / ( picConfig.Ndb * pow(Remission_theor*picConfig.dz,3)) * 3.824131e-24; 
       if (beta_tip < beta_f) { beta_tip = beta_f; }
     }
     this->erosion = 0;
@@ -829,7 +883,8 @@ void ArcOriginalNewHS::timestep(unsigned int nstep, bool isOutputTimestep) {
 
   // Melting of the emitter due to Ohmic heating by FE current
   if (not has_melted && emitted_tip_melting > 
-      ( j_melt*Ndb*Omega_pe*SQU(Remission_theor*dz)*PI/6.7193e-12/n_ref/sqrt(T_ref) ) ) {
+      ( j_melt*picConfig.Ndb*picConfig.Omega_pe*SQU(Remission_theor*picConfig.dz)*PI / 
+        6.7193e-12/picConfig.n_ref/sqrt(picConfig.T_ref) ) ) {
     beta_tip = beta_f;
     has_melted = true;
   }
@@ -849,15 +904,15 @@ void ArcOriginalNewHS::writeFile_arcboundsOriginalDat(unsigned int nstep) {
   if ( nstep % file_timestep == 0) {
     if (nstep % n2inj_step == 0) {
       fprintf(ofile_arcboundsOriginalDat, "%11d %f %c %d %f %d %d %d %d %d %d %u %u\n", 
-	      nstep, beta_tip, (has_melted? 'y' : 'n'), emitted_tip_output, E_tip_loc, 
-	      emitted_flat_output, emitted_SEY_output, emitted_evap_output,
-	      emitted_sputter_cat_output, emitted_sputter_ano_output, emitted_heatspike_output,
-	      heatspike_sigma, heatspike_incident);
+        nstep, beta_tip, (has_melted? 'y' : 'n'), emitted_tip_output, E_tip_loc, 
+        emitted_flat_output, emitted_SEY_output, emitted_evap_output,
+        emitted_sputter_cat_output, emitted_sputter_ano_output, emitted_heatspike_output,
+        heatspike_sigma, heatspike_incident);
     }
     else {
       fprintf(ofile_arcboundsOriginalDat, "%11d %f %c %d %f %d %d -1 -1 -1 -1 -1 -1\n",
-	      nstep, beta_tip, (has_melted? 'y' : 'n'),  emitted_tip_output, E_tip_loc,
-	      emitted_flat_output, emitted_SEY_output);
+        nstep, beta_tip, (has_melted? 'y' : 'n'),  emitted_tip_output, E_tip_loc,
+        emitted_flat_output, emitted_SEY_output);
     }
     fflush(ofile_arcboundsOriginalDat);
     

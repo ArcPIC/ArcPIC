@@ -30,6 +30,8 @@
 #include "mydef.h"
 #undef XTRN
 
+#include "ArcPicConfig.h"
+
 #include <iostream>
 #include <cstdlib>
 #include <cstring>
@@ -107,12 +109,12 @@ UniformRestricted::UniformRestricted (std::vector<char*> options) {
 
 void UniformRestricted::init() {
   //Sanity checks
-  if (this->maxR > Rmax) {
-    printf("Error in UniformRestricted::init(): maxR=%g greater than the grid size Rmax %g\n", this->maxR, Rmax);
+  if (this->maxR > picConfig.Rmax) {
+    printf("Error in UniformRestricted::init(): maxR=%g greater than the grid size Rmax %g\n", this->maxR, picConfig.Rmax);
     exit(1);
   }
-  if (this->maxZ > Zmax) {
-    printf("Error in UniformRestricted::init(): maxZ=%g greater than the grid size Zmax %g\n", this->maxZ, Zmax);
+  if (this->maxZ > picConfig.Zmax) {
+    printf("Error in UniformRestricted::init(): maxZ=%g greater than the grid size Zmax %g\n", this->maxZ, picConfig.Zmax);
     exit(1);
   }
   if (this->minR < 0.0) {
@@ -135,11 +137,11 @@ void UniformRestricted::init() {
   //Volume to inject in:
   vol = PI*(SQU(maxR)-SQU(minR))*(maxZ-minZ); //[dZ^3]
   //Debye length (also calculated in init_reactions(), but init_reactions() runs later)
-  this->Ldb = 7.43e2*sqrt(T_ref/n_ref);
-  vol *= (this->Ldb)*(this->Ldb)*(this->Ldb)*dz*dz*dz; //[cm^3]
+  this->Ldb = 7.43e2*sqrt(picConfig.T_ref/picConfig.n_ref);
+  vol *= (this->Ldb)*(this->Ldb)*(this->Ldb)*picConfig.dz*picConfig.dz*picConfig.dz; //[cm^3]
   
   //Superparticle ratio (also in init_reactions(), but init_reactions() runs later)
-  this->N_sp = n_ref*(this->Ldb)*(this->Ldb)*(this->Ldb)/Ndb;
+  this->N_sp = picConfig.n_ref*(this->Ldb)*(this->Ldb)*(this->Ldb)/picConfig.Ndb;
   
   //Number of particles to inject pr. species
   num_inject = (size_t) (density*vol/(this->N_sp));
@@ -161,7 +163,7 @@ void UniformRestricted::print_par() {
   printf( " - num_inject      %zu \n",        num_inject );
 }
 void UniformRestricted::inject_e(ParticleSpecies* pa) {
-  double vInj = sqrt(Tinj/T_ref)*v_te;
+  double vInj = sqrt(Tinj/picConfig.T_ref)*picConfig.v_te;
   if (doInject_e) injector(pa, vInj);
 }
 void UniformRestricted::inject_n(ParticleSpecies* pa) {
@@ -170,7 +172,7 @@ void UniformRestricted::inject_n(ParticleSpecies* pa) {
     exit(1);
   }
 
-  double vInj = dt_ion * sqrt(1/M_ions[Lastion]) * sqrt(Tinj/T_ref)*v_te;
+  double vInj = dt_ion * sqrt(1/M_ions[Lastion]) * sqrt(Tinj/picConfig.T_ref)*picConfig.v_te;
   if (doInject_n) injector(pa, vInj);
 }
 void UniformRestricted::inject_i(ParticleSpecies* pa) {
@@ -179,7 +181,7 @@ void UniformRestricted::inject_i(ParticleSpecies* pa) {
     exit(1);
   }
   
-  double vInj = dt_ion * sqrt(1/pa->mass) * sqrt(Tinj/T_ref)*v_te;
+  double vInj = dt_ion * sqrt(1/pa->mass) * sqrt(Tinj/picConfig.T_ref)*picConfig.v_te;
   if (doInject_i) injector(pa, vInj);
 }
 
