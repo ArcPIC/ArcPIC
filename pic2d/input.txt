@@ -139,6 +139,12 @@ Remission       : 4.    Radius of injection of FN emitted e- from tip     [dz]
 Remission_theor : 0.56418958354775628 Radius of tip, used for current calc [dz]
 file_timestep   : 1     How often to write to 'arcbounds.dat'             [dt]
 ///
+*** ArcBohm
+v_injAnode_ion  : 10.5  Injection velocity from the anode                 [dz/dt]
+v_injAnode_temp : 5.0   Injection temperature from the anode              [eV]
+rate_injAnode   : 10.0  Number of ions to inject per timstep per area     [ions/dt/dz^2]
+maxR_injAnode   : 100   Maximum radius to inject                          [dz]
+///
 *** END
 
 * Circuit parameters *

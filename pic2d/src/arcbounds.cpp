@@ -38,6 +38,7 @@
 #include "arcbound_flexFN2.h"
 #include "arcbound_flexFN2_tableNeutrals.h"
 #include "arcbound_sumTipFNField.h"
+#include "arcbound_bohm.h"
 
 #include "input.h"
 
@@ -88,6 +89,9 @@ ArcBounds* ArcBounds::LoadArcBounds(FILE* in_file) {
   }
   else if (! strncmp(arcBoundsType, "SumTipFNField", NAME_MAXLEN) ) {
     ret = new SumTipFNField(options);
+  }
+  else if (! strncmp(arcBoundsType, "ArcBohm", NAME_MAXLEN) ) {
+    ret = new ArcBohm(options);
   }
 
   else {
