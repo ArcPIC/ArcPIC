@@ -48,7 +48,7 @@ Injection timestep in dt, neutrals:     5
 Injection timestep in dt, ions:         10
 
 * Particle boundary parameters *
-ArcBoundName: ArcOriginalNewHS
+ArcBoundName: ArcBohm
 *** ArcSimple
 ne_inject       : 10    Number of electrons to inject/timestep
 ni_inject       : 10    Number of ions (type 1, Cu+) to inject/timestep
@@ -144,6 +144,7 @@ v_injAnode_ion  : 10.5  Injection velocity from the anode                 [dz/dt
 v_injAnode_temp : 5.0   Injection temperature from the anode              [eV]
 rate_injAnode   : 10.0  Number of ions to inject per timstep per area     [ions/dt/dz^2]
 maxR_injAnode   : 100   Maximum radius to inject                          [dz]
+file_timestep   : 1     How often to write to 'arcbounds.dat'             [dt]
 ///
 *** END
 
