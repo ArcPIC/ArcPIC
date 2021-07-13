@@ -1,5 +1,14 @@
 Installing 2D ArcPIC
 ====================
+**START NOTE:**
+
+This describes the installation of 2D ArcPIC version 3, which is accessed with the git tag `v3`.
+
+The current version contains quite a few bugfixes, important new features like binary output files, and has a more robust "skeleton" which is intended to soon support more particles etc. This version is compiled using `cmake`. For now, please see the git history for what has changed.
+
+Importantly, it is not reccomended to base new development on the old version 3.
+
+**END NOTE**
 
 This document describes the installation, compilation, and running of the 2D ArcPIC code.
 The sources for this code is located in the pic2d sub-directory.
@@ -19,7 +28,7 @@ As the installation of these support libraries are documented on their respectiv
 Downloading 2D ArcPIC
 ---------------------
 
-2D ArcPIC is distributed through our [GitHUB repository](https://github.com/htimko/ArcPIC). To obtain a copy, simply run `git clone https://github.com/htimko/ArcPIC.git`
+2D ArcPIC is distributed through our [GitHub repository](https://github.com/ArcPIC/ArcPIC). To obtain a copy, simply run `git clone https://github.com/ArcPIC/ArcPIC.git`.
 
 Building 2D ArcPIC
 ------------------
