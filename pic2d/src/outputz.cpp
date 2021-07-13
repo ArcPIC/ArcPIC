@@ -38,7 +38,7 @@
 ***************************/
 
 void out_fv_along_2D( double fvz[], double fvr[], double fvabs[], int nr, int nz,
-		      const char *dat1, const char *dat2, const char *dat3 ) {
+                      const char *dat1, const char *dat2, const char *dat3 ) {
   FILE *file1, *file2, *file3;
   int j, k, n;
   int halfnr = nr/2;
@@ -52,9 +52,9 @@ void out_fv_along_2D( double fvz[], double fvr[], double fvabs[], int nr, int nz
     for (k=0; k<halfnz; k++) {
       
       for (n=0; n < Nvdst; n++) {
-	fprintf(file1, "% .5e ", fvz[n + Nvdst*(j*(nz/2)+k)]);
-	fprintf(file2, "% .5e ", fvr[n + Nvdst*(j*(nz/2)+k)]);
-	fprintf(file3, "% .5e ", fvabs[n + Nvdst*(j*(nz/2)+k)]);
+        fprintf(file1, "% .5e ", fvz[n + Nvdst*(j*(nz/2)+k)]);
+        fprintf(file2, "% .5e ", fvr[n + Nvdst*(j*(nz/2)+k)]);
+        fprintf(file3, "% .5e ", fvabs[n + Nvdst*(j*(nz/2)+k)]);
       }
       
       fprintf(file1, "\n");
@@ -70,7 +70,7 @@ void out_fv_along_2D( double fvz[], double fvr[], double fvabs[], int nr, int nz
 }
 
 void out_fv_along_2D_h5( double fvz[], double fvr[], double fvabs[], int nr, int nz,
-			 const char* const tablename_z, const char* const tablename_r, const char* const tablename_abs, H5::Group& group_veldist ) {
+                         const char* const tablename_z, const char* const tablename_r, const char* const tablename_abs, H5::Group& group_veldist ) {
   int halfnr = nr/2;
   int halfnz = nz/2;
   
@@ -99,9 +99,9 @@ void out_fv_along_2D_h5( double fvz[], double fvr[], double fvabs[], int nr, int
       double databuffer_r   [Nvdst];
       double databuffer_abs [Nvdst];
       for (ssize_t n=0; n < Nvdst; n++) {
-	databuffer_z[n]   = fvz[n + Nvdst*(j*(nz/2)+k)];
-	databuffer_r[n]   = fvr[n + Nvdst*(j*(nz/2)+k)];
-	databuffer_abs[n] = fvabs[n + Nvdst*(j*(nz/2)+k)];
+        databuffer_z[n]   = fvz[n + Nvdst*(j*(nz/2)+k)];
+        databuffer_r[n]   = fvr[n + Nvdst*(j*(nz/2)+k)];
+        databuffer_abs[n] = fvabs[n + Nvdst*(j*(nz/2)+k)];
       }
       const hssize_t offset_memInFile_shift[] = {j,k,0};
       double databuffer[] = {1,2,3};
@@ -119,7 +119,7 @@ void out_fv_along_2D_h5( double fvz[], double fvr[], double fvabs[], int nr, int
 
 
 void out_dens_2D( double dens_av[], int n_aver, double sign, int nr, int nz, int NZ, double Omega_pe,
-		  double dr, double dz, const char *dat_p ) {
+                  double dr, double dz, const char *dat_p ) {
   FILE *file_p;
   double fp;
   int j, k;
@@ -141,7 +141,7 @@ void out_dens_2D( double dens_av[], int n_aver, double sign, int nr, int nz, int
 }
 
 void out_dens_2D_h5( double dens_av[], int n_aver, double sign, int nr, int nz, int NZ, double Omega_pe,
-		     double dr, double dz, const char* const tablename, H5::Group& group_dens ) {
+                     double dr, double dz, const char* const tablename, H5::Group& group_dens ) {
   
   if (n_aver < 1)  n_aver = 1;
 
@@ -172,8 +172,8 @@ void out_dens_2D_h5( double dens_av[], int n_aver, double sign, int nr, int nz, 
 
 
 void out_phi_2D( double phi[], int n_aver, int nr, int nz, int NZ,
-		 double Omega_pe, double dr, double dz,
-		 const char *dat1 ) {
+                 double Omega_pe, double dr, double dz,
+                 const char *dat1 ) {
 
   FILE *file1;
   double f1;
@@ -194,8 +194,8 @@ void out_phi_2D( double phi[], int n_aver, int nr, int nz, int NZ,
 }
 
 void out_phi_2D_h5( double phi[], int n_aver, int nr, int nz, int NZ,
-		    double Omega_pe, double dr, double dz,
-		    const char* const tablename, H5::Group& group_emfield ) {
+                    double Omega_pe, double dr, double dz,
+                    const char* const tablename, H5::Group& group_emfield ) {
   
   if( n_aver < 1 )  n_aver = 1;
   
@@ -225,7 +225,7 @@ void out_phi_2D_h5( double phi[], int n_aver, int nr, int nz, int NZ,
 
 
 void out_efield_2D( double efield_z[], double efield_r[], int n_aver, int nr, int nz, int NZ,
-		    double Omega_pe, double dr, double dz, const char *dat1, const char *dat2 ) {
+                    double Omega_pe, double dr, double dz, const char *dat1, const char *dat2 ) {
 
   FILE *file1, *file2;
   double f1;
@@ -250,8 +250,8 @@ void out_efield_2D( double efield_z[], double efield_r[], int n_aver, int nr, in
 }
 
 void out_efield_2D_h5( double efield_z[], double efield_r[], int n_aver, int nr, int nz, int NZ,
-		       double Omega_pe, double dr, double dz,
-		       const char* const tablename, H5::Group& group_emfield ) {
+                       double Omega_pe, double dr, double dz,
+                       const char* const tablename, H5::Group& group_emfield ) {
   
   if( n_aver < 1 )  n_aver = 1;
   
@@ -283,7 +283,7 @@ void out_efield_2D_h5( double efield_z[], double efield_r[], int n_aver, int nr,
 }
 
 void out_vels_2D( Moments  mom[], int nr, int nz, int NZ, double u0,
-		  double dr, double dz, const char *dat1, const char *dat2, const char *dat3 ) {
+                  double dr, double dz, const char *dat1, const char *dat2, const char *dat3 ) {
 
   FILE *file1, *file2, *file3;
   int j, k;
@@ -294,12 +294,12 @@ void out_vels_2D( Moments  mom[], int nr, int nz, int NZ, double u0,
     for (k=0; k<nz; k++) {
       
       if( mom[j*NZ+k].n > 1 ) {
-	mom[j*NZ+k].uz /= (u0*mom[j*NZ+k].n);
-	mom[j*NZ+k].ur /= (u0*mom[j*NZ+k].n);
-	mom[j*NZ+k].ut /= (u0*mom[j*NZ+k].n);
+        mom[j*NZ+k].uz /= (u0*mom[j*NZ+k].n);
+        mom[j*NZ+k].ur /= (u0*mom[j*NZ+k].n);
+        mom[j*NZ+k].ut /= (u0*mom[j*NZ+k].n);
       }
       else {
-	mom[j*NZ+k].uz = mom[j*NZ+k].ur = mom[j*NZ+k].ut = 0.;
+        mom[j*NZ+k].uz = mom[j*NZ+k].ur = mom[j*NZ+k].ut = 0.;
       }
     }
   }
@@ -323,20 +323,20 @@ void out_vels_2D( Moments  mom[], int nr, int nz, int NZ, double u0,
 }
 
 void out_vels_2D_h5( Moments  mom[], int nr, int nz, int NZ, double u0,
-		     double dr, double dz,
-		     const char* const tablename1, const char* const tablename2, const char* const tablename3, H5::Group& group_velavg ) {
+                     double dr, double dz,
+                     const char* const tablename1, const char* const tablename2, const char* const tablename3, H5::Group& group_velavg ) {
   
   u0 = MAX(u0,1.e-10);
 
   for (size_t j=0; j<nr; j++) {
     for (size_t k=0; k<nz; k++) {
       if( mom[j*NZ+k].n > 1 ) {
-	mom[j*NZ+k].uz /= (u0*mom[j*NZ+k].n);
-	mom[j*NZ+k].ur /= (u0*mom[j*NZ+k].n);
-	mom[j*NZ+k].ut /= (u0*mom[j*NZ+k].n);
+        mom[j*NZ+k].uz /= (u0*mom[j*NZ+k].n);
+        mom[j*NZ+k].ur /= (u0*mom[j*NZ+k].n);
+        mom[j*NZ+k].ut /= (u0*mom[j*NZ+k].n);
       }
       else {
-	mom[j*NZ+k].uz = mom[j*NZ+k].ur = mom[j*NZ+k].ut = 0.;
+        mom[j*NZ+k].uz = mom[j*NZ+k].ur = mom[j*NZ+k].ut = 0.;
       }
     }
   }
@@ -383,8 +383,8 @@ void out_vels_2D_h5( Moments  mom[], int nr, int nz, int NZ, double u0,
 
 
 void out_temps_2D( Moments  mom[], double u0, double fnorm, int nr, int nz, int NZ,
-		   double dr, double dz,
-		   const char *dat1, const char *dat2, const char *dat3 ) {
+                   double dr, double dz,
+                   const char *dat1, const char *dat2, const char *dat3 ) {
 
   FILE *file1, *file2, *file3;
   int j, k;
@@ -393,12 +393,12 @@ void out_temps_2D( Moments  mom[], double u0, double fnorm, int nr, int nz, int 
     for (k=0; k<nz; k++) {
       
       if( mom[j*NZ+k].n > 1 ) {
-	mom[j*NZ+k].tz = ( mom[j*NZ+k].tz/(u0*u0*mom[j*NZ+k].n) - SQU(mom[j*NZ+k].uz) )*fnorm;
-	mom[j*NZ+k].tr = ( mom[j*NZ+k].tr/(u0*u0*mom[j*NZ+k].n) - SQU(mom[j*NZ+k].ur) )*fnorm;
-	mom[j*NZ+k].tt = ( mom[j*NZ+k].tt/(u0*u0*mom[j*NZ+k].n) - SQU(mom[j*NZ+k].ut) )*fnorm;
+        mom[j*NZ+k].tz = ( mom[j*NZ+k].tz/(u0*u0*mom[j*NZ+k].n) - SQU(mom[j*NZ+k].uz) )*fnorm;
+        mom[j*NZ+k].tr = ( mom[j*NZ+k].tr/(u0*u0*mom[j*NZ+k].n) - SQU(mom[j*NZ+k].ur) )*fnorm;
+        mom[j*NZ+k].tt = ( mom[j*NZ+k].tt/(u0*u0*mom[j*NZ+k].n) - SQU(mom[j*NZ+k].ut) )*fnorm;
       }
       else {
-	mom[j*NZ+k].tz = mom[j*NZ+k].tr = mom[j*NZ+k].tt = 0.;
+        mom[j*NZ+k].tz = mom[j*NZ+k].tr = mom[j*NZ+k].tt = 0.;
       }
       
     }
@@ -423,19 +423,19 @@ void out_temps_2D( Moments  mom[], double u0, double fnorm, int nr, int nz, int 
 }
 
 void out_temps_2D_h5( Moments  mom[], double u0, double fnorm, int nr, int nz, int NZ,
-		      double dr, double dz,
-		      const char* const tablename1, const char* const tablename2, const char* const tablename3, H5::Group& group_temp ) {
+                      double dr, double dz,
+                      const char* const tablename1, const char* const tablename2, const char* const tablename3, H5::Group& group_temp ) {
   
   for (size_t j=0; j<nr; j++) {
     for (size_t k=0; k<nz; k++) {
       
       if( mom[j*NZ+k].n > 1 ) {
-	mom[j*NZ+k].tz = ( mom[j*NZ+k].tz/(u0*u0*mom[j*NZ+k].n) - SQU(mom[j*NZ+k].uz) )*fnorm;
-	mom[j*NZ+k].tr = ( mom[j*NZ+k].tr/(u0*u0*mom[j*NZ+k].n) - SQU(mom[j*NZ+k].ur) )*fnorm;
-	mom[j*NZ+k].tt = ( mom[j*NZ+k].tt/(u0*u0*mom[j*NZ+k].n) - SQU(mom[j*NZ+k].ut) )*fnorm;
+        mom[j*NZ+k].tz = ( mom[j*NZ+k].tz/(u0*u0*mom[j*NZ+k].n) - SQU(mom[j*NZ+k].uz) )*fnorm;
+        mom[j*NZ+k].tr = ( mom[j*NZ+k].tr/(u0*u0*mom[j*NZ+k].n) - SQU(mom[j*NZ+k].ur) )*fnorm;
+        mom[j*NZ+k].tt = ( mom[j*NZ+k].tt/(u0*u0*mom[j*NZ+k].n) - SQU(mom[j*NZ+k].ut) )*fnorm;
       }
       else {
-	mom[j*NZ+k].tz = mom[j*NZ+k].tr = mom[j*NZ+k].tt = 0.;
+        mom[j*NZ+k].tz = mom[j*NZ+k].tr = mom[j*NZ+k].tt = 0.;
       }
       
     }
@@ -481,7 +481,7 @@ void out_temps_2D_h5( Moments  mom[], double u0, double fnorm, int nr, int nz, i
 }
 
 void out_coords_2D( ParticleSpecies* pa, int fnorm,
-		    double omega_pe, double dz, const char *dat ) {
+                    double omega_pe, double dz, const char *dat ) {
   FILE *file;
   double vnorm = dz/omega_pe/fnorm;
   
@@ -489,7 +489,7 @@ void out_coords_2D( ParticleSpecies* pa, int fnorm,
   
   for (size_t i=0; i < pa->GetN(); i++)  {
     fprintf(file, "% .5e % .5e % .5e % .5e % .5e \n", (pa->z[i])*dz, (pa->r[i])*dz,
-	    (pa->vz[i])*vnorm, (pa->vr[i])*vnorm, (pa->vt[i])*vnorm);
+            (pa->vz[i])*vnorm, (pa->vr[i])*vnorm, (pa->vt[i])*vnorm);
   }
   
   fclose(file);
@@ -497,8 +497,8 @@ void out_coords_2D( ParticleSpecies* pa, int fnorm,
 }
 
 void out_coords_2D_h5( ParticleSpecies* pa, int fnorm,
-		       double omega_pe, double dz,
-		       const char* const tablename, H5::Group& group_coords ) {
+                       double omega_pe, double dz,
+                       const char* const tablename, H5::Group& group_coords ) {
   
   double vnorm = dz/omega_pe/fnorm;
 
@@ -551,8 +551,8 @@ H5::H5File* createH5File_timestep(const int nsteps, std::string basename){
 ***************************/
 
 void diagn_stability_2D( const double dens[], Particle pa[], double diag_Te[], double diag_ve[], double diag_ne[],
-			 double sign, int np, double u0, int nr, int nz, int NR, int NZ, double Omega_pe,
-			 double dr, double dz, int steps, int& check, const char *dat_err ) {
+                         double sign, int np, double u0, int nr, int nz, int NR, int NZ, double Omega_pe,
+                         double dr, double dz, int steps, int& check, const char *dat_err ) {
 
   double ne_max = 0., ne_max_old = 0.;
   double ne_av = 0., ne_av_old = 0.; // average over all k's
@@ -575,11 +575,11 @@ void diagn_stability_2D( const double dens[], Particle pa[], double diag_Te[], d
     for (int k=0; k<NZ; k++) {
       ne_av_old += sign*dens[j*NZ+k];
       ne_max_old = sign*dens[j*NZ+k];
-      
+
       if ( ne_max < ne_max_old ) {
-	ne_max = ne_max_old;
-	ne_max_j = j;
-	ne_max_k = k;
+        ne_max = ne_max_old;
+        ne_max_j = j;
+        ne_max_k = k;
       }
     }
     if ( ne_av < ne_av_old ) {
@@ -628,9 +628,9 @@ void diagn_stability_2D( const double dens[], Particle pa[], double diag_Te[], d
       noT_max_old = diag_ne[j*NZ+k]/diag_Te[j*NZ+k];
       
       if ( noT_max < noT_max_old ) {
-	noT_max = noT_max_old;
-	noT_max_j = j;
-	noT_max_k = k;
+        noT_max = noT_max_old;
+        noT_max_j = j;
+        noT_max_k = k;
       }
     }
     if ( noT_av < noT_av_old ) {
@@ -672,8 +672,8 @@ void diagn_stability_2D( const double dens[], Particle pa[], double diag_Te[], d
 }
 
 void diagn_av_stability( const double dens[], double diag_Te[], double diag_ne[], int n_av,
-			 double sign, double u0, int nr, int nz, int NR, int NZ, double Omega_pe,
-			 double dr, double dz, int steps, int *check, const char *dat_err ) {
+                         double sign, double u0, int nr, int nz, int NR, int NZ, double Omega_pe,
+                         double dr, double dz, int steps, int *check, const char *dat_err ) {
 
   double ne_max = 0., ne_max_old = 0.;
   double ne_av = 0., ne_av_old = 0.; // average over all k's
@@ -696,9 +696,9 @@ void diagn_av_stability( const double dens[], double diag_Te[], double diag_ne[]
       ne_max_old = sign*dens[j*NZ+k];
       
       if ( ne_max < ne_max_old ) {
-	ne_max = ne_max_old;
-	ne_max_j = j;
-	ne_max_k = k;
+        ne_max = ne_max_old;
+        ne_max_j = j;
+        ne_max_k = k;
       }
     }
     if ( ne_av < ne_av_old ) {
@@ -716,14 +716,14 @@ void diagn_av_stability( const double dens[], double diag_Te[], double diag_ne[]
       diag_Te[j*NZ+k] /= SQU(u0);
       
       if ( diag_Te[j*NZ+k] > 1e-20 ) {
-	noT_av_old += sign*dens[j*NZ+k]/diag_Te[j*NZ+k];
-	noT_max_old = sign*dens[j*NZ+k]/diag_Te[j*NZ+k];
+        noT_av_old += sign*dens[j*NZ+k]/diag_Te[j*NZ+k];
+        noT_max_old = sign*dens[j*NZ+k]/diag_Te[j*NZ+k];
       }
       
       if ( noT_max < noT_max_old ) {
-	noT_max = noT_max_old;
-	noT_max_j = j;
-	noT_max_k = k;
+        noT_max = noT_max_old;
+        noT_max_j = j;
+        noT_max_k = k;
       }
     }
     if ( noT_av < noT_av_old ) {

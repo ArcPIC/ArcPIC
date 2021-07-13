@@ -333,7 +333,7 @@ int main () {
     // I. GET POTENTIAL
     H5::Group group_emfield_0;
     if ( BINARY_OUTPUT ) {
-      H5::Group group_emfield_0 = h5OutFile_0->createGroup("/EMFIELD");
+      group_emfield_0 = h5OutFile_0->createGroup("/EMFIELD");
       out_phi_2D_h5(phi, 1, nr, nz, NZ, picConfig.Omega_pe, picConfig.dr, picConfig.dz, "POTENTIAL0", group_emfield_0);
     }
     else{
